@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP, NoImplicitPrelude #-}
+
 {-|
 
 exports:
@@ -36,6 +37,7 @@ import Control.Arrow   as X ((>>>),(<<<))
 import Data.Set        as X (Set)
 import Data.Map        as X (Map)
 import Numeric.Natural as X (Natural)
+import Data.Proxy      as X (Proxy(..))
 
 #if MIN_VERSION_base(4,8,0)
 #else

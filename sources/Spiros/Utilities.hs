@@ -1,11 +1,17 @@
 {-# LANGUAGE CPP, NoImplicitPrelude #-}
-{-# LANGUAGE RankNTypes, TypeOperators, LambdaCase #-}
+{-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
+{-# LANGUAGE PolyKinds, KindSignatures #-}
+
 module Spiros.Utilities where
 
+import Data.Vinyl.Functor
+
+import Data.Functor.Product
 import Control.Arrow ((>>>),(<<<))
 import Control.Exception (SomeException)
 import Control.Concurrent (threadDelay)
 import Control.Monad.IO.Class
+import Data.Proxy
 
 import Prelude hiding ((<),(>))
 import qualified Prelude
@@ -81,19 +87,43 @@ fake dictionary literal syntax:
 (-:) = (,)
 infix 1 -:
 
--- | reverse @cons@
-snoc :: [a] -> a -> [a]
-snoc xs x = xs ++ [x]
+todo :: a --TODO call stack
+todo = error "TODO"
+
+__BUG__ :: SomeException -> a --TODO callstack
+__BUG__ = error . show
+
+-- | (from vinyl)
+type I = Identity
+
+-- | (from vinyl)
+type C = Const
+
+type P = Proxy
 
 -- | a natural transformation
 type (:~>) f g = forall x. f x -> g x
 
--- | @($>) = flip ('<$')@
-($>) :: (Functor f) => f a -> b -> f b
-($>) = flip (<$)
+-- |
+type (:*:) = Product
 
-__BUG__ :: SomeException -> a --TODO callstack
-__BUG__ = error . show
+-- |
+type (f :. g) x = f (g x)
+
+-- | (from vinyl)
+type (:.:) = Compose
+
+pattern I :: a -> Identity a
+pattern I x = Identity x
+
+pattern C :: forall a (b :: k). a -> Const a b
+pattern C x = Const x
+
+pattern P :: forall (a :: k). Proxy a
+pattern P = Proxy
+
+pattern (:*:) :: f a -> g a -> Product f g a
+pattern f :*: g = (Pair f g)
 
 nothing :: (Monad m) => m ()
 nothing = return ()
@@ -115,6 +145,14 @@ list2maybe = \case
  [] -> Nothing
  (x:_) -> Just x
 
+-- | reverse @cons@
+snoc :: [a] -> a -> [a]
+snoc xs x = xs ++ [x]
+
+-- | @($>) = flip ('<$')@
+($>) :: (Functor f) => f a -> b -> f b
+($>) = flip (<$)
+
 delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds = liftIO . threadDelay . (*1000)
 
@@ -125,6 +163,3 @@ delayMilliseconds = liftIO . threadDelay . (*1000)
 -}
 toInt :: (Integral a) => a -> Int
 toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
-
-todo :: a --TODO call stack
-todo = error "TODO"
