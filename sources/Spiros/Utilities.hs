@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP, NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
 {-# LANGUAGE PolyKinds, KindSignatures #-}
+{-# OPTIONS_HADDOCK not-home #-}
 
 module Spiros.Utilities where
 

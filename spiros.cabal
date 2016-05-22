@@ -1,7 +1,7 @@
 name:                spiros
 version:             0.0.0
-synopsis:            TODO
-description:         TODO
+synopsis:            my custom prelude
+description:         my custom prelude. diverges from base's; adding, removing, and shadowing.
 homepage:            http://github.com/sboosali/spiros#readme
 license:             BSD3
 license-file:        LICENSE

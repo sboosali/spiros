@@ -4,9 +4,10 @@
 
 exports:
 
-* single-character composition, i.e. '(>)' an '(<)'
-* frequently(/universally) derived classes,
+* single-character composition, i.e. ('>') an ('<')
+* universally (or frequently) derived classes,
 i.e. @deriving (...,'Data','Generic','NFData','Semigroup')@
+* and more (see source)
 
 hides:
 
