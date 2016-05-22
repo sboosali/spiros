@@ -1,42 +1,71 @@
+{-# LANGUAGE CPP, NoImplicitPrelude #-}
 {-|
 
+exports:
+
+* single-character composition, i.e. '(>)' an '(<)'
+* frequently(/universally) derived classes,
+i.e. @deriving (...,'Data','Generic','NFData','Semigroup')@
+
+hides:
+
+* partial functions, e.g. 'head'
 
 see:
 
-<http://www.stephendiehl.com/posts/protolude.html>
+* <http://www.stephendiehl.com/posts/protolude.html>
 
 -}
 module Prelude.Spiros
- ( module Prelude.Spiros
+ ( module Base
+ , module X -- re-eXports
+ )
+where
 
- , module Control.DeepSeq
- , module Data.Semigroup
+import Spiros.Utilities as X
 
- , module GHC.Generics
- , module Data.Data
- , module Control.Arrow
+import Control.DeepSeq as X (NFData)
+import Data.Semigroup  as X (Semigroup)
+import Safe            as X
 
- , module Data.Function
- ) where
+import GHC.Generics    as X (Generic)
+import Data.Data       as X (Data)
+import Data.Function   as X ((&),on)
+import Data.Foldable   as X (traverse_)
+import Control.Arrow   as X ((>>>),(<<<))
+import Data.Set        as X (Set)
+import Data.Map        as X (Map)
+import Numeric.Natural as X (Natural)
 
-import Control.DeepSeq (NFData)
-import Data.Semigroup (Semigroup)
+#if MIN_VERSION_base(4,8,0)
+#else
+import Data.Functor((<$>))
+import Data.Monoid(Monoid(..))
+import Control.Applicative(Applicative(..))
+#endif
 
-import GHC.Generics (Generic)
-import Data.Data (Data)
-import Control.Arrow ((>>>))
+import Data.List as Base hiding
+ ( minimumBy
+ , maximumBy
+ , (!!)
+ , find
+ )
 
-import Data.Function ((&))
-
-
-nothing :: (Monad m) => m ()
-nothing = return ()
-
-maybe2bool :: Maybe a -> Bool
-maybe2bool = maybe False (const True)
-
-either2maybe :: Either e a -> Maybe a
-either2maybe = either (const Nothing) Just
-
-either2bool :: Either e a -> Bool
-either2bool = either (const False) (const True)
+import Prelude as Base hiding
+ ( (<), (>)
+ -- partials
+ , error, undefined
+ , tail
+ , init
+ , head
+ , last
+ , minimum
+ , maximum
+ , foldr1
+ , foldl1
+ , foldl1
+ , scanl1
+ , scanr1
+ , read
+ , toEnum
+ )
