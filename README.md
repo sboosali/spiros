@@ -5,4 +5,4 @@
 
 my custom prelude
 
-(packdeps.haskellers.com/reverse/spiros)[reverse dependencies]
+[reverse dependencies](packdeps.haskellers.com/reverse/spiros)
