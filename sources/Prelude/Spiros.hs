@@ -43,7 +43,7 @@ import Data.Proxy      as X (Proxy(..))
 #if MIN_VERSION_base(4,8,0)
 #else
 import Data.Functor((<$>))
-import Data.Monoid(Monoid(..))
+import Data.Monoid(Monoid(..),(<>))
 import Control.Applicative(Applicative(..))
 #endif
 
