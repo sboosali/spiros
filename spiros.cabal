@@ -37,6 +37,7 @@ library
 
  exposed-modules:
   Prelude.Spiros
+  Digit
 
  other-modules:
   Spiros.Utilities

@@ -26,8 +26,9 @@ where
 
 import Spiros.Utilities as X
 
-import Control.DeepSeq as X (NFData)
-import Data.Semigroup  as X (Semigroup)
+import Data.Hashable   as X (Hashable(..))
+import Control.DeepSeq as X (NFData(..))
+import Data.Semigroup  as X (Semigroup(..))
 import Safe            as X
 
 import GHC.Generics    as X (Generic)
@@ -42,9 +43,9 @@ import Data.Proxy      as X (Proxy(..))
 
 #if MIN_VERSION_base(4,8,0)
 #else
-import Data.Functor((<$>))
-import Data.Monoid(Monoid(..),(<>))
-import Control.Applicative(Applicative(..))
+import Data.Functor((<$>)) as X
+import Data.Monoid(Monoid(..)) as X
+import Control.Applicative(Applicative(..)) as X
 #endif
 
 import Data.List as Base hiding
