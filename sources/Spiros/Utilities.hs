@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, NoImplicitPrelude #-}
 {-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
-{-# LANGUAGE PolyKinds, KindSignatures #-}
+{-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds #-}
 {-# OPTIONS_HADDOCK not-home #-}
 
 module Spiros.Utilities where
@@ -13,9 +13,30 @@ import Control.Exception (SomeException)
 import Control.Concurrent (threadDelay)
 import Control.Monad.IO.Class
 import Data.Proxy
+import Data.String(IsString)
 
 import Prelude hiding ((<),(>))
 import qualified Prelude
+
+{-| for `interpolatedstring-perl6`
+i.e. the type supports string literals (via 'IsString') and can be appended (via 'Monoid').
+
+uses @ConstraintKinds@.
+
+e.g.
+
+@
+-- -XQuasiQuotes
+import Text.InterpolatedString.Perl6 (qq)
+
+hello :: (CanInterpolate t) => t -> t
+hello t = [qc| "hello" ++ $t |]
+
+helloworld = hello "world" :: String
+@
+
+-}
+type CanInterpolate t = (IsString t, Monoid t)
 
 {- | forwards composition
 
@@ -164,3 +185,20 @@ delayMilliseconds = liftIO . threadDelay . (*1000)
 -}
 toInt :: (Integral a) => a -> Int
 toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
+
+-- | safely-partial @(!)@
+index :: (Integral n, Num n) => [a] -> n -> Maybe a
+index [] _ = Nothing
+index (x:xs) n
+ | n == 0         = Just x
+ | n `lessThan` 0 = Nothing
+ | otherwise      = index xs (n-1)
+
+strip :: String -> String
+strip = rstrip . lstrip
+
+lstrip :: String -> String
+lstrip = dropWhile (`elem` (" \t\n\r"::String))
+
+rstrip :: String -> String
+rstrip = reverse . lstrip . reverse

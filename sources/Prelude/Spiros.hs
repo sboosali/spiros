@@ -30,6 +30,8 @@ import Data.Hashable   as X (Hashable(..))
 import Control.DeepSeq as X (NFData(..))
 import Data.Semigroup  as X (Semigroup(..))
 import Safe            as X
+import Data.Text.Lazy  as X (Text)
+import Data.Default.Class as X (Default(..))
 
 import GHC.Generics    as X (Generic)
 import Data.Data       as X (Data)
@@ -40,6 +42,7 @@ import Data.Set        as X (Set)
 import Data.Map        as X (Map)
 import Numeric.Natural as X (Natural)
 import Data.Proxy      as X (Proxy(..))
+import Control.Monad.IO.Class as X (MonadIO(..))
 
 #if MIN_VERSION_base(4,8,0)
 #else
