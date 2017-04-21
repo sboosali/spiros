@@ -10,8 +10,9 @@ import Data.Vinyl.Functor
 import Data.Functor.Product
 import Control.Arrow ((>>>),(<<<))
 import Control.Exception (SomeException)
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay,forkIO,ThreadId)
 import Control.Monad.IO.Class
+import Control.Monad (forever, void)
 import Data.Proxy
 import Data.String(IsString)
 
@@ -174,6 +175,16 @@ snoc xs x = xs ++ [x]
 -- | @($>) = flip ('<$')@
 ($>) :: (Functor f) => f a -> b -> f b
 ($>) = flip (<$)
+
+forkever_ :: IO () -> IO ()
+forkever_ = void . forkever Nothing
+
+forkever ::Maybe Int -> IO () -> IO ThreadId
+forkever t m = forkIO $ forever $ do
+	m
+	_delay
+    where
+    _delay = maybe nothing delayMilliseconds t
 
 delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds = liftIO . threadDelay . (*1000)
