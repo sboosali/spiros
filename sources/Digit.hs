@@ -33,5 +33,5 @@ parseDigit = \case
  "9" -> Just $ Digit 9
  _   -> Nothing
 
-isDigit :: (Integral a, Ord a) => a -> Maybe Digit
+isDigit :: (Integral a) => a -> Maybe Digit
 isDigit i = if 0 >= i && i <= 9 then Just (Digit (fromIntegral i)) else Nothing
