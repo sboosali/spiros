@@ -1,6 +1,11 @@
 resolver: lts-8.11
 compiler: ghc-8.0.2
 
+nix:
+#  enable: true
+  pure: true
+  packages: []
+
 packages:
 - .
 

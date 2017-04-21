@@ -43,12 +43,12 @@ import Data.Map        as X (Map)
 import Numeric.Natural as X (Natural)
 import Data.Proxy      as X (Proxy(..))
 import Control.Monad.IO.Class as X (MonadIO(..))
+import Control.Applicative as X
 
 #if MIN_VERSION_base(4,8,0)
 #else
-import Data.Functor((<$>)) as X
-import Data.Monoid(Monoid(..)) as X
-import Control.Applicative(Applicative(..)) as X
+import Data.Functor as X ((<$>))
+import Data.Monoid as X (Monoid(..))
 #endif
 
 import Data.List as Base hiding

@@ -154,6 +154,9 @@ nothing = return ()
 maybe2bool :: Maybe a -> Bool
 maybe2bool = maybe False (const True)
 
+maybe2either :: e -> Maybe a -> Either e a 
+maybe2either e = maybe (Left e) Right
+
 either2maybe :: Either e a -> Maybe a
 either2maybe = either (const Nothing) Just
 
@@ -198,7 +201,7 @@ toInt :: (Integral a) => a -> Int
 toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 
 -- | safely-partial @(!)@
-index :: (Integral n, Num n) => [a] -> n -> Maybe a
+index :: (Integral n) => [a] -> n -> Maybe a
 index [] _ = Nothing
 index (x:xs) n
  | n == 0         = Just x
@@ -213,3 +216,18 @@ lstrip = dropWhile (`elem` (" \t\n\r"::String))
 
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
+
+io :: MonadIO m => IO a -> m a
+io = liftIO
+
+-- | Infix flipped 'fmap'.
+--
+-- @
+-- ('<&>') = 'flip' 'fmap'
+-- @
+--
+-- NOTE: conflicts with the lens package 
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+as <&> f = f <$> as
+{-# INLINE (<&>) #-}
+
