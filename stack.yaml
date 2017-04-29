@@ -1,8 +1,9 @@
-resolver: lts-7.14
-compiler: ghc-8.0
+resolver: lts-8.12
+compiler: ghc-8.0.2
 
 nix:
-  enable: true
+   # enable: true  
+   # on NixOS (and/or Linux/OSX), you global stack.yaml can enable `nix`. otherwise, it's disabled. 
   pure: true
   packages: []
 
