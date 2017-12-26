@@ -1,23 +1,38 @@
-{-# LANGUAGE CPP, NoImplicitPrelude #-}
+{-# LANGUAGE CPP, NoImplicitPrelude, PackageImports #-}
 {-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
 {-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds #-}
 {-# OPTIONS_HADDOCK not-home #-}
 
 module Spiros.Utilities where
 
-import Data.Vinyl.Functor
+import "clock" System.Clock
+import "vinyl" Data.Vinyl.Functor
 
-import Data.Functor.Product
-import Control.Arrow ((>>>),(<<<))
-import Control.Exception (SomeException)
-import Control.Concurrent (threadDelay,forkIO,ThreadId)
-import Control.Monad.IO.Class
-import Control.Monad (forever, void)
-import Data.Proxy
-import Data.String(IsString)
+import "base" Data.Functor.Product
+import "base" Control.Arrow ((>>>),(<<<))
+import "base" Control.Exception (SomeException)
+import "base" Control.Concurrent (threadDelay,forkIO,ThreadId)
+import "base" Control.Monad (forever, void)
+import "base" Data.Proxy
+import "base" Data.String(IsString)
+import "base" Control.Monad.IO.Class
+
+import qualified "text" Data.Text      as TS
+import qualified "text" Data.Text.Lazy as TL
+
+import qualified "bytestring" Data.ByteString      as BS 
+import qualified "bytestring" Data.ByteString.Lazy as BL 
 
 import Prelude hiding ((<),(>))
 import qualified Prelude
+
+--------------------------------------------------------------------------------
+
+type StrictText = TS.Text
+type LazyText   = TL.Text 
+
+type StrictBytes = BS.ByteString
+type LazyBytes   = BL.ByteString
 
 {-| for `interpolatedstring-perl6`
 i.e. the type supports string literals (via 'IsString') and can be appended (via 'Monoid').
@@ -116,6 +131,9 @@ todo = error "TODO"
 __BUG__ :: SomeException -> a --TODO callstack
 __BUG__ = error . show
 
+__ERROR__ :: String -> a --TODO callstack
+__ERROR__ = error 
+
 -- | (from vinyl)
 type I = Identity
 
@@ -192,6 +210,9 @@ forkever t m = forkIO $ forever $ do
 delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds = liftIO . threadDelay . (*1000)
 
+delaySeconds :: (MonadIO m) => Int -> m ()
+delaySeconds = liftIO . threadDelay . (*1000) . (*1000)
+
 {-|
 
 (NOTE truncates large integral types).
@@ -231,3 +252,18 @@ io = liftIO
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
 
+type Seconds = Double
+
+-- | Call once to start, then call repeatedly to get the elapsed time since the first call.
+--   The time is guaranteed to be monotonic. This function is robust to system time changes.
+--
+-- > do f <- offsetTime; xs <- replicateM 10 f; return $ xs == sort xs
+--
+-- (inlined from the `extra` package)
+offsetTime :: IO (IO Seconds)
+offsetTime = do
+    start <- time
+    return $ do
+        end <- time
+        return $ 1e-9 * fromIntegral (toNanoSecs $ end - start)
+    where time = getTime Monotonic

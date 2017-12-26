@@ -52,28 +52,16 @@ library
   -- , mtl-prelude
   -- --  Reexports of most definitions from \"mtl\" and \"transformers\".
   , safe
+  , safe-exceptions 
+    -- re-exports exceptions
 
   , mtl
   , transformers
-
-  , stm
-  , vinyl
-  -- ??
-
-  -- , async
-  -- , parallel
-
-  , deepseq
-  , hashable
-  , semigroups
-
   , text
   , bytestring
-
-  , unordered-containers
+  , deepseq
   , containers
-  , vector               
-
+  , vector
   , time
   , process
   , directory
@@ -81,9 +69,25 @@ library
   -- , optparse-applicative >= 0.10  && <0.13
   -- , optparse-generic     >= 1.1.0 && <1.2
 
+--  , exceptions 
+  , hashable
+
+--  , semigroups
+ -- TODO when was nonempty list and semigroup introduced into base? 
+
+  , stm
+  , vinyl
   , split
-  , wl-pprint-text
   , data-default-class
+  , clock 
+  , unordered-containers
+
+  , prettyprinter 
+--  , wl-pprint-text
+  -- ??
+
+  -- , async
+  -- , parallel
 
   -- , interpolatedstring-perl6
   -- needs haskell-src-exts
