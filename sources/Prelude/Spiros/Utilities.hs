@@ -3,7 +3,7 @@
 {-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds #-}
 {-# OPTIONS_HADDOCK not-home #-}
 
-module Spiros.Utilities where
+module Prelude.Spiros.Utilities where
 
 import "clock" System.Clock
 import "vinyl" Data.Vinyl.Functor
@@ -16,6 +16,9 @@ import "base" Control.Monad (forever, void)
 import "base" Data.Proxy
 import "base" Data.String(IsString)
 import "base" Control.Monad.IO.Class
+import "base" GHC.Stack.Types (HasCallStack)
+
+import "safe-exceptions" Control.Exception.Safe 
 
 import qualified "text" Data.Text      as TS
 import qualified "text" Data.Text.Lazy as TL
@@ -23,8 +26,8 @@ import qualified "text" Data.Text.Lazy as TL
 import qualified "bytestring" Data.ByteString      as BS 
 import qualified "bytestring" Data.ByteString.Lazy as BL 
 
-import Prelude hiding ((<),(>))
-import qualified Prelude
+import "base" Prelude hiding ((<),(>))
+import qualified "base" Prelude
 
 --------------------------------------------------------------------------------
 
@@ -53,6 +56,44 @@ helloworld = hello "world" :: String
 
 -}
 type CanInterpolate t = (IsString t, Monoid t)
+  
+-- | (from vinyl)
+type I = Identity
+
+-- | (from vinyl)
+type C = Const
+
+type P = Proxy
+
+-- | a natural transformation
+type (:~>) f g = forall x. f x -> g x
+
+-- |
+type (:*:) = Product
+
+-- |
+type (f :. g) x = f (g x)
+
+-- | (from vinyl)
+type (:.:) = Compose
+
+pattern I :: a -> Identity a
+pattern I x = Identity x
+
+pattern C :: forall a (b :: k). a -> Const a b
+pattern C x = Const x
+
+pattern P :: forall (a :: k). Proxy a
+pattern P = Proxy
+
+pattern (:*:) :: f a -> g a -> Product f g a
+pattern f :*: g = (Pair f g)
+
+--------------------------------------------------------------------------------
+
+-- | 'throwString' 
+throwS :: (MonadThrow m, HasCallStack) => String -> m a
+throwS = throwString
 
 {- | forwards composition
 
@@ -127,44 +168,13 @@ infix 1 -:
 
 todo :: a --TODO call stack
 todo = error "TODO"
+{-# DEPRECATED todo "use { __ERROR__ \"TODO\" }" #-}
 
 __BUG__ :: SomeException -> a --TODO callstack
 __BUG__ = error . show
 
 __ERROR__ :: String -> a --TODO callstack
 __ERROR__ = error 
-
--- | (from vinyl)
-type I = Identity
-
--- | (from vinyl)
-type C = Const
-
-type P = Proxy
-
--- | a natural transformation
-type (:~>) f g = forall x. f x -> g x
-
--- |
-type (:*:) = Product
-
--- |
-type (f :. g) x = f (g x)
-
--- | (from vinyl)
-type (:.:) = Compose
-
-pattern I :: a -> Identity a
-pattern I x = Identity x
-
-pattern C :: forall a (b :: k). a -> Const a b
-pattern C x = Const x
-
-pattern P :: forall (a :: k). Proxy a
-pattern P = Proxy
-
-pattern (:*:) :: f a -> g a -> Product f g a
-pattern f :*: g = (Pair f g)
 
 nothing :: (Monad m) => m ()
 nothing = return ()
@@ -202,8 +212,8 @@ forkever_ = void . forkever Nothing
 
 forkever ::Maybe Int -> IO () -> IO ThreadId
 forkever t m = forkIO $ forever $ do
-	m
-	_delay
+    m
+    _delay
     where
     _delay = maybe nothing delayMilliseconds t
 

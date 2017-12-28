@@ -37,10 +37,10 @@ library
 
  exposed-modules:
   Prelude.Spiros
-  Digit
+  Data.Digit
 
  other-modules:
-  Spiros.Utilities
+  Prelude.Spiros.Utilities
 
  build-depends:
     base                 >= 4.6   && <5.0

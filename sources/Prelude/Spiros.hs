@@ -8,7 +8,9 @@ exports:
 * single-character composition, i.e. ('>') an ('<')
 * universally (or frequently) derived classes,
 i.e. @deriving (...,'Data','Generic','NFData','Semigroup')@
-* and more (see source)
+* @safe-exceptions@'s @'throw'@, which generalizes @IO@ to 'MonadThrow'
+* type names for common types (lazy text, lazy bytes, etc)
+* and more (see the source)
 
 hides:
 
@@ -25,7 +27,7 @@ module Prelude.Spiros
  )
 where
 
-import Spiros.Utilities                         as X
+import Prelude.Spiros.Utilities                         as X
 
 --------------------------------------------------------------------------------
 
