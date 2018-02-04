@@ -1,16 +1,18 @@
-{ mkDerivation, base, bytestring, containers, data-default-class
-, deepseq, directory, hashable, mtl, process, safe, semigroups
-, split, stdenv, stm, text, time, transformers
-, unordered-containers, vector, vinyl, wl-pprint-text
+{ mkDerivation, base, bytestring, clock, containers
+, data-default-class, deepseq, directory, hashable, mtl
+, prettyprinter, process, protolude, safe, safe-exceptions, split
+, stdenv, stm, text, time, transformers, unordered-containers
+, vector, vinyl
 }:
 mkDerivation {
   pname = "spiros";
-  version = "0.0.0";
+  version = "0.0.1";
   src = ./.;
   libraryHaskellDepends = [
-    base bytestring containers data-default-class deepseq directory
-    hashable mtl process safe semigroups split stm text time
-    transformers unordered-containers vector vinyl wl-pprint-text
+    base bytestring clock containers data-default-class deepseq
+    directory hashable mtl prettyprinter process protolude safe
+    safe-exceptions split stm text time transformers
+    unordered-containers vector vinyl
   ];
   homepage = "http://github.com/sboosali/spiros#readme";
   description = "my custom prelude";

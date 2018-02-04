@@ -9,7 +9,8 @@ result/
 result
 
 # Haskell
-dist
+dist/
+dist-newstyle/
 cabal-dev
 *.o
 *.hi
@@ -22,6 +23,7 @@ cabal.sandbox.config
 cabal.config
 report.html
 .stack-work/
+cabal.project.local
 
 # Emacs
 \#*
