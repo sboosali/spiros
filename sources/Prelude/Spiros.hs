@@ -44,6 +44,13 @@ import "safe-exceptions" Control.Exception.Safe as X -- TODO mv so module, like 
 -- import "unordered-containers" Data.HashSet        as X (HashSet)
 -- import "unordered-containers" Data.HashMap.Strict as X (HashMap)
 
+import "protolude" Protolude as X
+ ( StringConv (..)
+ , toS
+ , toSL
+ , Leniency (..)
+ )
+
 --------------------------------------------------------------------------------
 -- the standard library (i.e. the libraries GHC bootstraps with, and thus are always available)
 
