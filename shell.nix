@@ -255,7 +255,7 @@ myHaskellOverlaysWith = pkgs: self: super: let
    # Add Haskell Packages Below           #
    ######################################## 
 
-  protolude = hackage_ "protolude" "0.2.1";
+  # protolude = hackage_ "protolude" "0.2.1";
 
   vinyl = skipTests super.vinyl; 
 

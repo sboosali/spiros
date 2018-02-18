@@ -1,7 +1,7 @@
 { mkDerivation, base, bytestring, clock, containers
 , data-default-class, deepseq, directory, hashable, mtl
-, prettyprinter, process, protolude, safe, safe-exceptions, split
-, stdenv, stm, text, time, transformers, unordered-containers
+, prettyprinter, process, safe, safe-exceptions, split, stdenv, stm
+, string-conv, text, time, transformers, unordered-containers
 , vector, vinyl
 }:
 mkDerivation {
@@ -10,9 +10,9 @@ mkDerivation {
   src = ./.;
   libraryHaskellDepends = [
     base bytestring clock containers data-default-class deepseq
-    directory hashable mtl prettyprinter process protolude safe
-    safe-exceptions split stm text time transformers
-    unordered-containers vector vinyl
+    directory hashable mtl prettyprinter process safe safe-exceptions
+    split stm string-conv text time transformers unordered-containers
+    vector vinyl
   ];
   homepage = "http://github.com/sboosali/spiros#readme";
   description = "my custom prelude";
