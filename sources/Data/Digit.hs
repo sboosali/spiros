@@ -51,17 +51,17 @@ maximumDigit = 9
 fromDigit :: Digit -> Int
 fromDigit (Digit d) = d
 
-isDigit :: (Integral a) => a -> Maybe Digit
-isDigit i = if a <= i && i <= b
+toDigit :: (Integral a) => a -> Maybe Digit
+toDigit i = if a <= i && i <= b
   then Just $ Digit (fromIntegral i)
   else Nothing
   where
   a = minimumDigit 
   b = maximumDigit 
-{-# SPECIALIZE isDigit :: Int -> Maybe Digit #-}
+{-# SPECIALIZE toDigit :: Int -> Maybe Digit #-}
 
 unsafeDigit :: (Integral a) => a -> Digit
-unsafeDigit i = i & (isDigit >>> maybe (__ERROR__ e) id)
+unsafeDigit i = i & (toDigit >>> maybe (__ERROR__ e) id)
  where
  e = ("[spiros:Digit.unsafeDigit] a Digit must be a single-digit number")
 -- e = ("[spiros:Digit.unsafeDigit] " ++ show i ++ " is not a single-digit number") -- `show` forces Show constraint
@@ -131,7 +131,7 @@ parseDigit = \case
  "9" -> Just $ Digit 9
  _   -> Nothing
 
-isDigit :: (Integral a) => a -> Maybe Digit
-isDigit i = if 0 >= i && i <= 9 then Just (Digit (fromIntegral i)) else Nothing
+toDigit :: (Integral a) => a -> Maybe Digit
+toDigit i = if 0 >= i && i <= 9 then Just (Digit (fromIntegral i)) else Nothing
 
 -} 

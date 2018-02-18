@@ -1,22 +1,33 @@
 {-# LANGUAGE CPP, NoImplicitPrelude, PackageImports #-}
 {-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
-{-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds #-}
+{-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds, ScopedTypeVariables #-}
+
 {-# OPTIONS_HADDOCK not-home #-}
 
 module Prelude.Spiros.Utilities where
 
-import "clock" System.Clock
+--TODO import "clock" System.Clock
 import "vinyl" Data.Vinyl.Functor
 
+import "base" Data.Function ((&))
 import "base" Data.Functor.Product
 import "base" Control.Arrow ((>>>),(<<<))
-import "base" Control.Exception (SomeException)
+import "base" Control.Exception (SomeException,evaluate)
 import "base" Control.Concurrent (threadDelay,forkIO,ThreadId)
 import "base" Control.Monad (forever, void)
 import "base" Data.Proxy
 import "base" Data.String(IsString)
 import "base" Control.Monad.IO.Class
 import "base" GHC.Stack.Types (HasCallStack)
+import "base" Data.Foldable (sequenceA_)
+import "base" Data.Traversable (sequenceA)
+
+import           "base" Control.Category (Category)
+import qualified "base" Control.Category as Category
+import           "base" Data.Typeable
+import           "base" GHC.Exts (IsString(..))
+
+import "deepseq" Control.DeepSeq (NFData,force)
 
 import "safe-exceptions" Control.Exception.Safe 
 
@@ -26,16 +37,22 @@ import qualified "text" Data.Text.Lazy as TL
 import qualified "bytestring" Data.ByteString      as BS 
 import qualified "bytestring" Data.ByteString.Lazy as BL 
 
-import "base" Prelude hiding ((<),(>))
+import           "base" Prelude hiding ((<),(>))
 import qualified "base" Prelude
 
---------------------------------------------------------------------------------
+----------------------------------------
 
 type StrictText = TS.Text
 type LazyText   = TL.Text 
 
 type StrictBytes = BS.ByteString
 type LazyBytes   = BL.ByteString
+
+{-| a finite type,
+whose values may be enumerated into a finite list.
+
+-}
+type BoundedEnum a = (Enum a, Bounded a)
 
 {-| for `interpolatedstring-perl6`
 i.e. the type supports string literals (via 'IsString') and can be appended (via 'Monoid').
@@ -89,7 +106,7 @@ pattern P = Proxy
 pattern (:*:) :: f a -> g a -> Product f g a
 pattern f :*: g = (Pair f g)
 
---------------------------------------------------------------------------------
+----------------------------------------
 
 -- | 'throwString' 
 throwS :: (MonadThrow m, HasCallStack) => String -> m a
@@ -264,16 +281,82 @@ as <&> f = f <$> as
 
 type Seconds = Double
 
--- | Call once to start, then call repeatedly to get the elapsed time since the first call.
---   The time is guaranteed to be monotonic. This function is robust to system time changes.
---
--- > do f <- offsetTime; xs <- replicateM 10 f; return $ xs == sort xs
---
--- (inlined from the `extra` package)
-offsetTime :: IO (IO Seconds)
-offsetTime = do
-    start <- time
-    return $ do
-        end <- time
-        return $ 1e-9 * fromIntegral (toNanoSecs $ end - start)
-    where time = getTime Monotonic
+--TODO -- | Call once to start, then call repeatedly to get the elapsed time since the first call.
+-- --   The time is guaranteed to be monotonic. This function is robust to system time changes.
+-- --
+-- -- > do f <- offsetTime; xs <- replicateM 10 f; return $ xs == sort xs
+-- --
+-- -- (inlined from the `extra` package)
+-- offsetTime :: IO (IO Seconds)
+-- offsetTime = do
+--     start <- time
+--     return $ do
+--         end <- time
+--         return $ 1e-9 * fromIntegral (toNanoSecs $ end - start)
+--     where time = getTime Monotonic
+
+-- | @= 'evaluate' . 'force'@
+forceIO :: NFData a => a -> IO ()
+forceIO = void . evaluate . force
+
+{-|
+
+>>> pBool = Proxy :: Proxy Bool
+>>> constructors pBool
+[False,True]
+
+-}
+constructors :: (BoundedEnum a) => proxy a -> [a]
+constructors _ = [minBound..maxBound]
+
+{-| like 'constructors', but with an implicit type parameter.
+
+>>> constructors' == [False,True]
+True
+
+>> :set -XTypeApplications
+>> constructors' @Bool
+[False,True]
+
+-}
+constructors' :: forall a. (BoundedEnum a) => [a]
+constructors' = constructors proxy
+  where
+  proxy = Proxy :: Proxy a
+
+identity :: (Category cat) => (a `cat` a)
+identity = Category.id
+
+-- compose :: (Category (==>)) => (b ==> c) -> (a ==> b) -> (a ==> c)
+compose
+  :: (Category cat)
+  => (b `cat` c)
+  -> (a `cat` b)
+  -> (a `cat` c)  
+compose = (Category.<<<)
+
+typeName
+  :: forall proxy a t.
+    ( Typeable a
+    , IsString t
+    )
+  => proxy a
+  -> t
+typeName proxy = typeRep proxy & show & fromString 
+
+shown :: forall a t.
+    ( Show a
+    , IsString t
+    )
+  => a
+  -> t  
+shown = fromString . show
+
+-- | (shadow the prelude's to generalize)
+sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
+sequence = sequenceA
+
+-- | (shadow the prelude's to generalize)
+sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
+sequence_ = sequenceA_
+

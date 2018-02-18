@@ -38,9 +38,14 @@ library
  default-language:    Haskell2010
  ghc-options:         -Wall
 
- exposed-modules:
-  Prelude.Spiros
-  Data.Digit
+ if impl(ghc >= 8.2.1)
+   exposed-modules:
+     Prelude.Spiros
+     Data.Digit
+     -- requires -XDerivingStrategies
+ else   
+   exposed-modules:
+     Prelude.Spiros
 
  other-modules:
   Prelude.Spiros.Utilities
@@ -48,8 +53,13 @@ library
  build-depends:
     base                 >= 4.6   && <5.0
 
-  , protolude            >= 0.2.1
-  -- ^ string-conv
+  --TODO , clock 
+
+  , string-conv
+
+  -- , protolude            >= 0.2.1
+  -- -- ^ string-conv
+  -- -- protolude doesn't cross-compile onto android, because of `clock`
 
   -- , basic-prelude
   -- --  extra symbols
@@ -85,7 +95,6 @@ library
   , vinyl
   , split
   , data-default-class
-  , clock 
   , unordered-containers
 
   , prettyprinter 
