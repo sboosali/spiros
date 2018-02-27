@@ -158,7 +158,14 @@ import "base" Data.Either                            as X
 import "base" Data.Function                          as X ((&),on,fix)
 -- TODO when were they merged into base from semi groups? 
 import "base" Data.Semigroup                         as X (Semigroup(..))
-import "base" Data.List.NonEmpty                     as X (NonEmpty(..))
+import "base" Data.List.NonEmpty                     as X
+ ( NonEmpty(..)
+   -- unqualified smart constructor
+ , nonEmpty
+   -- safe versions
+ , head, tail, last, init
+ , some1, scanl1, scanr1, group1, groupBy1
+ )
 
 import "base" Data.Ix                                as X
  ( Ix
@@ -234,10 +241,12 @@ import Data.Bitraversable as X
 -- the Prelude
 
 import Data.List as Base hiding
- ( minimumBy  -- partials
- , maximumBy
- , (!!)
+  -- partials
+ ( (!!)
  , find
+ , minimumBy, maximumBy
+ , scanl1, scanr1
+ , head, tail, last, init
  )
 
 import Prelude as Base hiding
@@ -248,17 +257,12 @@ import Prelude as Base hiding
  , fail
  -- partials
  , error, undefined
- , tail
- , init
- , head
- , last
- , minimum
- , maximum
+ , minimum, maximum
+ , scanl1, scanr1
+ , head, tail, last, init
  , foldr1
  , foldl1
  , foldl1
- , scanl1
- , scanr1
  , read
  , toEnum
  )
