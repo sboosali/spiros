@@ -41,17 +41,22 @@ library
  if impl(ghc >= 8.2.1)
    exposed-modules:
      Prelude.Spiros
---     Data.Finite
+     Prelude.Spiros.Classes
+     -- Data.Finite
      Data.Digit
      -- requires -XDerivingStrategies
  else   
    exposed-modules:
      Prelude.Spiros
---     Data.Finite
+     Prelude.Spiros.Classes
+     -- Data.Finite
 
  other-modules:
+  Prelude.Spiros.Reexports
   Prelude.Spiros.Utilities
+  Prelude.Spiros.GUI
   Prelude.Spiros.Exception
+  Prelude.Spiros.Validator 
 
  build-depends:
     base                 >= 4.6   && <5.0
@@ -90,7 +95,7 @@ library
   -- , optparse-applicative >= 0.10  && <0.13
   -- , optparse-generic     >= 1.1.0 && <1.2
 
---  , exceptions 
+  , exceptions 
   , hashable
 
 --  , semigroups

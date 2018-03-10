@@ -11,6 +11,7 @@ see 'throwS', 'throwN', 'throwL'.
 module Prelude.Spiros.Exception where
 
 --import Prelude.Spiros.Utilities
+import Prelude.Spiros.GUI
 
 --
 
@@ -262,63 +263,10 @@ let x = undefined in displayQualifiedVariable 'x == "?"
 displayQualifiedVariable :: Name -> String
 displayQualifiedVariable name
   = fromGlobalName name
-  & maybe "?" go
+  & maybe "?" displayGUI
   where
   -- globalName = fromGlobalName name
-  go (PkgName p, ModName m, OccName i) = concat [p,":",m,".",i]
-
-{-|
-
-'Name' use is compatible with @template-haskell >=2.11@. 
-
--}
-fromGlobalName :: Name -> Maybe (PkgName, ModName, OccName)
-fromGlobalName = \case
-  Name nIdentifier (NameG VarName nPackage nModule)
-    -> Just (nPackage, nModule, nIdentifier)
-  _
-    -> Nothing
-
-{-
-
-fromGlobalName (Name nIdentifier scope) =
-  case scope of
-    NameG VarName nPackage nModule ->
-      Just (nPackage, nModule, nIdentifier)
-    _ -> Nothing
-
-
-fromGlobalName :: Name -> Maybe (PkgName, ModName, OccName)
-fromGlobalName (Name nIdentifier scope) =
-  case scope of
-    NameG VarName nPackage nModule -> case namespace of
-      VarName -> Just (nPackage, nModule, nIdentifier)
-      _ -> Nothing
-    _ -> Nothing
--}
-
-
-{-
-
-data Name
-Name OccName NameFlavour	 
-
-the built-in syntax 'f and ''T can be used to construct names, The expression 'f gives a Name which refers to the value f currently in scope, and ''T gives a Name which refers to the type T currently in scope. These names can never be captured.
-
-data NameFlavour
-NameG NameSpace PkgName ModName
-...
-
-Global name bound outside of the TH AST: An original name (occurrences only, not binders) Need the namespace too to be sure which thing we are naming
-
-data NameSpace
-VarName
-...
-
-Variables
-
-
--}
+  -- go (PkgName p, ModName m, OccName i) = concat [p,":",m,".",i]
 
 ----------------------------------------
 -- MONAD THROW
@@ -355,6 +303,7 @@ throwS s = throwM (SimpleException s)
 
 'throwM's a 'QuotedException' with the given caller and message.
 
+
 e.g.
 
 @
@@ -366,11 +315,43 @@ e.g.
 this is an example
 @
 
+
+Useful for easily defining smart constructors, whose error message has a fully-qualified name for debugging.
+If you rename the module, the error message changes automatically;
+and if you rename the identifier, you will get a compile time error from Template Haskell if you don't simultaneously update the useage of 'throwN'
+(unless another name is captured).
+
+e.g. validating naturals:
+
+@
+natural :: Integer -> 'Possibly' Natural
+natural i
+ | i >= 0    = return $ fromIntegral i
+ | otherwise = throwN \'natural $ "must be non-negative"
+@
+
 -}
 throwN
   :: (MonadThrow m)
   => Name -> String -> m a
 throwN name s = throwM (QuotedException name s)
+
+{-| @throwN_ name = 'throwN' name ""@
+
+e.g. validating naturals:
+
+@
+natural :: Integer -> 'Possibly' Natural
+natural i
+ | i >= 0    = return $ fromIntegral i
+ | otherwise = 'throwN_' \'natural
+@
+
+-}
+throwN_
+  :: (MonadThrow m)
+  => Name -> m a
+throwN_ name = throwN name ""
 
 {- | @L@ for @Location@ or 'CallStack' (@caLLstack@, lol). 
 

@@ -21,8 +21,27 @@ These symbols are "hard" overrides, they are completely different from @Prelude@
 -}
 module Prelude.Spiros.Utilities where
 
+--
+
 --TODO import "clock" System.Clock
 import "vinyl" Data.Vinyl.Functor
+
+--
+
+import "mtl" Control.Monad.Reader
+  (ReaderT,Reader,runReaderT,runReader)
+import "mtl" Control.Monad.State
+  (StateT,State,runStateT,evalStateT,execStateT,runState,evalState,execState)
+
+import "deepseq" Control.DeepSeq (NFData,force)
+
+import qualified "text" Data.Text      as TS
+import qualified "text" Data.Text.Lazy as TL
+
+import qualified "bytestring" Data.ByteString      as BS 
+import qualified "bytestring" Data.ByteString.Lazy as BL 
+
+--
 
 import "base" Data.Function ((&))
 import "base" Data.Functor.Product
@@ -43,18 +62,7 @@ import qualified "base" Control.Category as Category
 import           "base" Data.Typeable
 import           "base" GHC.Exts (IsString(..))
 
-import "mtl" Control.Monad.Reader
-  (ReaderT,Reader,runReaderT,runReader)
-import "mtl" Control.Monad.State
-  (StateT,State,runStateT,evalStateT,execStateT,runState,evalState,execState)
-
-import "deepseq" Control.DeepSeq (NFData,force)
-
-import qualified "text" Data.Text      as TS
-import qualified "text" Data.Text.Lazy as TL
-
-import qualified "bytestring" Data.ByteString      as BS 
-import qualified "bytestring" Data.ByteString.Lazy as BL 
+--
 
 import qualified "base" Prelude
 import           "base" Prelude hiding
@@ -237,7 +245,6 @@ __BUG__ = error . show
 
 __ERROR__ :: String -> a --TODO callstack
 __ERROR__ = error 
-
 
 -- | @= pure ()@
 nothing :: (Applicative m) => m ()
