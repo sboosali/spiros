@@ -1,2 +1,2 @@
 #!/bin/bash
-nix-shell --run "cabal configure"
+nix-shell --run "cabal new-configure"

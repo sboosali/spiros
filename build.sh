@@ -7,4 +7,4 @@
 # ./build.sh --argstr compiler 802
 #
 #
-nix-shell --run "cabal build" "$@"
+nix-shell --run "cabal new-build" "$@"

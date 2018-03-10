@@ -2,10 +2,39 @@
 set -e
 ########################################
 
-cabal2nix . > ./default.nix
+mkdir -p nix/
 
+cabal2nix . > ./nix/spiros.nix
+
+echo
+echo '----------------------------------'
+echo '[spiros.nix]'
+echo 
+cat ./nix/spiros.nix
+
+echo
+echo '----------------------------------'
+echo '[default.nix]'
+echo 
+cat default.nix
+
+echo
+echo '----------------------------------'
+echo '[provisioning...]'
+echo
 ./provision.sh
+
+echo
+echo '----------------------------------'
+echo '[building...]'
+echo 
 ./build.sh
+
+echo
+echo '----------------------------------'
+echo '[testing...]'
+echo 
+./test.sh
 
 ########################################
 #
