@@ -6,7 +6,7 @@
 }:
 mkDerivation {
   pname = "spiros";
-  version = "0.0.1";
+  version = "0.2";
   src = ./.;
   libraryHaskellDepends = [
     base bytestring containers data-default-class deepseq directory
