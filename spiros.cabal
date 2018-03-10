@@ -51,6 +51,7 @@ library
 
  other-modules:
   Prelude.Spiros.Utilities
+  Prelude.Spiros.Exception
 
  build-depends:
     base                 >= 4.6   && <5.0

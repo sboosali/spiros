@@ -32,6 +32,7 @@ module Prelude.Spiros
 where
 
 import Prelude.Spiros.Utilities                      as X
+import Prelude.Spiros.Exception                      as X
 
 ----------------------------------------
 
