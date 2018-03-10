@@ -1,9 +1,24 @@
 {-# LANGUAGE CPP, NoImplicitPrelude, PackageImports #-}
 {-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
 {-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds, ScopedTypeVariables #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 {-# OPTIONS_HADDOCK not-home #-}
 
+{-|
+
+These identifiers are "soft" overrides, they generalize the signatures of their @Prelude@ namesakes:
+
+* 'map': @() => []@ to @(Functor f) => f@
+* 'sequence': @Monad@ to @Applicative@
+* 'sequence_': @Monad@ to @Applicative@
+
+These symbols are "hard" overrides, they are completely different from @Prelude@:
+
+* '>': forward-composition
+* '<': backward-composition (i.e. '(.)')
+
+-}
 module Prelude.Spiros.Utilities where
 
 --TODO import "clock" System.Clock
@@ -18,18 +33,22 @@ import "base" Control.Monad (forever, void)
 import "base" Data.Proxy
 import "base" Data.String(IsString)
 import "base" Control.Monad.IO.Class
-import "base" GHC.Stack.Types (HasCallStack)
-import "base" Data.Foldable (sequenceA_)
+import "base" Data.Foldable (sequenceA_,toList)
 import "base" Data.Traversable (sequenceA)
+import "base" Data.List.NonEmpty (NonEmpty)
+--import qualified Data.List.NonEmpty as NonEmpty
 
 import           "base" Control.Category (Category)
 import qualified "base" Control.Category as Category
 import           "base" Data.Typeable
 import           "base" GHC.Exts (IsString(..))
 
-import "deepseq" Control.DeepSeq (NFData,force)
+import "mtl" Control.Monad.Reader
+  (ReaderT,Reader,runReaderT,runReader)
+import "mtl" Control.Monad.State
+  (StateT,State,runStateT,evalStateT,execStateT,runState,evalState,execState)
 
-import "safe-exceptions" Control.Exception.Safe 
+import "deepseq" Control.DeepSeq (NFData,force)
 
 import qualified "text" Data.Text      as TS
 import qualified "text" Data.Text.Lazy as TL
@@ -37,10 +56,17 @@ import qualified "text" Data.Text.Lazy as TL
 import qualified "bytestring" Data.ByteString      as BS 
 import qualified "bytestring" Data.ByteString.Lazy as BL 
 
-import           "base" Prelude hiding ((<),(>))
 import qualified "base" Prelude
+import           "base" Prelude hiding
+  ( (<), (>)
+  , map
+  , sequence, sequence_
+  )
 
 ----------------------------------------
+
+-- | alphanumeric alias
+type List a = [a]
 
 type StrictText = TS.Text
 type LazyText   = TL.Text 
@@ -107,10 +133,25 @@ pattern (:*:) :: f a -> g a -> Product f g a
 pattern f :*: g = (Pair f g)
 
 ----------------------------------------
+-- soft overrides
 
--- | 'throwString' 
-throwS :: (MonadThrow m, HasCallStack) => String -> m a
-throwS = throwString
+-- | (generalization)
+-- @= 'fmap'@
+map :: Functor f => (a -> b) -> f a -> f b
+map = fmap
+
+-- | (generalization)
+-- @= 'sequenceA'@
+sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
+sequence = sequenceA
+
+-- | (generalization)
+-- @ = 'sequenceA_'@
+sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
+sequence_ = sequenceA_
+
+----------------------------------------
+-- hard overrides
 
 {- | forwards composition
 
@@ -150,6 +191,8 @@ same precedence/associativity as '.'
 (<) = (<<<)
 infixr 9 <
 
+----------------------------------------
+
 -- NOTE
 -- infixr 1 <<<
 -- infixr 9 .
@@ -166,6 +209,8 @@ infix 4 `lessThan`
 greaterThan :: Ord a => a -> a -> Bool
 greaterThan = (Prelude.>)
 infix 4 `greaterThan`
+
+----------------------------------------
 
 {- | @(-:) = (,)@
 
@@ -193,8 +238,15 @@ __BUG__ = error . show
 __ERROR__ :: String -> a --TODO callstack
 __ERROR__ = error 
 
-nothing :: (Monad m) => m ()
-nothing = return ()
+
+-- | @= pure ()@
+nothing :: (Applicative m) => m ()
+nothing = pure ()
+
+-- nothing :: (Monad m) => m ()
+-- nothing = return ()
+
+----------------------------------------
 
 maybe2bool :: Maybe a -> Bool
 maybe2bool = maybe False (const True)
@@ -216,29 +268,36 @@ list2maybe = \case
  [] -> Nothing
  (x:_) -> Just x
 
--- | reverse @cons@
-snoc :: [a] -> a -> [a]
-snoc xs x = xs ++ [x]
+nonempty2list :: NonEmpty a -> [a]
+nonempty2list = toList
+
+----------------------------------------
+-- etc
 
 -- | @($>) = flip ('<$')@
 ($>) :: (Functor f) => f a -> b -> f b
 ($>) = flip (<$)
 
-forkever_ :: IO () -> IO ()
-forkever_ = void . forkever Nothing
+-- | Infix flipped 'fmap'.
+--
+-- @
+-- ('<&>') = 'flip' 'fmap'
+-- @
+--
+-- NOTE: conflicts with the lens package 
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+as <&> f = f <$> as
+{-# INLINE (<&>) #-}
 
-forkever ::Maybe Int -> IO () -> IO ThreadId
-forkever t m = forkIO $ forever $ do
-    m
-    _delay
-    where
-    _delay = maybe nothing delayMilliseconds t
+infixl 5 <&>
+{-NOTE
+  infixl 4 <$>
+  infixl 4 <*>
+-}
 
-delayMilliseconds :: (MonadIO m) => Int -> m ()
-delayMilliseconds = liftIO . threadDelay . (*1000)
-
-delaySeconds :: (MonadIO m) => Int -> m ()
-delaySeconds = liftIO . threadDelay . (*1000) . (*1000)
+-- | reverse @cons@
+snoc :: [a] -> a -> [a]
+snoc xs x = xs ++ [x]
 
 {-|
 
@@ -265,39 +324,13 @@ lstrip = dropWhile (`elem` (" \t\n\r"::String))
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
 
-io :: MonadIO m => IO a -> m a
-io = liftIO
-
--- | Infix flipped 'fmap'.
---
--- @
--- ('<&>') = 'flip' 'fmap'
--- @
---
--- NOTE: conflicts with the lens package 
-(<&>) :: Functor f => f a -> (a -> b) -> f b
-as <&> f = f <$> as
-{-# INLINE (<&>) #-}
-
-type Seconds = Double
-
---TODO -- | Call once to start, then call repeatedly to get the elapsed time since the first call.
--- --   The time is guaranteed to be monotonic. This function is robust to system time changes.
--- --
--- -- > do f <- offsetTime; xs <- replicateM 10 f; return $ xs == sort xs
--- --
--- -- (inlined from the `extra` package)
--- offsetTime :: IO (IO Seconds)
--- offsetTime = do
---     start <- time
---     return $ do
---         end <- time
---         return $ 1e-9 * fromIntegral (toNanoSecs $ end - start)
---     where time = getTime Monotonic
-
--- | @= 'evaluate' . 'force'@
-forceIO :: NFData a => a -> IO ()
-forceIO = void . evaluate . force
+shown :: forall a t.
+    ( Show a
+    , IsString t
+    )
+  => a
+  -> t  
+shown = fromString . show
 
 {-|
 
@@ -344,19 +377,157 @@ typeName
   -> t
 typeName proxy = typeRep proxy & show & fromString 
 
-shown :: forall a t.
-    ( Show a
-    , IsString t
-    )
-  => a
-  -> t  
-shown = fromString . show
+----------------------------------------
 
--- | (shadow the prelude's to generalize)
-sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
-sequence = sequenceA
+-- | @= 'flip' 'runReaderT'@
+runReaderT' :: r -> (ReaderT r) m a -> m a
+runReaderT' = flip runReaderT
 
--- | (shadow the prelude's to generalize)
-sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
-sequence_ = sequenceA_
+-- | @= 'flip' 'runStateT'@
+runStateT' :: s -> (StateT s) m a -> m (a, s)
+runStateT' = flip runStateT
 
+-- | @= 'flip' 'evalStateT'@
+evalStateT' :: (Monad m) => s -> (StateT s) m a -> m a
+evalStateT' = flip evalStateT
+
+-- | @= 'flip' 'execStateT'@
+execStateT' :: (Monad m) => s -> (StateT s) m a -> m s
+execStateT' = flip execStateT
+
+-- | @= 'flip' 'runReader'@
+runReader' :: r -> Reader r a -> a
+runReader' = flip runReader
+
+-- | @= 'flip' 'runState'@
+runState' :: s -> State s a -> (a, s)
+runState' = flip runState
+
+-- | @= 'flip' 'evalState'@
+evalState' :: s -> State s a -> a
+evalState' = flip evalState
+
+-- | @= 'flip' 'execState'@
+execState' :: s -> State s a -> s
+execState' = flip execState
+
+----------------------------------------
+-- Time
+
+{-| A number of microseconds (there are one million microseconds per second). An integral number because it's the smallest resolution for most GHC functions. @Int@ because GHC frequently represents integrals as @Int@s (for efficiency). 
+
+Has smart constructors for common time units; in particular, for thread delays, and for human-scale durations.
+
+* 'microseconds'
+* 'milliseconds'
+* 'seconds'
+* 'minutes'
+* 'hours'
+
+Which also act as self-documenting (psuedo-keyword-)arguments for 'threadDelay', via 'delayFor'. 
+
+-}
+newtype Time = Time { toMicroseconds :: Int }
+
+microseconds :: Int -> Time
+milliseconds :: Int -> Time
+seconds      :: Int -> Time
+minutes      :: Int -> Time
+hours        :: Int -> Time
+
+microseconds = Time
+milliseconds = Time . (\t -> t*1000)
+seconds      = Time . (\t -> t*1000*1000)
+minutes      = Time . (\t -> t*1000*1000*1000)
+hours        = Time . (\t -> t*1000*1000*1000*1000)
+
+delayFor :: (MonadIO m) => Time -> m ()
+delayFor = toMicroseconds >>> threadDelay >>> liftIO 
+
+delayMicroseconds :: (MonadIO m) => Int -> m ()
+delayMicroseconds i = delayFor (microseconds i)
+
+delayMilliseconds :: (MonadIO m) => Int -> m ()
+delayMilliseconds i = delayFor (milliseconds i)
+
+delaySeconds :: (MonadIO m) => Int -> m ()
+delaySeconds i = delayFor (seconds i)
+
+{-
+
+{-| Normally used time units, for threads and for human-scale durations.
+
+A psuedo-keyword-argument for 'threadDelay'. 
+
+-}
+data SimpleTimeUnit
+  = Nanoseconds  Double
+  | Milliseconds Double
+  | Seconds      Double
+  | Minutes      Double
+  | Hours        Double
+
+toNanoseconds :: SimpleTimeUnit -> Int
+toNanoseconds = go > fromIntegral
+ where
+ go = \case
+   Nanoseconds  i -> i
+   Milliseconds i -> i * (1000)
+   Seconds      i -> i * (1000*1000)
+   Minutes      i -> i * (1000*1000*1000)
+   Hours        i -> i * (1000*1000*1000*1000)
+
+delayFor :: (MonadIO m) => SimpleTimeUnit -> m ()
+delayFor = toNanoseconds >>> threadDelay >>> liftIO 
+
+delayNanoseconds :: (MonadIO m) => Int -> m ()
+delayNanoseconds i = delayFor (Nanoseconds i)
+
+delayMilliseconds :: (MonadIO m) => Int -> m ()
+delayMilliseconds i = delayFor (Milliseconds i)
+
+delaySeconds :: (MonadIO m) => Int -> m ()
+delaySeconds i = delayFor (Seconds i)
+
+-- liftIO . threadDelay . (*1000) . (*1000)
+-}
+
+----------------------------------------
+-- IO
+
+io :: MonadIO m => IO a -> m a
+io = liftIO
+
+forkever_ :: IO () -> IO ()
+forkever_ = void . forkever Nothing
+
+forkever ::Maybe Int -> IO () -> IO ThreadId
+forkever t m = forkIO $ forever $ do
+    m
+    _delay
+    where
+    _delay = maybe nothing delayMilliseconds t
+
+--TODO -- | Call once to start, then call repeatedly to get the elapsed time since the first call.
+-- --   The time is guaranteed to be monotonic. This function is robust to system time changes.
+-- --
+-- -- > do f <- offsetTime; xs <- replicateM 10 f; return $ xs == sort xs
+-- --
+-- -- (inlined from the `extra` package)
+-- offsetTime :: IO (IO Seconds)
+-- offsetTime = do
+--     start <- time
+--     return $ do
+--         end <- time
+--         return $ 1e-9 * fromIntegral (toNanoSecs $ end - start)
+--     where time = getTime Monotonic
+
+-- | @= 'evaluate' . 'force'@
+forceIO :: NFData a => a -> IO a
+forceIO = evaluate . force
+
+-- | @~ 'forceIO'@
+forceIO_ :: NFData a => a -> IO ()
+forceIO_ = void . evaluate . force
+
+----------------------------------------

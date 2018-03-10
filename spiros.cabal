@@ -55,6 +55,8 @@ library
  build-depends:
     base                 >= 4.6   && <5.0
 
+  , template-haskell     >= 2.12
+
   --TODO , clock 
 
   , string-conv
@@ -108,3 +110,21 @@ library
 
   -- , interpolatedstring-perl6
   -- needs haskell-src-exts
+
+----------------------------------------
+
+test-suite doctest
+ hs-source-dirs:      test
+ main-is:             DocTests.hs
+
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+
+ ghc-options:         -Wall 
+
+ build-depends:
+    base
+  , spiros
+  , doctest
+
+----------------------------------------

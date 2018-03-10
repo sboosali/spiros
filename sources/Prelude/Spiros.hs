@@ -75,7 +75,10 @@ import "string-conv" Data.String.Conv                as X
 ----------------------------------------
 -- the standard library (i.e. the libraries GHC bootstraps with, and thus are always available)
 
-import "deepseq" Control.DeepSeq                     as X (NFData(..))
+import "deepseq" Control.DeepSeq                     as X
+ ( NFData(..)
+ , force
+ )
 
 ----------------------------------------
 
@@ -146,10 +149,25 @@ import "mtl" Control.Monad.Except                    as X
 
 import "containers" Data.Set                         as X (Set)
 import "containers" Data.Map                         as X (Map)
+import "containers" Data.Sequence                    as X (Seq)
+import "containers" Data.IntSet                      as X (IntSet)
+import "containers" Data.IntMap                      as X (IntMap)
+import "containers" Data.Graph                       as X (Graph)
+import "containers" Data.Tree                        as X (Tree)
 
 ----------------------------------------
 
 --import "base" Control.Exception                    as X (evaluate)
+
+import "base" Data.Int                               as X
+ ( Int
+ , Int8, Int16, Int32, Int64
+ )
+   
+import "base" Data.Word                              as X
+ ( Word
+ , Word8, Word16, Word32, Word64
+ )
 
 import "base" Data.Char                              as X 
 import "base" Numeric.Natural                        as X (Natural)
@@ -188,7 +206,8 @@ import "base" Control.Applicative                    as X
 import "base" Control.Arrow                          as X
   ((&&&),(***),(+++),(|||))
 import "base" Control.Monad                          as X
- ( void
+ ( MonadPlus(..)
+ , void
  , forever
  , (>=>), (<=<)
  , join
@@ -247,12 +266,14 @@ import Data.List as Base hiding
  , minimumBy, maximumBy
  , scanl1, scanr1
  , head, tail, last, init
+ -- aliased
+ , map 
  )
 
 import Prelude as Base hiding
  ( (<), (>)
  -- aliased
- , sequence, sequence_
+ , map, sequence, sequence_
  -- deprecated
  , fail
  -- partials
