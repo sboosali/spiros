@@ -6,13 +6,26 @@ import System.Environment (getArgs)
 
 main = do
   arguments <- getArgs
-  doctest $ sources ++ extensions ++ arguments
-
+  doctest $ concat
+    [ sources
+    , extensions
+    , headers
+    , arguments
+    ]
+    
 ----------------------------------------
 
 sources =
  [ "sources/Prelude" 
  ] 
+
+headers = headers2flags
+  [ "include/"
+  ]
+  where
+  headers2flags :: [String] -> [String]
+  headers2flags = fmap ("-I"++) 
+  -- -I<dir> adds <dir> to the #include search path.
 
 extensions = extensions2flags "NoImplicitPrelude PackageImports AutoDeriveTypeable DeriveDataTypeable DeriveGeneric DeriveFunctor DeriveFoldable DeriveTraversable LambdaCase EmptyCase TypeOperators PostfixOperators ViewPatterns BangPatterns KindSignatures NamedFieldPuns RecordWildCards TupleSections MultiWayIf DoAndIfThenElse EmptyDataDecls InstanceSigs MultiParamTypeClasses FlexibleContexts FlexibleInstances TypeFamilies FunctionalDependencies ScopedTypeVariables StandaloneDeriving"
   where
@@ -39,5 +52,12 @@ There's two sets of GHC extensions involved when running Doctest:
 Alternatively you can pass any GHC options to Doctest, e.g.:
 
     doctest -XCPP Foo.hs
+
+
+
+sources/Prelude/Spiros/Reexports.hs:2:0: error:
+     fatal error: base-feature-macros.h: No such file or directory
+     #include <base-feature-macros.h>
+
 
 -}
