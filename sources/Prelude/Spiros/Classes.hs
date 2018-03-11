@@ -312,7 +312,11 @@ import "base" Control.Applicative                    as X (Alternative(..))
 import "base" Control.Monad                          as X
  (Monad((>>=),return,(>>))) -- hide `fail`
 import "base" Control.Monad                          as X (MonadPlus(..))
+
+#ifdef HAVE_MONAD_FAIL
 import "base" Control.Monad.Fail                     as X (MonadFail(..))
+#endif
+
 import "base" Control.Monad.Fix                      as X (MonadFix(..))
 
 import "base" Control.Arrow                          as X (Arrow)

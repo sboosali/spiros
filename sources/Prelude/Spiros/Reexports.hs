@@ -1,6 +1,13 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE NoImplicitPrelude, PackageImports #-}
+#include <base-feature-macros.h>
 
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE PackageImports #-}
+
+#if !HAVE_MONAD_FAIL
+{-# LANGUAGE ConstraintKinds #-}
+#endif
+  
 {-|
 Module      :  Prelude.Spiros.Reexports
 Stability   :  experimental
@@ -28,11 +35,15 @@ Also see (these aren't dependencies, just influences):
 
 * <http://www.stephendiehl.com/posts/protolude.html>
 * <https://hackage.haskell.org/package/foundation-0.0.20/docs/Foundation.html>
+* <https://github.com/quchen/articles/blob/master/haskell-cpp-compatibility.md>
 
 -}
 module Prelude.Spiros.Reexports
  ( module X -- re-eXports
  , module Base
+#if !HAVE_MONAD_FAIL
+ , module Prelude.Spiros.Reexports
+#endif
  )
 where
 
@@ -260,7 +271,10 @@ import "base" Control.Monad                          as X
 import "base" Control.Category                       as X
   (Category,(>>>),(<<<))
 
+#ifdef HAVE_MONAD_FAIL
 import "base" Control.Monad.Fail                     as X (MonadFail(..))
+#endif
+
 import "base" Control.Monad.Fix                      as X (MonadFix(..))
 import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
 
@@ -302,6 +316,16 @@ import Data.Bitraversable as X
 #else
 #endif
 
+--TODO
+-- #if !HAVE_FOLDABLE_TRAVERSABLE_IN_PRELUDE
+-- import Data.Foldable (Foldable (..))
+-- import Prelude       hiding (foldr, foldr1)
+-- #endif
+--
+-- #if !HAVE_MONOID_IN_PRELUDE
+-- import Data.Monoid as X hiding ((<>))
+-- #endif
+
 ----------------------------------------
 -- the Prelude
 
@@ -333,5 +357,16 @@ import Prelude as Base hiding
  , read
  , toEnum
  )
+
+----------------------------------------
+-- backwards-compatibility
+
+#if !HAVE_MONAD_FAIL
+type MonadFail m = Monad m
+#endif
+
+----------------------------------------
+
+
 
 ----------------------------------------

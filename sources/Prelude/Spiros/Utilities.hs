@@ -1,6 +1,7 @@
-{-# LANGUAGE CPP, NoImplicitPrelude, PackageImports #-}
-{-# LANGUAGE RankNTypes, TypeOperators, LambdaCase, PatternSynonyms #-}
-{-# LANGUAGE PolyKinds, KindSignatures, ConstraintKinds, ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+
+{-# LANGUAGE PackageImports, TypeOperators, LambdaCase, PatternSynonyms #-}
+{-# LANGUAGE RankNTypes, PolyKinds, KindSignatures, ConstraintKinds, ScopedTypeVariables #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 {-# OPTIONS_HADDOCK not-home #-}
