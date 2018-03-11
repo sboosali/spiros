@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes, PolyKinds, KindSignatures, ConstraintKinds, ScopedTypeVariables #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-# OPTIONS_HADDOCK not-home #-}
+-- {-# OPTIONS_HADDOCK not-home #-}
 
 {-|
 
@@ -22,12 +22,10 @@ These symbols are "hard" overrides, they are completely different from @Prelude@
 -}
 module Prelude.Spiros.Utilities where
 
---
+-- non-exports
 
 --TODO import "clock" System.Clock
 import "vinyl" Data.Vinyl.Functor
-
---
 
 import "mtl" Control.Monad.Reader
   (ReaderT,Reader,runReaderT,runReader)
@@ -41,6 +39,8 @@ import qualified "text" Data.Text.Lazy as TL
 
 import qualified "bytestring" Data.ByteString      as BS 
 import qualified "bytestring" Data.ByteString.Lazy as BL 
+
+import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
 
 --
 
@@ -83,6 +83,16 @@ type LazyText   = TL.Text
 
 type StrictBytes = BS.ByteString
 type LazyBytes   = BL.ByteString
+
+{-| a haskell identifier, via @TemplateHaskellQuotes@.
+
+@
+> :set -XTemplateHaskellQuotes
+> \'fmap :: 'HaskellName'
+@
+
+-}
+type HaskellName = TemplateHaskell.Name
 
 {-| a finite type,
 whose values may be enumerated into a finite list.
@@ -283,7 +293,13 @@ nonempty2list = toList
 ----------------------------------------
 -- numbers
 
-unsafeNatural :: Int -> Natural
+-- | 
+--
+-- @
+-- unsafeNatural :: Int -> Natural  
+-- @
+-- 
+unsafeNatural :: Integral i => i -> Natural
 unsafeNatural = fromIntegral
 
 ----------------------------------------

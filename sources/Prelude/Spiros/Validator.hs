@@ -13,7 +13,7 @@ See 'validate'.
 module Prelude.Spiros.Validator where
 
 import Prelude.Spiros.Reexports
---import Prelude.Spiros.Utilities
+import Prelude.Spiros.Utilities
 --import Prelude.Spiros.GUI
 import Prelude.Spiros.Exception
 
@@ -111,7 +111,7 @@ validator
   :: ( MonadThrow m
      , Show a
      )
-  => Name
+  => HaskellName
   -> (a -> Bool)
   -> (String -> String)
   -> (a -> b)
@@ -144,7 +144,7 @@ Wraps 'throwN_'.
 validator_
   :: ( MonadThrow m
      )
-  => Name
+  => HaskellName
   -> (a -> Bool)
   -> (a -> b)
   -> (a -> m b)

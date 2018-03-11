@@ -171,10 +171,8 @@ import "containers" Data.Tree                        as X (Tree)
 
 ----------------------------------------
 
-import "template-haskell" Language.Haskell.TH.Syntax as X
-  ( Name
-  )
-  
+-- import "template-haskell" Language.Haskell.TH.Syntax as X
+
 ----------------------------------------
 
 --import "base" Control.Exception                    as X (evaluate)
@@ -366,7 +364,5 @@ type MonadFail m = Monad m
 #endif
 
 ----------------------------------------
-
-
 
 ----------------------------------------
