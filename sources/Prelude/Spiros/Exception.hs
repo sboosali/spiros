@@ -112,7 +112,11 @@ instance Show QuotedException where
 -- instance Exception QuotedException where
 --   displayException = displayQuotedException
 
--- | @= QuotedException \''throwM'@. 
+-- | @= QuotedException \''throwM'@.
+--
+-- NOTE the prefixing apostrophe is a @TemplateHaskellQuotes@ name quote
+-- (not a typo)
+-- 
 instance IsString QuotedException where
   fromString = QuotedException 'throwM
 

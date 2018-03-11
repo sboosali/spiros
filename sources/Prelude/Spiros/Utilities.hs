@@ -56,6 +56,7 @@ import "base" Data.Foldable (sequenceA_,toList)
 import "base" Data.Traversable (sequenceA)
 import "base" Data.List.NonEmpty (NonEmpty)
 --import qualified Data.List.NonEmpty as NonEmpty
+import "base" Numeric.Natural
 
 import           "base" Control.Category (Category)
 import qualified "base" Control.Category as Category
@@ -277,6 +278,12 @@ list2maybe = \case
 
 nonempty2list :: NonEmpty a -> [a]
 nonempty2list = toList
+
+----------------------------------------
+-- numbers
+
+unsafeNatural :: Int -> Natural
+unsafeNatural = fromIntegral
 
 ----------------------------------------
 -- etc

@@ -2,6 +2,32 @@
 {-# LANGUAGE NoImplicitPrelude, PackageImports #-}
 
 {-|
+Module      :  Prelude.Spiros.Reexports
+Stability   :  experimental
+Portability :  non-portable (multi-param classes, functional dependencies)
+
+(Re-)Exports:
+
+* universally (or frequently) derived classes,
+i.e. @deriving (...,'Data','Generic','NFData','Semigroup')@
+* @safe-exceptions@'s @'throw'@, which generalizes @IO@ to 'MonadThrow'
+* @safe@ (total) versions of partial functions, like 'readMay'. 
+* and many more (see the source)
+
+Defines:
+
+* single-character composition, i.e. ('>') an ('<')
+* type names for common types ('LazyText' for lazy text, 'StrictBytes' for strict bytestrings, etc)
+
+Hides:
+
+* partial functions, e.g. @head@
+* some aliased functions (like @sequence@, which is generalized into @sequenceA@).
+
+Also see (these aren't dependencies, just influences):
+
+* <http://www.stephendiehl.com/posts/protolude.html>
+* <https://hackage.haskell.org/package/foundation-0.0.20/docs/Foundation.html>
 
 -}
 module Prelude.Spiros.Reexports
@@ -183,8 +209,14 @@ import "base" Numeric.Natural                        as X (Natural)
 import "base" Data.Maybe                             as X 
 import "base" Data.Either                            as X 
 import "base" Data.Function                          as X ((&),on,fix)
--- TODO when were they merged into base from semi groups? 
+
+import "base" Text.Read                              as X
+ ( readEither,readMaybe
+ )
+
 import "base" Data.Semigroup                         as X (Semigroup(..))
+ -- TODO when were they merged into base from semi groups?
+
 import "base" Data.List.NonEmpty                     as X
  ( NonEmpty(..)
    -- unqualified smart constructor
