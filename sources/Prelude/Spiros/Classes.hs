@@ -1,62 +1,74 @@
+{-# LANGUAGE CPP  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE CPP, PackageImports #-}
+{-# LANGUAGE PackageImports #-}
 
 {-| This module re-exports several "standard" typeclasses (that every type should derive, if it can), and their methods. It only re-exports other (non-typeclass, non-method) definitions when they are convenient for manually defining instances.
 
---
+Also include some shims for backwards-compability (motivated by the 2018 @reflex-platform@). 
+
+
 
 @deepseq@:
+
 * 'NFData'
 * 'NFData1' (and 'rnf1')
 * 'NFData2' (and 'rnf2')
 * 'seq', 'whnf' (helpers for manual instances)
 
---
+
 
 @hashable@:
+
 * 'Hashable'
 * 'hashUsing' (helpers for manual instances)
 
---
+
 
 @data-default-class@:
+
 * 'Default'
 
---
+
 
 @exceptions@:
+
 * 'MonadThrow'
 * 'MonadCatch'
 * 'MonadMask'
 
---
+
 
 @mtl@:
+
 * 'MonadReader'
 * 'MonadWriter'
 * 'MonadState'
 * 'MonadError'
 
-@transformers@: 
+@transformers@:
+
 * 'MonadTrans'
 
---
 
-@base@ "stock deriveable": 
+
+@base@ "stock deriveable":
+
 * 'Show'
-Read
-Eq
-Ord
-Enum
-Bounded
-Ix
+* 'Read'
+* 'Eq'
+* 'Ord'
+* 'Enum'
+* 'Bounded'
+* 'Ix'
 
 syntax: 
+
 * 'IsList'
 * 'IsString'
 * (and, sans extensions, 'Num', 'Enum')
 
 @base@ numbers:
+
 * 'Num'
 * 'Real'
 * 'Integral'
@@ -66,27 +78,33 @@ syntax:
 * 'RealFloat'
 
 @base@ monoid:
+
 * 'Semigroup'
 * 'Monoid'
 
 @base@ functor:
+
 * 'Functor'
 
 @base@ containers:
+
 * 'Foldable'
 * 'Traversable'
 
 @base@ applicative:
+
 * 'Applicative'
 * 'Alternative'
 
 @base@ monad:
+
 * 'Monad'
 * 'MonadPlus'
 * 'MonadFail'
 * 'MonadFix'
 
 @base@ arrow (which I don't use):
+
 * 'Arrow'
 * 'ArrowZero'
 * 'ArrowPlus'
@@ -95,38 +113,45 @@ syntax:
 * 'ArrowLoop'
 
 @base@ category:
+
 * 'Category'
 
 @base@ bifunctors:
+
 * 'Bifunctor'
 * 'Bifoldable'
 * 'Bitraversable'
 
 @base@ generics:
+
 * 'Generic'
 * 'Data'
 * 'Typeable'
 
 @base@ ffi:
+
 * 'Storable'
 
 @base@ (miscellaneous):
+
 * 'MonadIO'
 * 'Exception'
 
 @base@ unary liftings (of standard nullary classes):
+
 * 'Eq1' (and 'eq1')
 * 'Ord1' (and 'compare1')
 * 'Show1' (and 'showsPrec1')
 * 'Read1' (and 'readsPrec1')
 
 @base@ binary liftings (of standard nullary classes):
+
 * 'Eq2' (and 'eq2')
 * 'Ord2' (and 'compare2')
 * 'Show2' (and 'showsPrec2')
 * 'Read2' (and 'readsPrec2')
 
---
+
 
 
 
@@ -136,35 +161,35 @@ Standard Numeric Classes (copied from the @The Haskell 98 Report@):
 
 @
 class  ('Eq' a) => 'Num' a  where
-    (+), (-), (*)   :: a -> a -> a
-    'negate'        :: a -> a
-    'abs', 'signum' :: a -> a
-    'fromInteger'   :: Integer -> a
+    ('+'), ('-'), ('*')   :: a -> a -> a
+    'negate'          :: a -> a
+    'abs', 'signum'     :: a -> a
+    'fromInteger'     :: Integer -> a
 
 class  (Num 'a', Ord a) => 'Real' a  where
     'toRational' ::  a -> Rational
 
 class  (Real a, 'Enum' a) => 'Integral' a  where
-    ''quot'', rem, 'div', 'mod' :: a -> a -> a
-    'quotRem', 'divMod'         :: a -> a -> (a,a)
-    'toInteger'                 :: a -> Integer
+    'quot', 'rem', 'div', 'mod' :: a -> a -> a
+    'quotRem', 'divMod'     :: a -> a -> (a,a)
+    'toInteger'           :: a -> Integer
 
 class  (Num a) => 'Fractional' a  where
-    (/)            :: a -> a -> a
+    ('/')          :: a -> a -> a
     'recip'        :: a -> a
     'fromRational' :: Rational -> a
 
 class  (Fractional a) => 'Floating' a  where
-    'pi'                      :: a
+    'pi'                  :: a
     'exp', 'log', 'sqrt'      :: a -> a
-    (**), 'logBase'           :: a -> a -> a
+    ('**'), 'logBase'       :: a -> a -> a
     'sin', 'cos', 'tan'       :: a -> a
     'asin', 'acos', 'atan'    :: a -> a
     'sinh', 'cosh', 'tanh'    :: a -> a
     'asinh', 'acosh', 'atanh' :: a -> a
 
 class  (Real a, Fractional a) => 'RealFrac' a  where
-    'properFraction'    :: (Integral b) => a -> (b,a)
+    'properFraction'  :: (Integral b) => a -> (b,a)
     'truncate', 'round' :: (Integral b) => a -> b
     'ceiling', 'floor'  :: (Integral b) => a -> b
 
@@ -178,13 +203,13 @@ class  (RealFrac a, Floating a) => 'RealFloat' a  where
     'significand' :: a -> a
     'scaleFloat'  :: Int -> a -> a
     'isNaN', 'isInfinite', 'isDenormalized', 'isNegativeZero', 'isIEEE' 
-                  :: a -> Bool
+                :: a -> Bool
     'atan2'       :: a -> a -> a
 
 -- 
 'gcd', 'lcm' :: (Integral a) => a -> a-> a
-(^)      :: (Num a, Integral b) => a -> b -> a
-(^^)     :: (Fractional a, Integral b) => a -> b -> a
+('^')      :: (Num a, Integral b) => a -> b -> a
+('^^')     :: (Fractional a, Integral b) => a -> b -> a
 -- 
 'fromIntegral' :: (Integral a, Num b) => a -> b
 'realToFrac'   :: (Real a, Fractional b) => a -> b
@@ -210,15 +235,25 @@ For an enumeration, the nullary constructors are assumed to be numbered left-to-
 -}
 module Prelude.Spiros.Classes
   ( module X
+  , module Prelude.Spiros.Classes
   ) where
 
 --
 
 import "deepseq" Control.DeepSeq                     as X (NFData(..))
+import "base"    Prelude                             as X (seq)
+--
+#if MIN_VERSION_deepseq(1,4,3)
 import "deepseq" Control.DeepSeq                     as X (NFData1(..))
 import "deepseq" Control.DeepSeq                     as X (NFData2(..))
-import "deepseq" Control.DeepSeq                     as X (rnf1,rnf2,rwhnf)
-import "base"    Prelude                             as X (seq)
+import "deepseq" Control.DeepSeq                     as X (rnf1,rnf2)
+#endif
+--
+#if MIN_VERSION_deepseq(1,4,3)
+import "deepseq" Control.DeepSeq                     as X (rwhnf)  
+#else
+-- see below
+#endif
 
 import "hashable" Data.Hashable                      as X (Hashable(..))
 import "hashable" Data.Hashable                      as X (hashUsing)
@@ -242,6 +277,8 @@ import "transformers" Control.Monad.Trans.Class      as X (MonadTrans(..))
 
 import "base" Prelude                                as X (Show(..))
 import "base" Prelude                                as X (Read(..))
+import "base" Text.ParserCombinators.ReadP           as X
+ (ReadP,ReadS,readP_to_S,readS_to_P)
 
 import "base" Prelude                                as X (Eq(..))
 import "base" Prelude                                as X
@@ -288,18 +325,26 @@ import "base" Control.Arrow                          as X (ArrowLoop)
 import "base" Control.Category                       as X
  (Category) -- can't export `(.)` and `id`, which conflict with their specializations TODO?
 
+#if MIN_VERSION_base(4,8,0)
 import "base" Data.Bifunctor                         as X (Bifunctor(..))
+#else
+#endif
+
+#if MIN_VERSION_base(4,10,0)
 import "base" Data.Bifoldable                        as X (Bifoldable(..))
 import "base" Data.Bitraversable                     as X (Bitraversable(..))
+#else
+#endif
 
 import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
 import "base" Control.Exception                      as X (Exception(..))
 
 import "base" Foreign.Storable                       as X (Storable(..))
 
-import "base" GHC.Generics                           as X (Generic)
+import "base" GHC.Generics                           as X (Generic, Rep)
+import "base" GHC.Generics                           as X (Generic1, Rep1)
 import "base" Data.Data                              as X (Data)
-import "base" Data.Typeable                          as X (Typeable)
+--import "base" Data.Typeable                          as X (Typeable)
 
 import "base" GHC.Exts                               as X (IsList(Item,fromList))
  -- hide `toList`
@@ -316,6 +361,9 @@ import Data.Functor.Classes                          as X (Eq2(..),eq2)
 import Data.Functor.Classes                          as X (Ord2(..),compare2)
 import Data.Functor.Classes                          as X (Show2(..),showsPrec2)
 import Data.Functor.Classes                          as X (Read2(..),readsPrec2)
+
+-- non-exports
+import qualified "base" GHC.Generics                 as Generic
 
 {-
 
@@ -335,6 +383,66 @@ import "base" Control.Arrow                          as X (ArrowLoop(..))
 -}
 
 ----------------------------------------
+-- shims for backwards-compability (motivated by the `2018 reflex-platform`)
+
+#if MIN_VERSION_deepseq(1,4,3)
+-- see above
+#else
+rwhnf :: a -> ()
+rwhnf = (`seq` ())
+#endif
+  
+----------------------------------------
+-- generics
+
+-- | A generic representation, "specialized" to no additional metadata. 
+--
+-- (it still has the normal metadata about arity, constructor source location, field properties, etc). 
+-- 
+type Rep_ a = Rep a ()
+
+-- | Convert from the datatype to its generic representation. 
+--
+-- @= 'Generic.from'@
+--
+-- Naming: like @fromEnum :: a -> Int@,
+-- i.e. from the perspective of the instance type @a@. 
+-- 
+fromGeneric :: (Generic a) => a -> Rep a x
+fromGeneric = Generic.from
+
+-- | Convert to a generic representation from the datatype. 
+--
+-- @= 'Generic.to'@
+--
+-- Naming: like @toEnum :: Int -> a@,
+-- i.e. from the perspective of the instance type @a@. 
+-- 
+toGeneric :: (Generic a) => Rep a x -> a
+toGeneric = Generic.to
+
+-- | Convert from the datatype to its generic representation. 
+--
+-- @= 'Generic.from1'@
+--
+-- Naming: like @fromEnum :: a -> Int@,
+-- i.e. from the perspective of the instance type @a@. 
+-- 
+fromGeneric1 :: (Generic1 f) => f a -> Rep1 f a
+fromGeneric1 = Generic.from1
+
+-- | Convert to a generic representation from the datatype. 
+--
+-- @= 'Generic.to1'@
+--
+-- Naming: like @toEnum :: Int -> a@,
+-- i.e. from the perspective of the instance type @a@. 
+-- 
+toGeneric1 :: (Generic1 f) => Rep1 f a -> f a
+toGeneric1 = Generic.to1
+
+--warning: [-Wdodgy-exports]
+--    The export item `module Prelude.Spiros.Classes' exports nothing
 
 ----------------------------------------
 
