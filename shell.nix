@@ -1,5 +1,7 @@
 { nixpkgs ? import <nixpkgs> {}
 
+, spiros_nix ? ./nix/spiros.nix # ./.
+
 , compiler ? "default"
 
 , withProfiling ? false
@@ -296,7 +298,7 @@ let
 
 # theNixFile = ./.;
 
-installationDerivation = modifiedHaskellPackages.callPackage ./. {};
+installationDerivation = modifiedHaskellPackages.callPackage spiros_nix {};
 
 # development environment
 # for `nix-shell --pure`
