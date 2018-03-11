@@ -5,12 +5,12 @@
 
 {- |
 
-see 'throwS', 'throwN', 'throwL'. 
+see 'throwS', 'throwN', 'throwL', 'either2throw'. 
 
 -}
 module Prelude.Spiros.Exception where
 
---import Prelude.Spiros.Utilities
+import Prelude.Spiros.Utilities
 import Prelude.Spiros.GUI
 
 --
@@ -29,6 +29,7 @@ import "template-haskell" Language.Haskell.TH.Syntax -- (Name)
 
 import "base" Control.Applicative
 import "base" Data.Function
+import "base" Data.Bifunctor (first)
 import "base" GHC.Stack
 import "base" GHC.Stack.Types (CallStack,HasCallStack)
 import "base" GHC.Exts (IsString(..))
@@ -40,7 +41,82 @@ import "base" Control.Monad.Fail (MonadFail(..))
 --import qualified "base" Prelude
 import           "base" Prelude hiding
  ( fail
+ , (>), (<)
  )
+
+----------------------------------------
+
+{-| 
+
+@
+either2throw = 'either'
+ 'throwE'
+ 'return'
+@
+
+-}
+either2throw
+  :: ( MonadThrow m
+     , Exception e
+     )    
+  => Either e a
+  -> m a
+either2throw = either
+ throwE
+ return
+
+either2throw_
+  :: ( MonadThrow m
+     , Show e
+     )    
+  => Either e a
+  -> m a
+either2throw_
+  = (first (show > someQuotedException 'either2throw_))
+  > either2throw
+
+----------------------------------------
+
+maybe2throw_
+  :: ( MonadThrow m
+     )    
+  => Maybe a
+  -> m a
+maybe2throw_ 
+  = maybe2either (someQuotedException 'maybe2throw_ "")
+  > either2throw
+
+maybe2throw
+  :: ( MonadThrow m
+     , Exception e
+     )    
+  => e
+  -> Maybe a
+  -> m a
+maybe2throw e
+ = maybe2either e
+ > either2throw
+
+----------------------------------------
+
+list2throw_
+  :: ( MonadThrow m
+     )    
+  => List a
+  -> m a
+list2throw_ = list2throw
+  (someQuotedException 'list2throw_ "")
+
+list2throw
+  :: ( MonadThrow m
+     , Exception e
+     )    
+  => e
+  -> List a
+  -> m a
+list2throw e
+  = list2maybe
+  > maybe2throw e
 
 ----------------------------------------
 
@@ -274,6 +350,14 @@ displayQualifiedVariable name
 
 ----------------------------------------
 -- MONAD THROW
+
+{- | @E@ for 'Exception',
+
+'throwM's a 'SimpleException'.
+
+-}
+throwE :: (MonadThrow m, Exception e) => e -> m a
+throwE e = throwM e
 
 {- | @S@ for 'String',
 

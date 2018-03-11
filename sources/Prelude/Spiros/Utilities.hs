@@ -290,6 +290,13 @@ list2maybe = \case
 nonempty2list :: NonEmpty a -> [a]
 nonempty2list = toList
 
+list
+  :: r -> (a -> [a] -> r)
+  -> ([a] -> r)
+list y f = \case
+  []     -> y
+  (x:xs) -> f x xs
+
 ----------------------------------------
 -- numbers
 
