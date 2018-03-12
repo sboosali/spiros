@@ -40,7 +40,8 @@ flag test-doctest
   manual:      True
 
 flag test-static
-  default: True
+  default: False
+           -- TODO  
   description: Whether to build the `static` test modules; i.e. the fact that they type check correctly is the test, there's nothing (necessarily) "dynamic" that is tested by running. 
   manual: True
 
@@ -64,7 +65,8 @@ library
 
    Spiros
    Spiros.Enable
-   
+   Spiros.WarningValidation 
+
    Prelude.Spiros.Reexports
    Prelude.Spiros.Utilities
    Prelude.Spiros.Classes
