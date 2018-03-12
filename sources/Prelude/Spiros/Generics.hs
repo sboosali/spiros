@@ -65,7 +65,12 @@ memptyGeneric
   => a
 memptyGeneric = gmemptydefault
 
---mappendGeneric = sappendGeneric
+mappendGeneric
+  :: (Generic a, GMonoid' (Rep a))
+  => a -> a -> a 
+mappendGeneric = gmappenddefault
+
+infixr 6 `mappendGeneric`
 
 ----------------------------------------
 

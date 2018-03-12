@@ -19,6 +19,7 @@ Portability :  non-portable (multi-param classes, functional dependencies)
 i.e. @deriving (...,'Data','Generic','NFData','Semigroup')@
 * @safe-exceptions@'s @'throw'@, which generalizes @IO@ to 'MonadThrow'
 * @safe@ (total) versions of partial functions, like 'readMay'. 
+* 'assert'
 * and many more (see the source)
 
 Defines:
@@ -296,6 +297,8 @@ import "base" Data.Typeable                          as X
  ( Typeable
  , typeRep
  )
+
+import "base" Control.Exception                      as X (assert)
 
 ----------------------------------------
 

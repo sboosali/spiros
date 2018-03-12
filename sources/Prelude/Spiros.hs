@@ -5,6 +5,9 @@ module Prelude.Spiros
    -- $reexports
    module X -- re-eXports
 
+   -- * Usage
+   -- $usage   
+
    -- * Non-exports
    -- $nonexports
  
@@ -21,6 +24,20 @@ import Prelude.Spiros.Validator                      as X
 import Prelude.Spiros.GUI                            as X
 import Prelude.Spiros.TemplateHaskell                as X
 import Prelude.Spiros.Generics                       as X
+
+{- $usage
+
+assertions:
+
+@
+'assert' :: Bool -> a -> a 
+
+If the first argument evaluates to True, then the result is the second argument. Otherwise an AssertionFailed exception is raised, containing a String with the source file and line number of the call to assert.
+
+Assertions can normally be turned on or off with a compiler flag (for GHC, assertions are normally on unless optimisation is turned on with -O or the -fignore-asserts option is given). When assertions are turned off, the first argument to assert is ignored, and the second argument is returned as the result.
+@
+
+-}
 
 {- $reexports
 
