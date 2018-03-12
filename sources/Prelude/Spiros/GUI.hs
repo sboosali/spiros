@@ -23,7 +23,7 @@ import Prelude hiding
 
 import "template-haskell" Language.Haskell.TH.Syntax
   ( Name(..)
-  , NameFlavour(NameG)
+  , NameFlavour(NameG,NameL)
   , NameSpace(..)
   , OccName(..)
   , ModName(..)
@@ -103,6 +103,60 @@ instance Hashable GUI where
 -- -- instance Hashable (GUI' t) where
 
 ----------------------------------------
+
+{-| Return a globally unique identifier from a Template Haskell 'Name', even if it's local (i.e. not global). 
+
+== Implementation: @TemplateHaskellQuotes@ return only "local names" ('NameL') and "global names" ('NameG', which 'fromGlobalName' validates). 
+
+* 'NameG'
+
+See 'Name':
+
+* 'NameS':
+An unqualified name; dynamically bound
+
+* 'NameQ' ModName:
+A qualified name; dynamically bound
+
+* 'NameU' !Int:
+A unique local name
+
+* 'NameL' !Int:
+Local name bound outside of the TH AST
+
+* 'NameG' NameSpace PkgName ModName:
+Global name bound outside of the TH AST: An original name (occurrences only, not binders) Need the namespace too to be sure which thing we are naming
+
+-}
+unsafeGUI :: Name -> GUI
+unsafeGUI name = go name
+  where
+  go :: Name -> GUI
+  go = fromGlobalName > maybe (fakeGUI name) id
+  
+  fakeGUI :: Name -> GUI
+  fakeGUI (Name nIdentifier nFlavor) = case nFlavor of
+    NameL i -> localFakeGUI nIdentifier i
+    _       -> defaultFakeGUI nIdentifier
+
+  localFakeGUI :: OccName -> Int -> GUI
+  localFakeGUI (OccName n) i =
+    GUI fakePkgName fakeModName qualifiedLocalOccName defaultNameSpace
+        where
+        qualifiedLocalOccName = OccName $ n ++ "$" ++ show i
+
+  defaultFakeGUI :: OccName -> GUI
+  defaultFakeGUI realOccName
+    = GUI fakePkgName fakeModName realOccName defaultNameSpace
+
+  fakePkgName :: PkgName
+  fakePkgName = PkgName "?"
+  
+  fakeModName :: ModName
+  fakeModName = ModName "?"
+  
+  defaultNameSpace :: NameSpace
+  defaultNameSpace = VarName
 
 {-| if the given identifier is [1] global and [2] a value, then return it as a GUI. 
 

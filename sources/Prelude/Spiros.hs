@@ -19,6 +19,7 @@ import Prelude.Spiros.System                         as X
 import Prelude.Spiros.Exception                      as X
 import Prelude.Spiros.Validator                      as X
 import Prelude.Spiros.GUI                            as X
+import Prelude.Spiros.TemplateHaskell                as X
 
 {- $reexports
 
@@ -34,7 +35,9 @@ These are re-exported by @Prelude.Spiros@.
 
     "Prelude.Spiros.Validator" re-exports helpers for defining simple validators (e.g. @a -> Maybe b@). 
 
-    "Prelude.Spiros.GUI" provides helpers for working with @TemplateHaskell@ 'Name's. 
+    "Prelude.Spiros.GUI" provides helpers for working with @TemplateHaskell@ 'Name's.
+
+    "Prelude.Spiros.TemplateHaskell" provides a few helpers for using @doctest@ and working with @TemplateHaskell@.
 
 -}
 

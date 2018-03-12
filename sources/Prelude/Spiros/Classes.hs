@@ -7,6 +7,15 @@
 Also include some shims for backwards-compability (motivated by the 2018 @reflex-platform@). 
 
 
+= Notes
+
+Derive 'Lift':
+
+* either automatically via @-XDeriveLift@;
+* or manually, which requires importing the method too, @import Language.Haskell.TH.Syntax (Lift(..))@ (this doesn't re-export it because 'Language.Haskell.TH.Syntax.lift' is too broad a name). 
+
+
+= Re-Exports
 
 @deepseq@:
 
@@ -49,6 +58,9 @@ Also include some shims for backwards-compability (motivated by the 2018 @reflex
 
 * 'MonadTrans'
 
+@template-haskell@
+
+* 'Lift'
 
 
 @base@ "stock deriveable":
@@ -272,6 +284,8 @@ import "mtl" Control.Monad.State.Class               as X (MonadState(..))
 import "mtl" Control.Monad.Error.Class               as X (MonadError(..))
 
 import "transformers" Control.Monad.Trans.Class      as X (MonadTrans(..))
+
+import "template-haskell" Language.Haskell.TH.Syntax as X (Lift)
 
 --
 

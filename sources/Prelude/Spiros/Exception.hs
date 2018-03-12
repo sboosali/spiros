@@ -1,40 +1,52 @@
 -- {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskellQuotes, RecordWildCards, PackageImports, LambdaCase, PatternSynonyms, BangPatterns #-}
+{-# LANGUAGE TemplateHaskellQuotes, RecordWildCards, PackageImports, LambdaCase, PatternSynonyms, BangPatterns, DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {- |
 
-see 'throwS', 'throwN', 'throwL', 'either2throw'. 
+see 'SimpleException', 'QuotedException', 'LocatedException'. 
+
+see 'throwEither' (and 'throwMaybe', 'throwList'). 
+
+see 'throwS', 'throwN', 'throwL'. 
 
 -}
 module Prelude.Spiros.Exception where
 
 import Prelude.Spiros.Utilities
 import Prelude.Spiros.GUI
+import Prelude.Spiros.Reexports
+--import Prelude.Spiros.Classes
 
 --
 
-import "safe-exceptions" Control.Exception.Safe 
+import "exceptions" Control.Monad.Catch
+--import "safe-exceptions" Control.Exception.Safe 
 
 
 import "data-default-class" Data.Default.Class 
  (Default(..))
 
 --
+--import qualified "containers" Data.Sequence as Seq
+import           "containers" Data.Sequence (Seq)
 
 import "template-haskell" Language.Haskell.TH.Syntax -- (Name)
 
 --
 
-import "base" Control.Applicative
-import "base" Data.Function
+--import "base" Control.Applicative
+--import "base" Data.Function
+--import "base" Data.List.NonEmpty (NonEmpty(..))
 import "base" Data.Bifunctor (first)
-import "base" GHC.Stack
-import "base" GHC.Stack.Types (CallStack,HasCallStack)
 import "base" GHC.Exts (IsString(..))
 import "base" Control.Monad (MonadPlus(..))
 import "base" Control.Monad.Fail (MonadFail(..))
+
+--import qualified "base" GHC.Stack.Types as GHC
+import           "base" GHC.Stack.Types (HasCallStack)
+import           "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
 
 --
 
@@ -46,87 +58,197 @@ import           "base" Prelude hiding
 
 ----------------------------------------
 
+{-
+  
+{-|
+-}
+type CallStack' = [(String, SrcLoc)]
+ 
+callStack' :: HasCallStack => CallStack'
+callStack' = getCallStack callStack
+
+getCallStack' :: CallStack -> CallStack'
+getCallStack' = getCallStack
+
+-}
+
+----------------------------------------
+
+newtype CallStack' = CallStack'
+  { toCallFrames :: Seq CallFrame
+  } deriving (Show,Eq,Ord,Generic,NFData,Exception)
+
+instance Hashable CallStack' where
+  hashWithSalt s (CallStack' frames)
+    = foldl' hashWithSalt s frames
+
+data CallFrame = CallFrame
+ { _CallFrame_caller   :: !GUI
+ , _CallFrame_callSite :: !Source
+ } deriving (Show,Eq,Ord,Generic,NFData,Hashable)
+
+{-| A single location in the source code.
+
+Equivalent to 'SrcLoc':
+
+@
+srcLocPackage   :: String
+srcLocModule    :: String
+srcLocFile      :: String
+srcLocStartLine :: Int	 
+srcLocStartCol  :: Int	 
+srcLocEndLine   :: Int	 
+srcLocEndCol    :: Int
+@
+
+but with more instances. 
+
+-}
+data Source = Source
+  { _sourcePackage     :: !Text
+  , _sourceModule      :: !Text
+  , _sourceFilename    :: !Text
+  , _sourceFileSpan    :: !FileSpan
+  }  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable)
+
+{-| The location of something spanning a contiguous region in a file.
+
+The @[start .. end]@ range is inclusive.
+
+e.g. a highlighted region. 
+
+-}
+data FileSpan = FileSpan
+  { _spanStart   :: !FilePosition
+  , _spanEnd     :: !FilePosition
+  }  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable)
+
+{-| The location of a single cell (e.g. a character) in a file.
+
+We conceive text files as grids, so this is equivalent to a 2 dimensional point, with different naming. The line number '_fileLine' is like the y-coordinate (descending vertically); the column number '_fileColumn' being the x-coordinate. 
+
+TODO One-indexed ("the first line") versus Zero-indexed?
+
+-}
+data FilePosition = FilePosition
+  { _fileLine     :: !Int -- !Natural
+  , _fileColumn   :: !Int -- !Natural
+  }  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable)
+
+-- data Source = Source
+--   { _sourcePackage     :: String
+--   , _sourceModule      :: String
+--   , _sourceFile        :: String
+--   , _sourceStartLine   :: Int
+--   , _sourceStartColumn :: Int
+--   , _sourceEndLine     :: Int
+--   , _sourceEndColumn   :: Int
+--   }  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,Exception)
+
+----------------------------------------
+
 {-| 
 
 @
-either2throw = 'either'
+throwEither = 'either'
  'throwE'
  'return'
 @
 
 -}
-either2throw
+throwEither
   :: ( MonadThrow m
      , Exception e
      )    
   => Either e a
   -> m a
-either2throw = either
+throwEither = either
  throwE
  return
 
-either2throw_
+throwEitherWith
   :: ( MonadThrow m
      , Show e
      )    
   => Either e a
   -> m a
-either2throw_
-  = (first (show > someQuotedException 'either2throw_))
-  > either2throw
+throwEitherWith
+  = (first (show > someQuotedException 'throwEitherWith))
+  > throwEither
 
 ----------------------------------------
 
-maybe2throw_
+throwMaybe
   :: ( MonadThrow m
      )    
   => Maybe a
   -> m a
-maybe2throw_ 
-  = maybe2either (someQuotedException 'maybe2throw_ "")
-  > either2throw
+throwMaybe = throwMaybeWith
+  (someQuotedException 'throwMaybeWith "")
 
-maybe2throw
+throwMaybeWith
   :: ( MonadThrow m
      , Exception e
      )    
   => e
   -> Maybe a
   -> m a
-maybe2throw e
+throwMaybeWith e
  = maybe2either e
- > either2throw
+ > throwEither
 
 ----------------------------------------
 
-list2throw_
+throwList
   :: ( MonadThrow m
      )    
   => List a
   -> m a
-list2throw_ = list2throw
-  (someQuotedException 'list2throw_ "")
+throwList = throwListWith
+  (someQuotedException 'throwList "")
 
-list2throw
+throwListWith
   :: ( MonadThrow m
      , Exception e
      )    
   => e
   -> List a
   -> m a
-list2throw e
+throwListWith e
   = list2maybe
-  > maybe2throw e
+  > throwMaybeWith e
+
+----------------------------------------
+
+-- throwNonEmpty
+--   :: ( MonadThrow m
+--      , Show a
+--      )
+--   => NonEmpty a
+--   -> m a
+-- throwNonEmpty = throwNonEmptyWith
+--   (someQuotedException 'throwNonEmpty "")
+
+-- throwNonEmptyWith
+--   :: ( MonadThrow m
+--      , Exception e 
+--      )    
+--   => e
+--   -> NonEmpty a
+--   -> m a
+-- throwNonEmptyWith e
+--   = list2maybe
+--   > throwMaybeWith e
 
 ----------------------------------------
 
 data SimpleException = SimpleException
  { _SimpleException_message :: !String
- }
+ } deriving (Read,Eq,Ord,Generic,NFData,Hashable)
 
 instance Exception SimpleException 
 
-{- | non-@Read@able, for @Exception@.
+{- | custom for @Exception@ (non-@Read@able).
 
 @= 'displaySimpleException'@
 
@@ -134,17 +256,15 @@ instance Exception SimpleException
 instance Show SimpleException where
   show = displaySimpleException
 
--- -- 'displayLocatedException', not @show@. 
--- instance Exception SimpleException where
---   displayException = displaySimpleException
+-- | @'SimpleException' ""@
+instance Default SimpleException where
+  def = SimpleException ""
 
 -- | 'SimpleException'
 instance IsString SimpleException where
   fromString = SimpleException
 
--- | @'SimpleException' ""@
-instance Default SimpleException where
-  def = SimpleException ""
+----------------------------------------
 
 {-|
 
@@ -170,13 +290,13 @@ displaySimpleException SimpleException{..} =
 ----------------------------------------
   
 data QuotedException = QuotedException
- { _QuotedException_caller   :: !Name
+ { _QuotedException_caller   :: !GUI
  , _QuotedException_message  :: !String
- }
+ } deriving (Eq,Ord,Generic,NFData,Hashable)
 
 instance Exception QuotedException
 
-{- | non-@Read@able, for @Exception@.
+{- | custom for @Exception@ (non-@Read@able).
 
 @= 'displayQuotedException'@
 
@@ -184,21 +304,54 @@ instance Exception QuotedException
 instance Show QuotedException where
   show = displayQuotedException
 
--- -- 'displayQuotedException', not @show@. 
--- instance Exception QuotedException where
---   displayException = displayQuotedException
-
--- | @= QuotedException \''throwM'@.
---
--- NOTE the prefixing apostrophe is a @TemplateHaskellQuotes@ name quote
--- (not a typo)
--- 
-instance IsString QuotedException where
-  fromString = QuotedException 'throwM
-
 -- | @"" :: QuotedException@ (see the 'IsString' instance).
 instance Default QuotedException where
   def = fromString ""
+
+{- | @= QuotedException \''throwM'@.
+
+ NOTE the prefixing apostrophe is a @TemplateHaskellQuotes@ name quote
+ (not a typo)
+ 
+-}
+instance IsString QuotedException where
+  fromString = QuotedException (unsafeGUI 'throwM)
+
+-- instance NFData QuotedException where
+--   rnf QuotedException{..}
+--         = rnfName _QuotedException_caller
+--     `seq` rnf     _QuotedException_message 
+
+-- instance Hashable QuotedException where
+--   hashWithSalt s QuotedException{..}
+--     = s
+--     `hashNameWithSalt`   _QuotedException_caller
+--     `hashStringWithSalt` _QuotedException_message
+--     where
+--     hashStringWithSalt :: Int -> String -> Int
+--     hashStringWithSalt = hashWithSalt
+
+----------------------------------------
+
+{-NOTES
+
+
+    default hashWithSalt :: (Generic a, GHashable Zero (Rep a)) => Int -> a -> Int
+    hashWithSalt salt = ghashWithSalt HashArgs0 salt . from
+
+
+
+
+rnfName :: Name -> ()
+rnfName = g
+-- rnfName = rnf
+
+hashNameWithSalt :: Int -> Name -> Int
+hashNameWithSalt = g
+
+-}
+
+
 
 -- | 'formatCustomExceptionWithMessage'
 displayQuotedException :: QuotedException -> String
@@ -208,18 +361,19 @@ displayQuotedException QuotedException{..}
       _QuotedException_message
 
   where
-  caller = _QuotedException_caller & displayQualifiedVariable
+  caller = _QuotedException_caller & displayGUI -- QualifiedVariable
 
 ----------------------------------------
-  
+
 data LocatedException = LocatedException
  { _LocatedException_stack    :: !CallStack
  , _LocatedException_message  :: !String
- }
+ --} deriving (Eq,Ord,Generic,NFData,Hashable)
+ } deriving (Generic)
 
 instance Exception LocatedException
 
-{- | non-@Read@able, for @Exception@.
+{- | custom for @Exception@ (non-@Read@able).
 
 @= 'displayLocatedException'@
 
@@ -227,17 +381,15 @@ instance Exception LocatedException
 instance Show LocatedException where
   show = displayLocatedException
 
--- -- 'displayLocatedException', not @show@. 
--- instance Exception LocatedException where
---   displayException = displayLocatedException
+-- | @"" :: LocatedException@ (see the 'IsString' instance).
+instance Default LocatedException where
+  def = fromString ""
 
 -- | Requires 'HasCallStack' around wherever the string literal is (i.e. at the "call-site" of @fromString@). 
 instance IsString LocatedException where
   fromString = LocatedException callStack 
 
--- | @"" :: LocatedException@ (see the 'IsString' instance).
-instance Default LocatedException where
-  def = fromString ""
+----------------------------------------
 
 -- | @'LocatedException' 'callStack' _@
 toLocatedException :: (HasCallStack) => String -> LocatedException
@@ -422,7 +574,7 @@ natural i
 throwN
   :: (MonadThrow m)
   => Name -> String -> m a
-throwN name s = throwM (QuotedException name s)
+throwN name s = throwM (QuotedException (unsafeGUI name) s)
 
 {-| @throwN_ name = 'throwN' name ""@
 
@@ -597,6 +749,8 @@ someLocatedException_ :: HasCallStack => SomeException
 someLocatedException_ = SomeException
  (def :: LocatedException)
 
+----------------------------------------
+
 -- | 
 someSimpleException
   :: String
@@ -610,7 +764,7 @@ someQuotedException
   -> String
   -> SomeException
 someQuotedException n s = SomeException $
- (QuotedException n s)
+ (QuotedException (unsafeGUI n) s)
 
 -- | 
 someLocatedException

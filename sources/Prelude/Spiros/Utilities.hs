@@ -312,6 +312,25 @@ unsafeNatural = fromIntegral
 ----------------------------------------
 -- etc
 
+--pure1 :: (Applicative f) => f a ->
+
+{- | trivial convenience function for composing pure functions between "kleislis" in monadic sequences. 
+
+e.g. @readFile "example.txt" >>= returning show >>= forceIO@
+
+@
+returning f = f >>> return
+
+returning f = \x -> return (f x)
+@
+
+-}
+returning
+  :: (Monad m)
+  => (a ->   b)
+  -> (a -> m b)
+returning f = f > return
+
 -- | @($>) = flip ('<$')@
 ($>) :: (Functor f) => f a -> b -> f b
 ($>) = flip (<$)
