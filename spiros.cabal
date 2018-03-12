@@ -33,6 +33,19 @@ source-repository head
 
 ----------------------------------------
 
+-- You can disable the doctests test suite with -f-test-doctests.
+flag test-doctest
+  default:     True
+  description: Run the doctests (with the eponymous `doctest`), called the `test documentation` unit (in this cabal file). 
+  manual:      True
+
+flag test-static
+  default: True
+  description: Whether to build the `static` test modules; i.e. the fact that they type check correctly is the test, there's nothing (necessarily) "dynamic" that is tested by running. 
+  manual: True
+
+----------------------------------------
+
 library
  hs-source-dirs:      sources
  default-language:    Haskell2010
@@ -62,6 +75,7 @@ library
    Prelude.Spiros.Validator 
    Prelude.Spiros.GUI
    Prelude.Spiros.TemplateHaskell
+   Prelude.Spiros.Generics
 
  -- the above are conceptually `other-modules:`, but exposed for haddock.
 
@@ -140,6 +154,9 @@ library
 ----------------------------------------
 
 test-suite doctest
+ if !flag(test-doctest)
+    buildable: False
+
  hs-source-dirs:      test
  main-is:             DocTests.hs
 
@@ -154,3 +171,23 @@ test-suite doctest
   , doctest
 
 ----------------------------------------
+
+test-suite static
+ if !flag(test-static)
+    buildable: False
+
+ hs-source-dirs:      test
+ main-is:             StaticTests.hs
+ other-modules:
+  StaticTests.Generics
+
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+ ghc-options:         -Wall 
+
+ build-depends:
+    base
+  , spiros
+
+----------------------------------------
+
