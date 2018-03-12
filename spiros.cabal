@@ -76,6 +76,9 @@ library
 
   -- , base-feature-macros  >= 0.1 && < 0.2
 
+  , generic-deriving >= 1.11
+    -- for Generics.Deriving.Semigroup
+
   , template-haskell     >= 2.11
 
   --TODO , clock 
