@@ -16,7 +16,7 @@ main = do
 ----------------------------------------
 
 sources =
- [ "sources/Prelude" 
+ [ "sources/" 
  ] 
 
 headers = headers2flags

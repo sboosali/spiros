@@ -48,18 +48,25 @@ library
 
  exposed-modules:
    Prelude.Spiros
-   Prelude.Spiros.Classes
-     -- Data.Finite
- -- other-modules:
-   -- exposed for haddock
+
+   Spiros
+   Spiros.Enable
+   
    Prelude.Spiros.Reexports
    Prelude.Spiros.Utilities
+   Prelude.Spiros.Classes
+   Prelude.Spiros.Types
+
    Prelude.Spiros.System 
    Prelude.Spiros.Exception
    Prelude.Spiros.Validator 
    Prelude.Spiros.GUI
+   Prelude.Spiros.TemplateHaskell
+
+ -- the above are conceptually `other-modules:`, but exposed for haddock.
 
  if impl(ghc >= 8.2.1)
+    hs-source-dirs: other-sources
     exposed-modules:
       Data.Digit
       -- requires -XDerivingStrategies
