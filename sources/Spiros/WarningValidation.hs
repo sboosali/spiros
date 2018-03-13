@@ -88,7 +88,12 @@ data WarningValidation w e a
   , Functor, Foldable, Traversable
   )
 
-type StringValidation = WarningValidation Warnings Errors
+{-| A convenient specialization, with a list of strings as warnings, and a (non-empty) list of strings as errors. Strings, being the most open simple datatype, are a common defaultfor messages. 
+
+i.e. @SimpleWarningValidation a@
+
+-}
+type SimpleWarningValidation = WarningValidation Warnings Errors
 
 ----------------------------------------
 --

@@ -76,6 +76,9 @@ library
    Spiros
    Spiros.Enable
    Spiros.WarningValidation 
+   Spiros.WarningValidation.Simple
+   Spiros.WarningValidation.Bifunctor
+   Spiros.WarningValidation.ErrorValidation
 
    Prelude.Spiros.Reexports
    Prelude.Spiros.Utilities
