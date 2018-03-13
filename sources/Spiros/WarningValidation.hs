@@ -26,49 +26,13 @@ Inspired by the @Chronicle@ monad and the @Validation@ applicative.
 
 Examples:
 
->>> import Data.Ratio (Ratio,(%))
->>> :{
-validateNaturalRatio
-  :: Integer
-  -> Integer
-  -> WarningValidation
-     [String]
-     [String]
-     (Ratio Natural)
-validateNaturalRatio n d
-  | not (d /= 0)               = failure0 "the denominator must be non-zero"
-  | not (signum n == signum d) = failure0 "the ratio must be non-negative"
-  | otherwise                  = success r <* warning 
-     ( if   ((n >= 0) && (d >= 0))
-       then []
-       else ["the numerator and denominator were both negative"]
-     )
-  where
-  r  = n' % d' :: Ratio Natural
-  n' = fromIntegral (abs n)
-  d' = fromIntegral (abs d)
-:}
->>> -- errors
->>> validateNaturalRatio 1 0
-WarningFailure [] ["the denominator must be non-zero"]
->>> validateNaturalRatio 1 (-2)
-WarningFailure [] ["the ratio must be non-negative"]
->>> -- warnings
->>> validateNaturalRatio (-1) (-2)
-WarningSuccess ["the numerator and denominator were both negative"] (1 % 2)
->>> -- successes
->>> validateNaturalRatio 1 2
-WarningSuccess [] (1 % 2)
->>> validateNaturalRatio 0 2
-WarningFailure [] ["the ratio must be non-negative"]
+* "Example.WarningValidation": see the @Example.WarningValidation@ module for a @doctest@ed example. Also see the source of the "Example.WarningValidation.validateNaturalRatio" function for an simple demonstration about how to write a validator that accumulates all errors.
 
 -}
 module Spiros.WarningValidation where
 
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities
-
---import "base" Data.Ratio
 
 ----------------------------------------
 
@@ -494,104 +458,8 @@ predicate2validation e p = \a ->
   then success a
   else failure e
 {-# INLINE predicate2validation #-}
+ 
 
-{-
-validateNaturalNumber :: Integer -> WarningValidation w [String] Natural
-validateNaturalNumber i =
-  if (i>=0)
-  then success n
-  else failure0 "must be non-negative"
-  where
-  n = fromIntegral i
-
-validatePositiveNumber :: Integer -> WarningValidation w [String] Natural
-validatePositiveNumber i =
-  if (i>=1)
-  then success n
-  else failure0 "must be positive"
-  where
-  n = fromIntegral i
-
-validateNonZeroNumber :: Integer -> WarningValidation w [String] Integer
-validateNonZeroNumber i =
-  if (i/=0)
-  then success n
-  else failure0 "must be non-zero"
-  where
-  n = fromIntegral i
-
-
-  n = n'
-  d = d'
-  
-
-validateNaturalFraction
-  :: Integer
-  -> Integer
-  -> WarningValidation [String] [String] (Ratio Natural)
-validateNaturalFraction n d = do
-  go <*> validateNatural n <*> validatePositive d
-
-  where
-  go n d = (%) 
-  
-  if (n>=0) && (n<=)
-  then success n  
-  warning0 "the numerator and denominator share the same sign, but both are negative"
-
-
-
-validateNaturalFraction
-  :: Integer
-  -> Integer
-  -> WarningValidation [String] [String] (Ratio Natural)
-validateNaturalFraction n d = do
-  
-  if   (d==0) 
-  then failure0 "the denominator must be non-zero"
-  else failure0 "the ratio must be non-negative" 
-  warning0 "the numerator and denominator were both negative"
-  
-  else success n
-
-  -- the numerator and denominator share the same sign, but both were negative
-  --  i.e. the numerator and denominator must both share the same sign"
-
-
-
-validateNaturalFraction
-  :: Integer
-  -> Integer
-  -> WarningValidation [String] [String] (Ratio Natural)
-validateNaturalFraction n d
-  | not (d /= 0)         = failure0 "the denominator must be non-zero"
-  | not (sig n == sig d) = failure0 "the ratio must be non-negative"
-  | (n >= 0) && (d >= 0) = (%) (fromIntegral n) (fromIntegral d)
-  
-  | otherwise = (%) <$> <*> warning0 "the numerator and denominator were both negative"
-  
-  else success n
-
-
-validateNaturalFraction
-  :: Integer
-  -> Integer
-  -> WarningValidation [String] [String] (Ratio Natural)
-validateNaturalFraction n d
-  | not (d /= 0)               = failure0 "the denominator must be non-zero"
-  | not (signum n == signum d) = failure0 "the ratio must be non-negative"
-  | otherwise                  = success r *> 
-  where
-  r = (fromIntegral n % fromIntegral d)
-  w = warning $
-     if   ((n >= 0) && (d >= 0))
-     then []
-     else ["the numerator and denominator were both negative"]
-
-
--}
-
-----------------------------------------
 
 {-
 

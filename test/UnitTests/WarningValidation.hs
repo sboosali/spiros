@@ -19,6 +19,9 @@ main = do
   print $ validateNaturalRatio 1 0
   print $ validateNaturalRatio 1 (-2)
   
+  putStrLn "\naccumulated errors\n"
+  print $ validateNaturalRatio (-1) 0
+  
   putStrLn "\nwarnings\n"
   print $ validateNaturalRatio (-1) (-2)
   
@@ -38,9 +41,9 @@ validateNaturalRatio n d
   | not (d /= 0)               = failure0 "the denominator must be non-zero"
   | not (signum n == signum d) = failure0 "the ratio must be non-negative"
   | otherwise                  = success r <* warning 
-     ( if   ((n >= 0) && (d >= 0))
-       then []
-       else ["the numerator and denominator were both negative"]
+     ( if   not ((n >= 0) && (d >= 0))
+       then ["the numerator and denominator were both negative"]
+       else []
      )
   where
   r  = n' % d' :: Ratio Natural
