@@ -21,7 +21,7 @@ import Prelude.Spiros.Reexports
 
 --
 
-import "exceptions" Control.Monad.Catch
+--import "exceptions" Control.Monad.Catch hiding (throwM) -- from `safe-exceptions`
 --import "safe-exceptions" Control.Exception.Safe 
 
 
@@ -76,7 +76,7 @@ getCallStack' = getCallStack
 
 newtype CallStack' = CallStack'
   { toCallFrames :: Seq CallFrame
-  } deriving (Show,Eq,Ord,Generic,NFData,Exception)
+  } deriving (Show,Eq,Ord,Generic,NFData)
 
 instance Hashable CallStack' where
   hashWithSalt s (CallStack' frames)

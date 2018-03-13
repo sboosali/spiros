@@ -4,7 +4,7 @@
 
 {- |
 
-re-exports 'KnownGHCLanguageExtension', an aliased 'GHC.Extension':
+re-exports 'GHC80LanguageExtension', an aliased 'GHC.Extension':
 
 @
 data Extension
@@ -138,10 +138,10 @@ import "base" Prelude
 
 {-|
 
-The language extensions known to be supported by the GHC version associated with the current version of the @template-haskell@ pacakge.
+The aliased type are language extensions known to be supported by the GHC version associated with the current version of the @template-haskell@ pacakge. This type implies, from its name, that only @GHC 8.0@ extensions should be used, for compatibility.
 
 -}
-type GHCLanguageExtension = GHC.Extension
+type GHC80LanguageExtension = GHC.Extension
 
 ----------------------------------------
 
@@ -152,7 +152,7 @@ type GHCLanguageExtension = GHC.Extension
 @
 
 -}
-extensions2flags :: [Enablement GHCLanguageExtension] -> [String]
+extensions2flags :: [Enablement GHC80LanguageExtension] -> [String]
 extensions2flags = fmap extension2flag
 
 {-| 
@@ -161,7 +161,7 @@ extensions2flags = fmap extension2flag
 @
 
 -}
-disabledExtensionFlags :: [GHCLanguageExtension] -> [String]
+disabledExtensionFlags :: [GHC80LanguageExtension] -> [String]
 disabledExtensionFlags = fmap disabled >>> extensions2flags
 
 {-| 
@@ -170,7 +170,7 @@ disabledExtensionFlags = fmap disabled >>> extensions2flags
 @
 
 -}
-enabledExtensionFlags :: [GHCLanguageExtension] -> [String]
+enabledExtensionFlags :: [GHC80LanguageExtension] -> [String]
 enabledExtensionFlags = fmap enabled >>> extensions2flags
 
 {-| trivial helper for writing the @main = doctest [...]@ boilerplate with fewer typos.
@@ -187,7 +187,7 @@ either "-X..." or "-XNo..."
 "-XNoImplicitPrelude"
 
 -}
-extension2flag :: Enablement GHCLanguageExtension -> String
+extension2flag :: Enablement GHC80LanguageExtension -> String
 extension2flag = fmap show >>> enablement ("-XNo"++) ("-X"++)
 
 ----------------------------------------
@@ -203,7 +203,7 @@ Most are benign.
 @
 
 -}
-myDefaultLanguageExtensions:: [Enablement GHCLanguageExtension]
+myDefaultLanguageExtensions:: [Enablement GHC80LanguageExtension]
 myDefaultLanguageExtensions =
   [ disabled GHC.ImplicitPrelude
   
@@ -244,7 +244,7 @@ The language extensions included among the @other-extensions@ of many of my paca
 These have more drawbacks than those in 'myDefaultLanguageExtensions': worse type inference, increased build times, more strained portability, etc. 
 
 -}
-myOtherLanguageExtensions:: [Enablement GHCLanguageExtension]
+myOtherLanguageExtensions:: [Enablement GHC80LanguageExtension]
 myOtherLanguageExtensions =
   [ enabled GHC.Cpp
 
@@ -260,7 +260,7 @@ myOtherLanguageExtensions =
 
   , enabled GHC.GADTs
 
-  , enabled GHC.DerivingStrategies
+  -- , enabled GHC.DerivingStrategies
   , enabled GHC.DeriveAnyClass
   , enabled GHC.GeneralizedNewtypeDeriving
   

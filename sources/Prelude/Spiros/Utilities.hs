@@ -44,25 +44,26 @@ import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskel
 
 --
 
-import "base" Data.Function ((&))
+import "base" Data.Function              ((&))
 import "base" Data.Functor.Product
-import "base" Control.Arrow ((>>>),(<<<))
-import "base" Control.Exception (SomeException,evaluate)
-import "base" Control.Concurrent (threadDelay,forkIO,ThreadId)
-import "base" Control.Monad (forever, void)
+import "base" Control.Arrow              ((>>>),(<<<))
+import "base" Control.Exception          (SomeException,evaluate)
+import "base" Control.Concurrent         (threadDelay,forkIO,ThreadId)
+import "base" Control.Monad              (forever, void)
 import "base" Data.Proxy
-import "base" Data.String(IsString)
+import "base" Data.String                (IsString)
 import "base" Control.Monad.IO.Class
-import "base" Data.Foldable (sequenceA_,toList)
-import "base" Data.Traversable (sequenceA)
-import "base" Data.List.NonEmpty (NonEmpty)
+import "base" Data.Foldable              (sequenceA_,toList)
+import "base" Data.Traversable           (sequenceA)
+import "base" Data.List.NonEmpty         (NonEmpty)
 --import qualified Data.List.NonEmpty as NonEmpty
 import "base" Numeric.Natural
+import "base" Data.Ratio                 (Ratio,(%))
 
 import           "base" Control.Category (Category)
 import qualified "base" Control.Category as Category
 import           "base" Data.Typeable
-import           "base" GHC.Exts (IsString(..))
+import           "base" GHC.Exts         (IsString(..))
 
 --
 
@@ -308,6 +309,12 @@ list y f = \case
 -- 
 unsafeNatural :: Integral i => i -> Natural
 unsafeNatural = fromIntegral
+
+-- | an alias, since @(%)@ is prime symbolic real estate. 
+ratio :: Integral a => a -> a -> Ratio a
+ratio = (%)
+
+infixl 7 `ratio` -- same as (%)
 
 ----------------------------------------
 -- etc
