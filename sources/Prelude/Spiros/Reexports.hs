@@ -68,8 +68,8 @@ import "data-default-class" Data.Default.Class       as X
 ----------------------------------------
 -- https://www.fpcomplete.com/blog/2016/06/announce-safe-exceptions
 
---import "safe-exceptions" Control.Exception.Safe      as X -- TODO mv so module, like Spiros.Exceptions?
-import "exceptions" Control.Monad.Catch           as X (MonadThrow(..))
+import "safe-exceptions" Control.Exception.Safe      as X -- TODO mv so module, like Spiros.Exceptions?
+--import "exceptions" Control.Monad.Catch           as X (MonadThrow(..))
 
 ----------------------------------------
 
@@ -218,6 +218,8 @@ import "base" Data.Char                              as X
     )
 
 import "base" Numeric.Natural                        as X (Natural)
+import "base" Data.Ratio                             as X (Ratio)
+  
 import "base" Data.Maybe                             as X 
 import "base" Data.Either                            as X 
 import "base" Data.Function                          as X ((&),on,fix)
@@ -369,5 +371,7 @@ type MonadFail m = Monad m
 #endif
 
 ----------------------------------------
+
+
 
 ----------------------------------------

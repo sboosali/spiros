@@ -1,6 +1,9 @@
+{-# LANGUAGE CPP #-}
+
 {-# LANGUAGE NoImplicitPrelude #-}
 
 {-# LANGUAGE
+    PackageImports,
     DeriveDataTypeable,
     DeriveGeneric,
     DeriveFunctor,
@@ -9,6 +12,7 @@
     DeriveLift,
     DeriveAnyClass,
     LambdaCase,
+    TypeOperators,
     AutoDeriveTypeable
  #-}
 
@@ -20,18 +24,617 @@
 
 Inspired by the @Chronicle@ monad and the @Validation@ applicative.
 
+Examples:
+
+>>> import Data.Ratio (Ratio,(%))
+>>> :{
+validateNaturalRatio
+  :: Integer
+  -> Integer
+  -> WarningValidation
+     [String]
+     [String]
+     (Ratio Natural)
+validateNaturalRatio n d
+  | not (d /= 0)               = failure0 "the denominator must be non-zero"
+  | not (signum n == signum d) = failure0 "the ratio must be non-negative"
+  | otherwise                  = success r <* warning 
+     ( if   ((n >= 0) && (d >= 0))
+       then []
+       else ["the numerator and denominator were both negative"]
+     )
+  where
+  r  = n' % d' :: Ratio Natural
+  n' = fromIntegral (abs n)
+  d' = fromIntegral (abs d)
+:}
+>>> -- errors
+>>> validateNaturalRatio 1 0
+WarningFailure [] ["the denominator must be non-zero"]
+>>> validateNaturalRatio 1 (-2)
+WarningFailure [] ["the ratio must be non-negative"]
+>>> -- warnings
+>>> validateNaturalRatio (-1) (-2)
+WarningSuccess ["the numerator and denominator were both negative"] (1 % 2)
+>>> -- successes
+>>> validateNaturalRatio 1 2
+WarningSuccess [] (1 % 2)
+>>> validateNaturalRatio 0 2
+WarningFailure [] ["the ratio must be non-negative"]
+
 -}
 module Spiros.WarningValidation where
 
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities
 
-----------------------------------------
-
-
+--import "base" Data.Ratio
 
 ----------------------------------------
 
+{- | The type of strict pairs.
+
+@(,)@ is lazy, @(:!:)@ is strict. 
+
+-}
+data Pair a b
+ = !a :!: !b
+ deriving
+  ( Eq, Ord, Show, Read, Bounded, Ix
+#if __GLASGOW_HASKELL__ >= 702
+  , Generic, Data
+  , Functor, Foldable, Traversable
+#endif
+  )
+
+infixl 2 :!:
+
+type (:!:) = Pair
+
+----------------------------------------
+
+{- |
+
+see 'runWarningValidation':
+
+@
+WarningValidation w e a
+~
+(w, Either e a)
+@
+
+NOTE, the 'Monoid'(\/ 'Semigroup') instance(s) and the 'Alternative' instance differ:
+
+* The 'Alternative' instance is logical disjunction, i.e. "succeed if /any/ succeed". The operation is "", and its identity is failure. 
+* The 'Monoid' instance is logical conjunction, i.e. "succeed if /all/ succeed". The operation is "", and its identity is success.
+
+This difference exploits the different arities between these two "monoidal typeclasses":
+
+* @Monoid (WarningValidation w e a) can require constraints on @a@, in particular @(Monoid a, ...) => ...@, 
+* while @Alternative (WarningValidation w e)@ can't. 
+
+-}
+data WarningValidation w e a 
+ = WarningFailure !w !e
+ | WarningSuccess !w !a
+ deriving 
+  ( Eq, Ord, Show, Read
+#if __GLASGOW_HASKELL__ >= 702
+  , Generic, Data
+  , Functor, Foldable, Traversable
+#endif
+  )
+
+----------------------------------------
+-- instances
+
+{-|
+
+@pure = 'WarningSuccess' 'mempty'@
+
+-}
+instance (Monoid w, Semigroup e)
+      => Applicative (WarningValidation w e)
+  where
+
+  pure = WarningSuccess mempty 
+  {-# INLINE pure #-}
+  
+  WarningFailure w1 e1 <*> WarningFailure w2 e2 = WarningFailure (w1 `mappend` w2) (e1 <> e2)
+
+  WarningFailure w1 e1 <*> WarningSuccess w2 _  = WarningFailure (w1 `mappend` w2) e1
+  WarningSuccess w1 _  <*> WarningFailure w2 e2 = WarningFailure (w1 `mappend` w2) e2
+
+  WarningSuccess w1 f  <*> WarningSuccess w2 a  = WarningSuccess (w1 `mappend` w2) (f a)
+  {-# INLINE (<*>) #-}
+  
+{-|
+
+@empty = 'WarningFailure' 'mempty' 'mempty'@
+
+-}
+instance (Monoid w, Monoid e, Semigroup e)
+      => Alternative (WarningValidation w e) where
+  
+  empty = WarningFailure mempty mempty
+  {-# INLINE empty #-}
+  
+  v1@WarningSuccess{} <|> _  = v1
+  WarningFailure{}    <|> v2 = v2
+  {-# INLINE (<|>) #-}
+
+{-|
+
+-}
+instance (Semigroup w, Semigroup e, Semigroup a)
+      => Semigroup (WarningValidation w e a)
+  where
+  (<>) = mergeWarningValidation (<>) (<>) (<>)
+  {-# INLINE (<>) #-}
+
+
+{-|
+
+@mempty = 'WarningSuccess' 'mempty' 'mempty'@
+
+@
+mempty ≠ 'empty' 
+@
+
+a.k.a.:
+
+@
+mempty @(WarningValidation _ _ _)
+≠
+'empty' @(WarningValidation _ _ _)
+@
+
+-}
+instance (Monoid w, Monoid e, Monoid a)
+      => Monoid (WarningValidation w e a)
+  where
+  mempty = WarningSuccess mempty mempty
+  {-# INLINE mempty #-}
+  mappend = mergeWarningValidation mappend mappend mappend
+  {-# INLINE mappend #-}
+
+----------------------------------------
+-- instance helpers
+
+-- | Fail if any fail, succeed only if all succeed,
+-- while collecting all warnings either way. 
+-- For the 'Monoid'\/'Semigroup instances. 
+mergeWarningValidation
+  :: (w -> w -> w)
+  -> (e -> e -> e)
+  -> (a -> a -> a)
+  -> WarningValidation w e a
+  -> WarningValidation w e a
+  -> WarningValidation w e a
+mergeWarningValidation mW mE mA = go
+
+  where
+  go (WarningFailure w1 e1) (WarningFailure w2 e2) = WarningFailure (w1 `mW` w2) (e1 `mE` e2)
+
+  go (WarningFailure w1 e1) (WarningSuccess w2 _ ) = WarningFailure (w1 `mW` w2) e1
+  go (WarningSuccess w1 _)  (WarningFailure w2 e2) = WarningFailure (w1 `mW` w2) e2
+
+  go (WarningSuccess w1 a1) (WarningSuccess w2 a2) = WarningSuccess (w1 `mW` w2) (a1 `mA` a2)
+
+{-# INLINE mergeWarningValidation #-}
+
+----------------------------------------
+-- public helpers
+
+{-| Succeed without warnings. 
+
+@
+success a
+=
+'WarningSuccess' 'mempty' a
+@
+
+-}
+success
+  :: ( Monoid w
+     )
+  => a -> WarningValidation w e a
+success = WarningSuccess mempty
+
+{-# INLINE success #-}
+
+{-| Fail without warnings. 
+
+@
+failure e
+=
+'WarningFailure' 'mempty' e
+@
+
+-}
+failure
+  :: ( Monoid w
+     )
+  => e -> WarningValidation w e a
+failure = WarningFailure mempty
+
+{-# INLINE failure #-}
+
+{-| Warn, trivially succeeding. 
+
+@
+warning w
+=
+'WarningSuccess' w ()
+@
+
+-}
+warning
+  :: (
+     )
+  => w -> WarningValidation w e ()
+warning w = WarningSuccess w ()
+
+{-# INLINE warning #-}
+
+----------------------------------------
+
+{-| Fail via @[]@, without warnings. 
+
+@
+failure0 e
+=
+'failure' [e]
+@
+
+-}
+failure0
+  :: ( Monoid w
+     )
+  => e -> WarningValidation w [e] a
+failure0 e = failure [e]
+
+{-# INLINE failure0 #-}
+
+{-| Fail via @NonEmpty@, without warnings. 
+
+@
+failure1 e
+=
+'failure' [e]
+@
+
+-}
+failure1
+  :: ( Monoid w
+     )
+  => e -> WarningValidation w (NonEmpty e) a
+failure1 e = failure (e:|[])
+
+{-# INLINE failure1 #-}
+
+{-| Warn, via @[]@, trivially succeeding. 
+
+@
+warning0 w
+=
+'warning' [w]
+@
+
+-}
+warning0
+  :: (
+     )
+  => w -> WarningValidation [w] e ()
+warning0 w = warning [w]
+
+{-# INLINE warning0 #-}
+
+----------------------------------------
+
+{-| Succeed, but with warnings. 
+
+@
+success w a
+=
+'WarningSuccess' w a
+@
+
+-}
+successBut
+  :: ( 
+     )
+  => w -> a -> WarningValidation w e a
+successBut = WarningSuccess
+
+{-# INLINE successBut #-}
+
+{-| Succeed, but with a warning. 
+
+@
+successBut w a
+=
+'WarningSuccess' [w] a
+@
+
+-}
+successBut0
+  :: ( 
+     )
+  => w -> a -> WarningValidation [w] e a
+successBut0 w = successBut [w]
+
+{-# INLINE successBut0 #-}
+
+{-| Fail with errors, and with warnings too. 
+
+@
+failureAnd w e
+=
+'WarningFailure' w e
+@
+
+-}
+failureAnd
+  :: ( 
+     )
+  => w -> e -> WarningValidation w e a
+failureAnd = WarningFailure
+
+{-# INLINE failureAnd #-}
+
+{-| Fail with an error, via @[]@, and with a warning too. 
+
+@
+failureAnd0 w e
+=
+'WarningFailure' [w] [e]
+@
+
+-}
+failureAnd0
+  :: ( 
+     )
+  => w -> e
+  -> WarningValidation [w] [e] a
+failureAnd0 w e = WarningFailure [w] [e]
+
+{-# INLINE failureAnd0 #-}
+
+{-| Fail with an error, via @NonEmpty@, and with a warning too.  
+
+@
+failureAnd1 w e
+=
+'WarningFailure' [w] (e:|[])
+@
+
+-}
+failureAnd1
+  :: ( 
+     )
+  => w -> e
+  -> WarningValidation [w] (NonEmpty e) a
+failureAnd1 w e = WarningFailure [w] (e:|[])
+
+{-# INLINE failureAnd1 #-}
+
+----------------------------------------
+
+{-|
+
+@
+runWarningValidation = \case
+  'WarningFailure' w e -> (w, 'Left'  e)
+  'WarningSuccess' w a -> (w, 'Right' a)
+@
+
+-}
+runWarningValidation
+  :: (
+     )
+  => WarningValidation w e a
+  -> (w, Either e a)
+runWarningValidation = \case
+  WarningFailure w e -> (w, Left  e)
+  WarningSuccess w a -> (w, Right a)
+
+{-# INLINE runWarningValidation #-}
+
+{-| Promote warnings into errors (i.e. the severity is raised from non-fatal to fatal). 
+
+to succeed with @Right a@:
+
+* both the 'WarningValidation' must a 'WarningSuccess',
+* and the warnings must be empty (i.e. @('==' 'mempty')@). 
+
+
+-}
+runErrorValidation
+  :: ( Eq w, Monoid w
+     )
+  => WarningValidation w e a
+  -> Either (w, Maybe e) a
+runErrorValidation = runWarningValidation > \case
+  (w, Left  e) -> Left (w, Just e)
+  (w, Right a) ->
+    
+    if   w == mempty
+    then Right a
+    else Left (w, Nothing)
+
+{-# INLINE runErrorValidation #-}
+
+{-
+runErrorValidation
+  :: (
+     )
+  => WarningValidation w e a
+  -> Either (w,e) a
+runErrorValidation = runWarningValidation > \case
+  ([], Right a) -> Right a
+  (w,  Left  e) -> Left (w,e)
+  (w,  Left  e) -> Left (w,e)
+-}
+
+{- | Validates an @a@ with the given predicate @p@, returning @e@ if the predicate does not hold.
+
+@
+'predicate2validation' e p a
+@
+
+-}
+predicate2validation
+  :: ( Monoid w
+     )
+  => e -> (a -> Bool)
+  -> a -> WarningValidation w e a
+predicate2validation e p = \a ->
+  if   p a
+  then success a
+  else failure e
+{-# INLINE predicate2validation #-}
+
+{-
+validateNaturalNumber :: Integer -> WarningValidation w [String] Natural
+validateNaturalNumber i =
+  if (i>=0)
+  then success n
+  else failure0 "must be non-negative"
+  where
+  n = fromIntegral i
+
+validatePositiveNumber :: Integer -> WarningValidation w [String] Natural
+validatePositiveNumber i =
+  if (i>=1)
+  then success n
+  else failure0 "must be positive"
+  where
+  n = fromIntegral i
+
+validateNonZeroNumber :: Integer -> WarningValidation w [String] Integer
+validateNonZeroNumber i =
+  if (i/=0)
+  then success n
+  else failure0 "must be non-zero"
+  where
+  n = fromIntegral i
+
+
+  n = n'
+  d = d'
+  
+
+validateNaturalFraction
+  :: Integer
+  -> Integer
+  -> WarningValidation [String] [String] (Ratio Natural)
+validateNaturalFraction n d = do
+  go <*> validateNatural n <*> validatePositive d
+
+  where
+  go n d = (%) 
+  
+  if (n>=0) && (n<=)
+  then success n  
+  warning0 "the numerator and denominator share the same sign, but both are negative"
+
+
+
+validateNaturalFraction
+  :: Integer
+  -> Integer
+  -> WarningValidation [String] [String] (Ratio Natural)
+validateNaturalFraction n d = do
+  
+  if   (d==0) 
+  then failure0 "the denominator must be non-zero"
+  else failure0 "the ratio must be non-negative" 
+  warning0 "the numerator and denominator were both negative"
+  
+  else success n
+
+  -- the numerator and denominator share the same sign, but both were negative
+  --  i.e. the numerator and denominator must both share the same sign"
+
+
+
+validateNaturalFraction
+  :: Integer
+  -> Integer
+  -> WarningValidation [String] [String] (Ratio Natural)
+validateNaturalFraction n d
+  | not (d /= 0)         = failure0 "the denominator must be non-zero"
+  | not (sig n == sig d) = failure0 "the ratio must be non-negative"
+  | (n >= 0) && (d >= 0) = (%) (fromIntegral n) (fromIntegral d)
+  
+  | otherwise = (%) <$> <*> warning0 "the numerator and denominator were both negative"
+  
+  else success n
+
+
+validateNaturalFraction
+  :: Integer
+  -> Integer
+  -> WarningValidation [String] [String] (Ratio Natural)
+validateNaturalFraction n d
+  | not (d /= 0)               = failure0 "the denominator must be non-zero"
+  | not (signum n == signum d) = failure0 "the ratio must be non-negative"
+  | otherwise                  = success r *> 
+  where
+  r = (fromIntegral n % fromIntegral d)
+  w = warning $
+     if   ((n >= 0) && (d >= 0))
+     then []
+     else ["the numerator and denominator were both negative"]
+
+
+-}
+
+----------------------------------------
+
+{-
+
+
+{- |
+
+warnings and errors share the same type (thus the error @e@ must be @Monoid@ too).
+
+Bifunctor
+
+-}
+newtype WarningValidation' e a = WarningValidation'
+ { getWarningValidation' :: WarningValidation e e a
+ }
+
+{- |
+
+--TODO warnings and errors with same type?
+
+Bifunctor
+
+-}
+newtype SimpleWarningValidation e a = SimpleWarningValidation
+ { getSimpleWarningValidation :: WarningValidation
+   (Seq e)       -- strict list
+   (e :!: Seq e) -- strict non-empty list
+   a
+ }
+ 
+{-
+
+{ getSimpleWarningValidation :: WarningValidation [e] (NonEmpty e) a }
+
+= Failure !(w :!: e)
+ | Success !(w :!: a)
+
+-}
+
+
+-}
+
+----------------------------------------
+  
 {-
 
 
