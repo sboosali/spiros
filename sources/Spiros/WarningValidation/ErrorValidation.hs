@@ -24,7 +24,7 @@ module Spiros.WarningValidation.ErrorValidation
  ( module Spiros.WarningValidation.ErrorValidation
  ) where
 
-import qualified Spiros.WarningValidation as V
+--import qualified Spiros.WarningValidation as V
 --import           Spiros.WarningValidation (Warnings,Errors)
 import           Spiros.WarningValidation (WarningValidation(..))
 

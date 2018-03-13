@@ -16,7 +16,8 @@ main = do
 ----------------------------------------
 
 sources =
- [ "sources/" 
+ [ "sources/"
+ , "examples/"
  ] 
 
 headers = headers2flags

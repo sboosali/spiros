@@ -44,7 +44,8 @@ flag test-doctest
   manual:      True
 
 flag test-unit
-  default:     False
+  default:     True 
+  -- False
            -- TODO  
   description: Run the unit tests. 
   manual:      True
@@ -194,7 +195,7 @@ test-suite doctest
 ----------------------------------------
 
 test-suite unit
- if !flag(test-unit)
+ if !(flag(test-unit) && flag(examples))
     buildable: False
 
  hs-source-dirs:      test

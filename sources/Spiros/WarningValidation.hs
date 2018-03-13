@@ -68,6 +68,36 @@ WarningValidation w e a
 (w, Either e a)
 @
 
+NOTE, lazy accumulators @w@ and @e@, strict payload @a@:
+
+* The constructors are strict in the warning type @w@ and error type @e@, which improves the performance of their accumulation;
+* but 'WarningSuccess' is lazy in the return type @a@, which preserves the expected behavior (as with the majority of haskell datatypes).
+
+For example, we can safely performing an otherwise unsafe\/partial operation in a where clause by checking preconditions and returning it only if they're satisfied:
+
+>>> :set -XOverloadedStrings
+>>> import Data.Ratio (Rational, (%))
+>>> assertNonZeroDenominator d = hardAssertion "the denominator MUST be non-zero" (not (d == 0))
+>>> validRatio = (\n d -> assertNonZeroDenominator d *> success (n % d)) :: Integer -> Integer -> WarningValidation Warnings Errors Rational
+>>> validRatio 2 4
+WarningSuccess (Warnings []) (1 % 2)
+>>> validRatio 1 0
+WarningFailure (Warnings []) (Errors ("the denominator MUST be non-zero" :| []))
+
+The order of the effects (i.e. the checks) doesn't matter; i.e. you can check both "before" and "after" (i.e. to the left or to the right) of "succeeding" with the possibly-unsafe value (i.e. calling 'succeed' a.k.a. 'pure'):
+
+>>> :set -XOverloadedStrings
+>>> import Data.Ratio (Rational, (%))
+>>> assertNonZeroDenominator d = hardAssertion "the denominator MUST be non-zero" (not (d == 0))
+>>> validRatio_before = (\n d -> assertNonZeroDenominator d *> success (n % d)) :: Integer -> Integer -> WarningValidation Warnings Errors Rational
+>>> validRatio_after  = (\n d -> success (n % d) <* assertNonZeroDenominator d) :: Integer -> Integer -> WarningValidation Warnings Errors Rational
+>>> validRatio_before 2 4 == validRatio_after 2 4
+True
+>>> validRatio_before 1 0 == validRatio_after 1 0
+True
+
+Also see "Example.WarningValidation.validateNaturalRatio". 
+
 NOTE, the 'Monoid'(\/ 'Semigroup') instance(s) and the 'Alternative' instance differ:
 
 * The 'Alternative' instance is logical disjunction, i.e. "succeed if /any/ succeed". The operation is "try the next if this one fails", and its identity is failure. 
@@ -81,12 +111,17 @@ This difference exploits the different arities between these two "monoidal typec
 -}
 data WarningValidation w e a 
  = WarningFailure !w !e
- | WarningSuccess !w !a
+ | WarningSuccess !w (a)
  deriving 
   ( Eq, Ord, Show, Read
   , Generic, Data
   , Functor, Foldable, Traversable
   )
+
+{-
+ = WarningFailure !w !e
+ | WarningSuccess !w !a
+-}
 
 {-| A convenient specialization, with a list of strings as warnings, and a (non-empty) list of strings as errors. Strings, being the most open simple datatype, are a common defaultfor messages. 
 
@@ -95,6 +130,11 @@ i.e. @SimpleWarningValidation a@
 -}
 type SimpleWarningValidation = WarningValidation Warnings Errors
 
+
+----------------------------------------
+
+type WarningValidation_ w e = WarningValidation w e () 
+  
 ----------------------------------------
 --
 
@@ -103,9 +143,8 @@ type SimpleWarningValidation = WarningValidation Warnings Errors
 e.g. @'WarningValidation' 'Warnings' e a@
 
 -}
-newtype Warnings = Warnings
-  { getWarnings :: [String]
-  } deriving 
+newtype Warnings = Warnings [String]
+  deriving 
   ( Eq, Ord, Show, Read
   , Generic, Data
   , NFData, Hashable
@@ -120,6 +159,9 @@ instance IsList Warnings where
   fromList = Warnings
   toList = getWarnings
 
+getWarnings :: Warnings -> [String]
+getWarnings (Warnings ws) = ws
+
 ----------------------------------------
 --
 
@@ -128,9 +170,8 @@ instance IsList Warnings where
 e.g. @'WarningValidation' w 'Errors' a@
 
 -}
-newtype Errors = Errors
-  { getErrors :: NonEmpty String
-  } deriving 
+newtype Errors = Errors (NonEmpty String)
+  deriving 
   ( Eq, Ord, Show, Read
   , Generic, Data
   , NFData, Hashable
@@ -145,6 +186,9 @@ instance IsList Errors where
   type Item Errors = String
   fromList = fromList > Errors
   toList = getErrors > toList
+
+getErrors :: Errors -> NonEmpty String
+getErrors (Errors es) = es
 
 ----------------------------------------
 -- instances
@@ -211,12 +255,14 @@ mempty @(WarningValidation _ _ _)
 @
 
 -}
-instance (Monoid w, Monoid e, Monoid a)
+instance ( Monoid w, Monoid a
+         , Semigroup w, Semigroup e, Semigroup a
+         )
       => Monoid (WarningValidation w e a)
   where
   mempty = WarningSuccess mempty mempty
   {-# INLINE mempty #-}
-  mappend = mergeWarningValidation mappend mappend mappend
+  mappend = mergeWarningValidation (<>) (<>) (<>)
   {-# INLINE mappend #-}
 
 ----------------------------------------
@@ -293,10 +339,43 @@ warning w
 warning
   :: (
      )
-  => w -> WarningValidation w e ()
+  => w -> WarningValidation_ w e 
 warning w = WarningSuccess w ()
 
 {-# INLINE warning #-}
+  
+----------------------------------------
+-- 
+
+{-| Succeed trivially, without any warnings. 
+
+@
+= 'success' ()
+@
+
+-}
+success_
+  :: ( Monoid w
+     )
+  => WarningValidation w e ()
+success_ = success ()
+
+{-# INLINE success_ #-}
+
+{-| Fail trivially, without any warnings. 
+
+@
+= 'failure' ()
+@
+
+-}
+failure_
+  :: ( Monoid w
+     )
+  => WarningValidation w () a
+failure_ = failure ()
+
+{-# INLINE failure_ #-}
 
 ----------------------------------------
 
@@ -463,6 +542,32 @@ failureUnless
   -> WarningValidation w e a
 failureUnless predicate =
   failureIf (predicate > not)
+
+failureIf_
+  :: ( Monoid w
+     )
+  => (x -> Bool)
+  -> (x -> e)
+  -> x
+  -> WarningValidation_ w e
+failureIf_ predicate render
+  = failureIf predicate render
+  > void 
+
+-- void :: Functor f => f a -> f ()
+  
+failureUnless_
+  :: ( Monoid w
+     )
+  => (x -> Bool)
+  -> (x -> e)
+  -> x
+  -> WarningValidation_ w e
+failureUnless_ predicate render
+  = failureUnless predicate render
+  > void 
+
+----------------------------------------
 
 warningIf
   :: ( Monoid w
@@ -682,6 +787,8 @@ runErrorValidation = runWarningValidation > \case
   (w,  Left  e) -> Left (w,e)
 -}
 
+----------------------------------------
+
 {- | Validates an @a@ with the given predicate @p@, returning @e@ if the predicate does not hold.
 
 @
@@ -692,17 +799,117 @@ runErrorValidation = runWarningValidation > \case
 predicate2validation
   :: ( Monoid w
      )
-  => e -> (a -> Bool)
-  -> a -> WarningValidation w e a
-predicate2validation e p = \a ->
-  if   p a
-  then success a
-  else failure e
+  => (a -> e)
+  -> (a -> Bool)
+  -> a
+  -> WarningValidation w e a
+predicate2validation render predicate = go
+  where
+  go a
+    = if   predicate a
+      then success a
+      else failure e
+      where
+      e = render a
 {-# INLINE predicate2validation #-}
- 
 
+{- | Validates that given @condition@ holds @True@,
+failing with the @message@ otherwise.
+
+@
+boolean2validation message condition
+=
+'predicate2validation' ('const' message) ('const' condition) ()
+@
+
+-}
+boolean2validation
+  :: ( Monoid w
+     )
+  => e
+  -> Bool
+  -> WarningValidation_ w e 
+boolean2validation message condition
+  = predicate2validation (const message) (const condition) ()
+
+{-# INLINE boolean2validation #-}
+
+{- | Asserts that given @condition@ holds @True@,
+failing with the @message@ otherwise.
+
+@
+'hardAssertion' message condition
+@
+
+-}
+hardAssertion
+  :: ( Monoid w
+     )
+  => e
+  -> Bool
+  -> WarningValidation_ w e 
+hardAssertion message condition = go
+  where
+  go =
+    if   condition
+    then success_
+    else failure message
+
+{-# INLINE hardAssertion #-}
+
+{- | Informs whether given @condition@ holds @True@,
+failing with the @message@ otherwise.
+
+@
+'softAssertion' message condition
+@
+
+-}
+softAssertion
+  :: ( Monoid w
+     )
+  => w
+  -> Bool
+  -> WarningValidation_ w e 
+softAssertion message condition = WarningSuccess w ()
+  where
+  w =
+    if   condition
+    then mempty
+    else message
+
+{-# INLINE softAssertion #-}  
+
+----------------------------------------
 
 {-
+
+
+softAssertion
+  :: ( Semigroup w, Monoid w
+     )
+  => w
+  -> Bool
+  -> WarningValidation_ w e 
+softAssertion message condition
+  = warning w *> success_
+  where
+  w =
+    if   condition
+    then message
+    else mempty
+
+
+
+  
+  where
+  softCheck
+    = if   condition
+      then success a
+      else failure e
+      where
+      e = render a
+
 
 
 {- |
