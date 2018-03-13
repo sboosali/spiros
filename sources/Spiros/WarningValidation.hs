@@ -10,7 +10,8 @@
     DeriveFoldable,
     DeriveTraversable,
     DeriveLift,
-    DeriveAnyClass,
+    GeneralizedNewtypeDeriving,
+    TypeFamilies,
     LambdaCase,
     TypeOperators,
     AutoDeriveTypeable
@@ -69,8 +70,8 @@ WarningValidation w e a
 
 NOTE, the 'Monoid'(\/ 'Semigroup') instance(s) and the 'Alternative' instance differ:
 
-* The 'Alternative' instance is logical disjunction, i.e. "succeed if /any/ succeed". The operation is "", and its identity is failure. 
-* The 'Monoid' instance is logical conjunction, i.e. "succeed if /all/ succeed". The operation is "", and its identity is success.
+* The 'Alternative' instance is logical disjunction, i.e. "succeed if /any/ succeed". The operation is "try the next if this one fails", and its identity is failure. 
+* The 'Monoid' instance is logical conjunction, i.e. "succeed if /all/ succeed". The operation is "try each to make sure that none fail, then merge all the results", and its identity is success.
 
 This difference exploits the different arities between these two "monoidal typeclasses":
 
@@ -83,11 +84,62 @@ data WarningValidation w e a
  | WarningSuccess !w !a
  deriving 
   ( Eq, Ord, Show, Read
-#if __GLASGOW_HASKELL__ >= 702
   , Generic, Data
   , Functor, Foldable, Traversable
-#endif
   )
+
+type StringValidation = WarningValidation Warnings Errors
+
+----------------------------------------
+--
+
+{-|
+
+e.g. @'WarningValidation' 'Warnings' e a@
+
+-}
+newtype Warnings = Warnings
+  { getWarnings :: [String]
+  } deriving 
+  ( Eq, Ord, Show, Read
+  , Generic, Data
+  , NFData, Hashable
+  , Semigroup, Monoid
+  )
+
+instance IsString Warnings where
+  fromString = (:[]) > Warnings
+
+instance IsList Warnings where
+  type Item Warnings = String
+  fromList = Warnings
+  toList = getWarnings
+
+----------------------------------------
+--
+
+{-|
+
+e.g. @'WarningValidation' w 'Errors' a@
+
+-}
+newtype Errors = Errors
+  { getErrors :: NonEmpty String
+  } deriving 
+  ( Eq, Ord, Show, Read
+  , Generic, Data
+  , NFData, Hashable
+  , Semigroup
+  )
+
+instance IsString Errors where
+  fromString = (:|[]) > Errors
+
+-- | WARNING: @fromList@ is partial, on @[]@. 
+instance IsList Errors where
+  type Item Errors = String
+  fromList = fromList > Errors
+  toList = getErrors > toList
 
 ----------------------------------------
 -- instances
@@ -384,6 +436,190 @@ failureAnd1 w e = WarningFailure [w] (e:|[])
 {-# INLINE failureAnd1 #-}
 
 ----------------------------------------
+
+failureIf
+  :: ( Monoid w
+     )
+  => (a -> Bool)
+  -> (a -> e)
+  -> a
+  -> WarningValidation w e a
+failureIf predicate render = \a ->
+  if   predicate a
+  then success   a
+  else failure (render a)
+
+failureUnless
+  :: ( Monoid w
+     )
+  => (a -> Bool)
+  -> (a -> e)
+  -> a
+  -> WarningValidation w e a
+failureUnless predicate =
+  failureIf (predicate > not)
+
+warningIf
+  :: ( Monoid w
+     )
+  => (a -> Bool)
+  -> (a -> w)
+  -> a
+  -> WarningValidation w e a
+warningIf predicate render = \a ->
+  let
+    w =
+      if   predicate a
+      then mempty
+      else render a
+  in
+    WarningSuccess w a
+
+{-  
+warningIf predicate render = \a ->
+  if   predicate  a
+  then success    a
+  else successBut w
+  where
+  w = (render a)
+-}
+
+warningUnless
+  :: ( Monoid w
+     )
+  => (a -> Bool)
+  -> (a -> w)
+  -> a
+  -> WarningValidation w e a
+warningUnless predicate =
+  warningIf (predicate > not)
+
+----------------------------------------
+
+validate
+  :: ( 
+     )
+  => (a -> w)
+  -> (a -> Either e b)
+  -> a
+  -> WarningValidation w e b
+validate softCheck hardCheck = go
+  where
+  go a
+      = hardCheck a
+      & either (WarningFailure w) (WarningSuccess w)
+      where
+      w = softCheck a
+  
+validateOnlyError
+  :: ( Monoid w
+     )
+  => (a -> Either e b)
+  -> a
+  -> WarningValidation w e b
+validateOnlyError =
+  validate (const mempty)
+
+validateOnlyError'
+  :: ( Monoid e
+     , Monoid w
+     )
+  => (a -> Maybe b)
+  -> a
+  -> WarningValidation w e b
+validateOnlyError' hardCheck =
+  validateOnlyError (hardCheck > maybe2either mempty)
+
+validateOnlyWarning
+  :: ( 
+     )
+  => (a -> w)
+  -> (a -> b)
+  -> a
+  -> WarningValidation w e b
+validateOnlyWarning softCheck noCheck =
+  validate softCheck (noCheck > Right)
+
+validateOnlyWarning'
+  :: ( 
+     )
+  => (a -> w)
+  -> a
+  -> WarningValidation w e a
+validateOnlyWarning' softCheck =
+  validateOnlyWarning softCheck id
+
+{-
+validateOnlyWarning' softCheck =
+  validate softCheck Right
+-}
+
+----------------------------------------
+
+{-|
+
+
+e.g.
+
+@
+-- a ~ Integer
+-- b ~ Natural
+
+-- e ~ String
+-- w ~ String
+
+-- f ~ []
+-- g ~ NonEmpty
+
+validate1
+  :: (Integer -> String)
+  -> (Integer -> Either String Natural)
+  -> Integer
+  -> WarningValidation [String] (NonEmpty String) Natural
+@
+
+-}
+validate1
+  :: ( Applicative f
+     , Applicative g
+     --, Alternative f
+     )
+  => (a -> w)
+  -> (a -> Either e b)
+  -> a
+  -> WarningValidation (f w) (g e) b
+validate1 softCheck hardCheck = 
+  validate (softCheck > pure) (hardCheck > bimap pure id)
+
+{-# SPECIALIZE validate1
+  :: (a -> w)
+  -> (a -> Either e b)
+  -> a
+  -> WarningValidation [w] [e] b
+  #-}
+
+{-# SPECIALIZE validate1
+  :: (a -> w)
+  -> (a -> Either e b)
+  -> a
+  -> WarningValidation [w] (NonEmpty e) b
+  #-}
+
+----------------------------------------
+
+
+
+----------------------------------------
+
+{-NOTES
+
+instance Applicative NonEmpty where
+  pure a = a :| []
+
+-}
+
+----------------------------------------
+
 
 {-|
 

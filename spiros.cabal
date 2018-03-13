@@ -44,7 +44,8 @@ flag test-doctest
   manual:      True
 
 flag test-unit
-  default:     True
+  default:     False
+           -- TODO  
   description: Run the unit tests. 
   manual:      True
 
