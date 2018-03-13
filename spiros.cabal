@@ -36,7 +36,6 @@ source-repository head
 flag examples
   default:     True
   description: Build the examples in @examples/@. They are exposed library modules, for better haddocks and for guaranteeing that they typecheck. 
-  manual:      True
 
 -- You can disable the doctests test suite with -f-test-doctests.
 flag test-doctest
