@@ -169,6 +169,96 @@ syntax:
 
 NOTES
 
+Lifted Classes:
+
+@
+-- e.g. given already-defined `<C>1` instances for some "functor" (unary type constructor) or "transformer" (binary type constructor)...
+
+instance (Eq1   f) => Eq1   (Validated f) where ...
+instance (Ord1  f) => Ord1  (Validated f) where ...
+instance (Read1 f) => Read1 (Validated f) where ...
+instance (Show1 f) => Show1 (Validated f) where ...
+
+-- .. you can derive the `<C>` instances...
+
+instance (Eq1 f,   Eq a,   Eq b)   => Eq   (Validated f a b) where
+  (==) = eq1
+
+instance (Ord1 f,  Ord a,  Ord b)  => Ord  (Validated f a b) where
+  compare = compare1
+
+instance (Read1 f, Read a, Read b) => Read (Validated f a b) where
+  readPrec     = readPrec1
+  readListPrec = readListPrecDefault
+  
+instance (Show1 f, Show a, Show b) => Show (Validated f a b) where
+  showsPrec = showsPrec1
+@
+
+
+@
+-- e.g. the `C1` lifted instances for `Maybe`...
+
+instance 'Eq1' Maybe where
+    liftEq _  Nothing  Nothing  = True
+    liftEq _  Nothing  (Just _) = False
+    liftEq _  (Just _) Nothing  = False
+    liftEq eq (Just x) (Just y) = eq x y
+
+instance 'Ord1' Maybe where
+    liftCompare _ Nothing Nothing = EQ
+    liftCompare _ Nothing (Just _) = LT
+    liftCompare _ (Just _) Nothing = GT
+    liftCompare comp (Just x) (Just y) = comp x y
+
+instance 'Read1' Maybe where
+    liftReadPrec rp _ =
+        parens ('expectP' ('Ident' "Nothing") *> pure Nothing)
+        <|>
+        readData ('readUnaryWith' rp "Just" Just)
+
+    liftReadListPrec = 'liftReadListPrecDefault'
+    liftReadList     = 'liftReadListDefault'
+
+instance 'Show1' Maybe where
+    liftShowsPrec _  _ _ Nothing  = 'showString' "Nothing"
+    liftShowsPrec sp _ d (Just x) = 'showsUnaryWith' sp "Just" d x
+@
+
+
+@
+-- e.g. the `C2` lifted instances for `Either`...
+
+instance 'Eq2' Either where
+    liftEq2 eq1 _  (Left  x) (Left  y) = eq1 x y
+    liftEq2 _   _  (Left  _) (Right _) = False
+    liftEq2 _   _  (Right _) (Left  _) = False
+    liftEq2 _  eq2 (Right x) (Right y) = eq2 x y
+
+instance 'Ord2' Either where
+    liftCompare2 comp1 _     (Left  x) (Left  y) = comp1 x y
+    liftCompare2 _     _     (Left  _) (Right _) = LT
+    liftCompare2 _     _     (Right _) (Left  _) = GT
+    liftCompare2 _     comp2 (Right x) (Right y) = comp2 x y
+
+instance 'Read2' Either where
+    liftReadPrec2 rp1 _ rp2 _ = 'readData' $ 'asum'
+         [ readUnaryWith rp1 "Left"  Left 
+         , readUnaryWith rp2 "Right" Right
+         ]
+
+    liftReadListPrec2 = 'liftReadListPrec2Default'
+    liftReadList2     = 'liftReadList2Default'
+
+instance 'Show2' Either where
+    liftShowsPrec2 sp1 _ _   _ d (Left  x)
+        = showsUnaryWith sp1 "Left" d x
+    liftShowsPrec2 _   _ sp2 _ d (Right x)
+        = showsUnaryWith sp2 "Right" d x
+
+@
+
+
 Standard Numeric Classes (copied from the @The Haskell 98 Report@):
 
 @

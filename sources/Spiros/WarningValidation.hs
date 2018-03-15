@@ -38,7 +38,8 @@ Examples:
 -}
 module Spiros.WarningValidation where
 
-import Prelude.Spiros.Reexports
+import Prelude.Spiros.Reexports 
+import Prelude.Spiros.Classes hiding (toList)
 import Prelude.Spiros.Utilities
 
 ----------------------------------------
@@ -138,9 +139,36 @@ data WarningValidation w e a
  | WarningSuccess !w !a
 -}
 
+instance (Eq w, Eq e) => Eq1 (WarningValidation w e) where
+  liftEq eq = \x y -> case (x,y) of 
+    (WarningFailure w1 e1, WarningFailure w2 e2) ->
+      (w1 == w2) && (e1 == e2)
+    (WarningSuccess w1 a1, WarningSuccess w2 a2) ->
+      (w1 == w2) && (a1 `eq` a2)
+    (_,_) -> False
+  {-# INLINE liftEq #-}
+
+{-
+
+instance (Eq1 f) => Eq2 (Validated f) where
+  liftEq2 eqA eqB = \x y -> case (x,y) of 
+    (WarningFailure w1 e1, WarningFailure w2 e2) ->
+      (w1 `eqA` w2) && (e1 `eqA` e2)
+    (WarningSuccess w1 a1, WarningSuccess w2 a2) ->
+      (w1 `eqA` w2) && (a1 `eqB` a2)
+    (_,_) ->
+      False
+  {-# INLINE liftEq2 #-}
+
+
+instance (Ord1 f, Ord a) => Ord1 (WarningValidation w e) where
+  liftCompare = 
+-}
+    
 ----------------------------------------
 
-{-| The partition @Validated f a b@ is the result of validating a collection @f@ of the "raw" input type @a@ into the "valid" output type @b@ (or attempting to do so).
+{-| The partition @Validated f a b@ is the result of validating a collection @f@ of the "raw" input type @a@ into the "valid" output typ
+e @b@ (or attempting to do so).
 
 This partition:
 
@@ -170,6 +198,41 @@ data Validated f a b = Validated
   , _errors    :: !(f a)
   }
 
+instance (Eq1 f) => Eq2 (Validated f) where
+  liftEq2 eqA eqB = \case
+    Validated{_successes=s1, _warnings=w1, _errors=e1} -> \case
+      Validated{_successes=s2, _warnings=w2, _errors=e2} ->
+        all id
+          [ w1 `eqFA` w2
+          , e1 `eqFA` e2
+          , s1 `eqFB` s2
+            -- the _successes field is last for maximal laziness
+          ]
+    where
+    eqFA = liftEq eqA
+    eqFB = liftEq eqB
+  {-# INLINE liftEq2 #-}
+
+{-
+
+ \x y -> case (x,y) of
+    Validated{_successes, _warnings, _errors} = all
+
+
+instance (Eq1 f,   Eq a,   Eq b)   => Eq   (Validated f a b) where
+  (==) = eq1
+
+instance (Ord1 f,  Ord a,  Ord b)  => Ord  (Validated f a b) where
+  compare = compare1
+
+instance (Read1 f, Read a, Read b) => Read (Validated f a b) where
+  readPrec     = readPrec1
+  readListPrec = readListPrecDefault
+  
+instance (Show1 f, Show a, Show b) => Show (Validated f a b) where
+  showsPrec = showsPrec1
+-}
+
 -- | @'fromList' becomes '_successes'@
 instance
   ( IsList (f b)
@@ -189,7 +252,8 @@ instance
      _successes = fromList xs
      _warnings  = fromList []
      _errors    = fromList []
-
+  {-# INLINE fromList #-}
+  
 {-|
 
 @
@@ -607,10 +671,10 @@ successBut w a
 
 -}
 successBut0
-  :: ( 
+  :: ( Applicative f
      )
-  => w -> a -> WarningValidation [w] e a
-successBut0 w = successBut [w]
+  => w -> a -> WarningValidation (f w) e a
+successBut0 w = successBut (pure w)
 
 {-# INLINE successBut0 #-}
 
@@ -631,23 +695,31 @@ failureAnd = WarningFailure
 
 {-# INLINE failureAnd #-}
 
-{-| Fail with an error, via @[]@, and with a warning too. 
+{-| Fail with an error and with a warning, via @pure@ to injection a singleton message into a container. 
 
 @
-failureAnd0 w e
+failureAnd1 @[] @[] w e
 =
 'WarningFailure' [w] [e]
+
+failureAnd1 @[] @NonEmpty w e
+=
+'WarningFailure' [w] (e:|[])
 @
 
 -}
-failureAnd0
-  :: ( 
+failureAnd1
+  :: forall f g. forall w e a.
+     ( Applicative f
+     , Applicative g
      )
-  => w -> e
-  -> WarningValidation [w] [e] a
-failureAnd0 w e = WarningFailure [w] [e]
+  => w
+  -> e
+  -> WarningValidation (f w) (g e) a
+failureAnd1 w e = WarningFailure (pure w) (pure e)
+{-# INLINE failureAnd1 #-}
 
-{-# INLINE failureAnd0 #-}
+{-
 
 {-| Fail with an error, via @NonEmpty@, and with a warning too.  
 
@@ -666,6 +738,7 @@ failureAnd1
 failureAnd1 w e = WarningFailure [w] (e:|[])
 
 {-# INLINE failureAnd1 #-}
+-}
 
 ----------------------------------------
 
@@ -1447,7 +1520,8 @@ hardAssertion message condition = go
 {-# INLINE hardAssertion #-}
 
 {- | Informs whether given @condition@ holds @True@,
-failing with the @message@ otherwise.
+warning with the @message@ otherwise
+(but still succeeding anyways).
 
 @
 'softAssertion' message condition
@@ -1491,6 +1565,16 @@ Validated
  , '_warnings'  = []
  , '_errors'    = []
  }
+@
+
+e.g.:
+
+@
+validateNaturalRational :: Natural -> Natural -> Ratioinal
+exampleNumerators       :: [Natural]
+exampleDenominators     :: [Natural]
+
+> partitionViaValidator @(Natural,Natural) @Rational @[] (uncurry validateNaturalRational) (zip exampleNumerators exampleDenominators)
 
 @
 
@@ -1571,6 +1655,108 @@ validation2validated = \case
           _successes = mempty
           _warnings  = pure w
           _errors    = pure a
+
+----------------------------------------
+
+{-| Like 'partitionViaValidator', but on a binary (not unary) function, and specialized to lists. 
+  
+e.g.:
+
+@
+validateNaturalRational :: Natural -> Natural -> Ratioinal
+exampleNumerators       :: [Natural]
+exampleDenominators     :: [Natural]
+
+> partitionViaValidator2 @Natural @Natural @Rational validateNaturalRational exampleNumerators exampleDenominators
+@
+
+wraps 'partitionValidation'.
+
+-}
+partitionViaValidator2 
+  :: forall a b c.
+     (
+     )
+  => ( a  ->  b  -> WarningValidation (a,b) (a,b) c)
+  -> ([a] -> [b] -> Validated [] (a,b) c)
+partitionViaValidator2 check2 = go
+  where
+  go as bs
+    = zipWith check2 as bs
+    & partitionValidation
+
+
+{-| Like 'partitionViaValidator', but on a ternary (not unary) function, and specialized to lists. 
+
+wraps 'partitionValidation'.
+
+-}
+partitionViaValidator3
+  :: forall a b c d.
+     (
+     )
+  => ( a  ->  b  ->  c  -> WarningValidation (a,b,c) (a,b,c) d)
+  -> ([a] -> [b] -> [c] -> Validated []              (a,b,c) d)
+partitionViaValidator3 check3 = go
+  where
+  go as bs cs
+    = zipWith3 check3 as bs cs
+    & partitionValidation
+
+{-| Like 'partitionViaValidator', but on a quaternary (not unary) function, and specialized to lists. 
+
+wraps 'partitionValidation'.
+
+-}
+partitionViaValidator4
+  :: forall r a b c d.
+     (
+     )
+  => ( a  ->  b  ->  c  ->  d  ->
+      WarningValidation (a,b,c,d) (a,b,c,d) r
+     )
+  -> ([a] -> [b] -> [c] -> [d] ->
+      Validated [] (a,b,c,d) r
+     )
+partitionViaValidator4 check4 = go
+  where
+  go as bs cs ds
+    = zipWith4 check4 as bs cs ds
+    & partitionValidation
+
+{-| Like 'partitionViaValidator', but on a 5-argument (not unary) function, and specialized to lists. 
+
+wraps 'partitionValidation'.
+
+-}
+partitionViaValidator5
+  :: forall r a b c d e.
+     (
+     )
+  => ( a  ->  b  ->  c  ->  d  ->  e  ->
+      WarningValidation (a,b,c,d,e) (a,b,c,d,e) r
+     )
+  -> ([a] -> [b] -> [c] -> [d] -> [e] ->
+      Validated [] (a,b,c,d,e) r
+     )
+partitionViaValidator5 check5 = go
+  where
+  go as bs cs ds es
+    = zipWith5 check5 as bs cs ds es
+    & partitionValidation
+
+{-
+
+  :: forall a b c f.
+     ( Monoid (f a) -- TODO Monoid1 f ??
+     , Monoid (f b) -- TODO Monoid1 f ??
+     , Monoid (f c) -- TODO Monoid1 f ??
+     , Applicative f
+     , Foldable    f
+     )
+  => (  a ->   b -> WarningValidation (a,b) (a,b) c)
+  -> (f a -> f b -> Validated f (a,b) c)
+-}
 
 ----------------------------------------
 
