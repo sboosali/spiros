@@ -4,7 +4,8 @@ set -e
 
 # ghc7103, ghc802, ghc822, ghc841, ghcjs
 
-COMPILER="${1:-ghc822}"
+COMPILER="${1:-default}"
+# bash default argument
 
 case "$1" in
 

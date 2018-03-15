@@ -3,14 +3,49 @@
 , spiros_nix ? ./nix/spiros.nix # ./.
 
 , compiler ? "default"
+/* =
+ghc7103
+ghc802
+ghc822
+ghc841
+ghcHEAD
+ghc7103Binary
+ghc821Binary
+ghcjs
+ghcjsHEAD       
+integer-simple
+*/
 
-, withProfiling ? false
-, withHoogle    ? false 
+, profiled   ? false
+, hoogle     ? false 
+
+, tested      ? false
+, benchmarked ? false
+, documented  ? false
+, hyperlinked ? true
+
+, linker     ? "default"
+/* = "gold" 
+*/
 
 , development   ? true
 }:
 
 /* Usage:
+
+nix-shell --argstr compiler ...
+ghc7103
+ghc802
+ghc822
+ghc841
+ghcHEAD
+ghc7103Binary
+ghc821Binary
+ghcjs
+ghcjsHEAD       
+integer-simple
+
+
 
   nix-shell
   cabal configure 
@@ -149,6 +184,8 @@ in
 ########################################
 let
 
+# nix-shell --show-trace -p "(haskell.packages.${COMPILER}.override { overrides = self: super: { spiros = haskell.lib.dontCheck (haskell.lib.dontHaddock (self.callCabal2nix ''spiros'' ./. {})); }; }).ghcWithPackages (self: with self; [ spiros ])"
+
 ### COMPILERS
 
 haskellPackagesWithCompiler = 
@@ -156,27 +193,95 @@ haskellPackagesWithCompiler =
   then pkgs.haskellPackages
   else pkgs.haskell.packages.${compiler};
 
-haskellPackagesWithProfiling = 
-  if withProfiling
+haskellPackagesWithHoogle =
+  if hoogle
   then haskellPackagesWithCompiler.override {
          overrides = self: super: {
-           mkDerivation = args: super.mkDerivation (args // { enableLibraryProfiling = true; });
-         };
-       }
-  else haskellPackagesWithCompiler;
-                 
-haskellPackagesWithHoogle =
-  if withHoogle
-  then haskellPackagesWithProfiling.override {
-         overrides = self: super: {
-           ghc = super.ghc // { withPackages = super.ghc.withHoogle; };
+           ghc = super.ghc //
+             { withPackages = super.ghc.withHoogle; 
+             };
            ghcWithPackages = self.ghc.withPackages;
          };
        }
-  else haskellPackagesWithProfiling;
+  else haskellPackagesWithCompiler;
+
+haskellPackagesWithProfiling = 
+ haskellPackagesWithHoogle.override {
+         overrides = self: super: {
+           mkDerivation = args: super.mkDerivation
+            (args //
+              { enableLibraryProfiling = profiled; 
+              }
+            );
+         };
+ };
+
+haskellPackagesWithHaddocks = 
+ haskellPackagesWithProfiling.override {
+         overrides = self: super: {
+           mkDerivation = args: super.mkDerivation
+            (args //
+              { doHaddock         = documented;
+                doHyperlinkSource = documented && hyperlinked; 
+              }
+            );
+         };
+ };
+
+haskellPackagesWithTests = 
+ haskellPackagesWithHaddocks.override {
+         overrides = self: super: {
+           mkDerivation = args: super.mkDerivation
+            (args //
+              { doCheck = tested; 
+              }
+            );
+         };
+ };
+
+haskellPackagesWithBenchmarks = 
+ haskellPackagesWithTests.override {
+         overrides = self: super: {
+           mkDerivation = args: super.mkDerivation
+            (args //
+              { doBenchmark = benchmarked; 
+              }
+            );
+         };
+ };
+
+haskellPackagesWithGoldLinker = 
+ haskellPackagesWithBenchmarks.override {
+         overrides = self: super: {
+           mkDerivation = args: super.mkDerivation
+            (args // option {} (linker == "gold")
+              { linkWithGold ; 
+              }
+            );
+         };
+ };
+
+# the last referenced, below
+# TODO scoping
+haskellPackagesWithCustomization = haskellPackagesWithGoldLinker;
+
+/*
+nix-repl> haskell.packages._
+
+haskell.packages.ghc7103
+haskell.packages.ghc821Binary
+haskell.packages.ghcHEAD
+haskell.packages.integer-simple
+haskell.packages.ghc7103Binary
+haskell.packages.ghc822
+haskell.packages.ghcjs
+haskell.packages.ghc802
+haskell.packages.ghc841
+haskell.packages.ghcjsHEAD       
+
+*/
 
 in
-
 ########################################
 ### Haskell Dependencies...
 let
@@ -282,7 +387,7 @@ let
 
 ### OTHER OVERRIDES
  
-modifiedHaskellPackages = haskellPackagesWithHoogle.override {
+modifiedHaskellPackages = haskellPackagesWithCustomization.override {
 #  overrides = self: super: {
 
   overrides = self: super:
