@@ -14,6 +14,10 @@
     TypeFamilies,
     LambdaCase,
     TypeOperators,
+    TupleSections,
+    NamedFieldPuns,
+    RecordWildCards,
+    ExplicitForAll,
     AutoDeriveTypeable
  #-}
 
@@ -27,7 +31,9 @@ Inspired by the @Chronicle@ monad and the @Validation@ applicative.
 
 Examples:
 
-* "Example.WarningValidation": see the @Example.WarningValidation@ module for a @doctest@ed example. Also see the source of the "Example.WarningValidation.validateNaturalRatio" function for an simple demonstration about how to write a validator that accumulates all errors.
+* "Example.WarningValidation": see the @Example.WarningValidation@ module for a @doctest@ed example. Also see the source of the "Example.WarningValidation.validateNaturalRatio" function for an simple demonstration about how to write a validator that accumulates all errors, and warnings, that both: validates the two inputs individually; and validates a property of the two inputs jointly, a.k.a. output, which is cleaner in a @Monad@, but still possible and useful under an @Applicative@.
+
+
 
 -}
 module Spiros.WarningValidation where
@@ -36,25 +42,27 @@ import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities
 
 ----------------------------------------
+-- aliases
 
-{- | The type of strict pairs.
+-- | "V" for "Validation". 
+type V w e = WarningValidation w e
 
-@(,)@ is lazy, @(:!:)@ is strict. 
+-- | the underscore implies that the last type variable is trivial i.e. unit,
+-- following the @base@ naming convention. 
+type V_ w e = WarningValidation w e ()
 
--}
-data Pair a b
- = !a :!: !b
- deriving
-  ( Eq, Ord, Show, Read, Bounded, Ix
-#if __GLASGOW_HASKELL__ >= 702
-  , Generic, Data
-  , Functor, Foldable, Traversable
-#endif
-  )
+-- | the apostrophe implies that two type variables coincide,
+-- following the @lens@ naming convention. 
+type V' e = WarningValidation e e
 
-infixl 2 :!:
+-- |
+type V'_ e = WarningValidation e e ()
 
-type (:!:) = Pair
+-- | 
+type V0 = WarningValidation Warnings Errors
+
+-- | 
+type V0_ = WarningValidation Warnings Errors ()
 
 ----------------------------------------
 
@@ -108,6 +116,13 @@ This difference exploits the different arities between these two "monoidal typec
 * @Monoid (WarningValidation w e a) can require constraints on @a@, in particular @(Monoid a, ...) => ...@, 
 * while @Alternative (WarningValidation w e)@ can't. 
 
+Specializations (a.k.a. "What can @w@ and\/or @e@ be?""):
+
+* Strings: @w ~ 'Warnings'@ and @e ~ 'Errors'@; i.e. a @'NonEmpty' String@ and @[String]@.
+* @'Data.Sequence.Seq'@: As @u\/sacundim@ mentions on @r\/haskell@, if you want to efficiently suppport keeping only a prefix of messages (like the first 10 errors), then you can "use Validation with a monoid that both: [1] Supports O(1) right appends; and [2] Supports take n in O(n)."
+* @a@ itself: @(w ~ f a)@ and @(e ~ g a)@, for some containers @f@ and @g@; i.e. store the validated type itself, which can be interpreteted as "save all inputs that cause errors and\/or cause warnings during validation"; see 'Validated'. 
+* custom types: e.g. @(w ~ URLValidationWarning)@ and @(e ~ URLValidationError)@; with @type URLValidator = Text -> Validation URLValidationWarning URLValidationError URL@; @URLValidationError@ can also instantiate 'Exception' with a 'Show' that pretty-prints it. 
+
 -}
 data WarningValidation w e a 
  = WarningFailure !w !e
@@ -123,15 +138,114 @@ data WarningValidation w e a
  | WarningSuccess !w !a
 -}
 
+----------------------------------------
+
+{-| The partition @Validated f a b@ is the result of validating a collection @f@ of the "raw" input type @a@ into the "valid" output type @b@ (or attempting to do so).
+
+This partition:
+
+* Has collected all "valid" inputs as their validated output, into '_successes'.
+* Has remembered all warnings; i.e. wherever the @(a -> m b)@ check has succeded with a warning (e.g. 'successBut'), that @a@ "remains" in '_warnings' while the @b@ gets put into '_successes'. 
+* Has reported all errors; if some invalid input has both an error and a warning, (e.g. 'failureAnd'), that @a@ was put both in '_warnings' and in '_errors'.
+
+When the '_errors' container is empty, the 'successes_' container should be "full" (as many outputs as inputs). e.g.:
+
+@
+-- f ~ []
+
+Validated [] a b
+~
+([a], [b], [b])
+
+> :set -XNamedFieldPuns
+> wasValidatedSuccessfully :: Validated [] a b -> Bool
+> wasValidatedSuccessfully Validated{_errors=[]) = True
+> wasValidatedSuccessfully Validated{}           = False
+@
+
+-}
+data Validated f a b = Validated
+  { _successes :: !(f b)
+  , _warnings  :: !(f a)
+  , _errors    :: !(f a)
+  }
+
+-- | @'fromList' becomes '_successes'@
+instance
+  ( IsList (f b)
+  , (b ~ Item (f b))
+  , IsList (f a)
+  , (a ~ Item (f a))
+  )
+  => IsList (Validated f a b)
+  where
+
+  type Item (Validated f a b) = Item (f b)
+
+  toList Validated{_successes} = toList _successes
+
+  fromList xs = Validated{..}
+     where
+     _successes = fromList xs
+     _warnings  = fromList []
+     _errors    = fromList []
+
+{-|
+
+@
+@
+
+-}
+instance ( Semigroup (f a), Semigroup (f b)
+         )
+      => Semigroup (Validated f a b)
+  where
+  (<>) = mergeValidated (<>) (<>) 
+  {-# INLINE (<>) #-}
+
+{-|
+
+@
+@
+
+-}
+instance ( Monoid (f a), Monoid (f b)
+--         , Semigroup (f a), Semigroup (f b)
+         )
+      => Monoid (Validated f a b)
+  where
+  mempty = Validated mempty mempty mempty
+  {-# INLINE mempty #-}
+  mappend = mergeValidated mappend mappend 
+  {-# INLINE mappend #-}
+
+mergeValidated
+ :: ()
+ => (f ax -> f ay -> f az)
+ -> (f bx -> f by -> f bz)
+ -> Validated f ax bx
+ -> Validated f ay by
+ -> Validated f az bz
+mergeValidated fa fb = go
+  where
+  go (Validated xSuccesses xWarnings xErrors)
+     (Validated ySuccesses yWarnings yErrors)
+    = Validated zSuccesses zWarnings zErrors
+          where
+          zSuccesses = (xSuccesses `fb` ySuccesses)
+          zWarnings  = (xWarnings  `fa` yWarnings)
+          zErrors    = (xErrors    `fa` yErrors) 
+
+{-# INLINE mergeValidated #-}
+
+----------------------------------------
+
 {-| A convenient specialization, with a list of strings as warnings, and a (non-empty) list of strings as errors. Strings, being the most open simple datatype, are a common defaultfor messages. 
 
 i.e. @SimpleWarningValidation a@
 
 -}
 type SimpleWarningValidation = WarningValidation Warnings Errors
-
-
-----------------------------------------
 
 type WarningValidation_ w e = WarningValidation w e () 
   
@@ -217,6 +331,10 @@ instance (Monoid w, Semigroup e)
 
 @empty = 'WarningFailure' 'mempty' 'mempty'@
 
+@  
+  (<|>) = 'validateAny'
+@
+
 -}
 instance (Monoid w, Monoid e, Semigroup e)
       => Alternative (WarningValidation w e) where
@@ -224,11 +342,14 @@ instance (Monoid w, Monoid e, Semigroup e)
   empty = WarningFailure mempty mempty
   {-# INLINE empty #-}
   
-  v1@WarningSuccess{} <|> _  = v1
-  WarningFailure{}    <|> v2 = v2
+  (<|>) = validateAny
   {-# INLINE (<|>) #-}
 
 {-|
+
+@
+   (<>) = 'validateBoth'
+@
 
 -}
 instance (Semigroup w, Semigroup e, Semigroup a)
@@ -241,6 +362,11 @@ instance (Semigroup w, Semigroup e, Semigroup a)
 {-|
 
 @mempty = 'WarningSuccess' 'mempty' 'mempty'@
+
+@
+   mappend = 'validateBoth'
+@
+
 
 @
 mempty ≠ 'empty' 
@@ -262,11 +388,33 @@ instance ( Monoid w, Monoid a
   where
   mempty = WarningSuccess mempty mempty
   {-# INLINE mempty #-}
-  mappend = mergeWarningValidation (<>) (<>) (<>)
+  mappend = validateBoth
   {-# INLINE mappend #-}
 
 ----------------------------------------
 -- instance helpers
+
+validateAny
+  :: (Monoid w, Semigroup e)
+  => WarningValidation w e a
+  -> WarningValidation w e a
+  -> WarningValidation w e a
+validateAny v1@WarningSuccess{} _  = v1
+validateAny    WarningFailure{} v2 = v2
+
+{-# INLINE validateAny #-}
+
+----------------------------------------
+-- instance helpers
+
+validateBoth
+  :: (Semigroup w, Semigroup e, Semigroup a)
+  => WarningValidation w e a
+  -> WarningValidation w e a
+  -> WarningValidation w e a
+validateBoth = mergeWarningValidation (<>) (<>) (<>)
+
+{-# INLINE validateBoth #-}
 
 -- | Fail if any fail, succeed only if all succeed,
 -- while collecting all warnings either way. 
@@ -789,6 +937,445 @@ runErrorValidation = runWarningValidation > \case
 
 ----------------------------------------
 
+{- | Convert a simple @Bool@-based validator into the more informative and flexible @WarningValidation@-based one.
+
+Parameters (@certifyBool render check cast@):
+
+* @render@: render the input as an error message, often a container of text, like @[String]@ or 'Errors'. 
+* @check@: check whether the input is valid; obviously, @True@ means valid, @False@ means invalid. 
+* @cast@: convert the input to output; can safely be a partial function, if it's total whenever the @check@ passes, since the validation type is lazy in the return type.
+
+Naming:
+
+* @"certify"@ is a synonym with @"validate"@.
+* the @certify<...>@ functions only raise errors, while the @verify<...>@ functions can both raise errors and emit warnings.
+
+Generalizations:
+
+* See 'verifyBool'. 
+
+Specializations:
+
+@
+certifyBool _ _ 'id'
+  :: ( ...
+     )
+  => (a -> e)
+  -> (a -> Bool)
+  -> (a -> 'WarningValidation' w e a)
+
+certifyBool 'show' _ _
+  :: ( ...
+     , Show a
+     )
+  => (a -> Bool)
+  -> (a -> b)
+  -> (a -> 'WarningValidation' w e b)
+@
+
+Examples:
+
+@
+validateNatural = certifyBool
+  (\a -> 'fromString' (show a) <> fromString " must be non-negative")
+  (>=0)
+  'fromIntegral'
+
+-- (inferred)
+validateNatural
+  :: ( ...
+     , 'IsString' e, 'Semigroup' e
+     , 'Show' a, 'Ord' a , 'Integral' a, 
+     , 'Num' b
+     )
+  => (a -> 'WarningValidation' w e b)
+
+-- (monomorphic)
+validateNatural
+  :: ()
+  => (Integer -> 'WarningValidation' () 'Errors' Natural)
+@
+
+-}
+certifyBool
+  :: ( Monoid w
+     )
+  => (a -> e)
+  -> (a -> Bool)
+  -> (a -> b)
+  -> (a -> WarningValidation w e b)
+certifyBool render check cast = go
+  where
+  go a =
+    if check a 
+    then let b = cast   a in success b
+    else let e = render a in failure e
+{-# INLINE certifyBool #-}
+
+{-| Like 'certifyBool', but the message doesn't render the input. 
+
+More convenient, but less informative. Practically, it means you can say stuff like @"the number must be positive"@ not @("expected a positive number, but received: " <> ...)@. 
+
+@
+= 'certifyBool' ('const' e) check cast
+@
+
+-}
+certifyBool_
+  :: ( Monoid w
+     )
+  => e
+  -> (a -> Bool)
+  -> (a -> b)
+  -> (a -> WarningValidation w e b)
+certifyBool_ e check cast =
+  certifyBool (const e) check cast
+  
+{-# INLINE certifyBool_ #-}
+
+{- | Convert a simple @Bool@-based validator into the more informative and flexible @WarningValidation@-based one.
+
+Parameters (@verifyBool render check cast@):
+
+* @render@: render the input as an error message, often a container of text, like @[String]@ or 'Errors'. 
+* @check@: check whether the input is valid; obviously, @True@ means valid, @False@ means invalid. 
+* @cast@: convert the input to output; can safely be a partial function, if it's total whenever the @check@ passes, since the validation type is lazy in the return type. 
+
+Naming:
+
+* @"verify"@ is a synonym with @"validate"@.
+* the @verify<...>@ functions can both raise errors and emit warnings, while the @certify<...>@ functions only raise errors. 
+
+Specializations:
+
+* 'certifyBool'
+
+@
+'certifyBool' = 'verifyBool' ('const' 'mempty') _
+'certifyBool' = 'verifyBool' _ ('const' 'False')
+@
+
+* identity
+
+@
+verifyBool _ _ 'id'
+  :: ( ...
+     )
+  => (a -> e)
+  -> (a -> Bool)
+  -> (a -> 'WarningValidation' w e a)
+@
+
+* showing
+
+@
+verifyBool 'show' _ _
+  :: ( ...
+     , Show a
+     )
+  => (a -> Bool)
+  -> (a -> b)
+  -> (a -> 'WarningValidation' w e b)
+@
+
+Examples:
+
+@
+validateNatural = verifyBool
+  (\a -> 'fromString' (show a) <> fromString " must be non-negative")
+  (>=0)
+  'fromIntegral'
+
+-- (inferred)
+validateNatural
+  :: ( ...
+     , 'IsString' e, 'Semigroup' e
+     , 'Show' a, 'Ord' a , 'Integral' a, 
+     , 'Num' b
+     )
+  => (a -> 'WarningValidation' w e b)
+
+-- (monomorphic)
+validateNatural
+  :: ()
+  => (Integer -> 'WarningValidation' () 'Errors' Natural)
+@
+
+-}
+verifyBool
+  :: ( Monoid w
+     )
+  => (a -> w)
+  -> (a -> Bool)
+  -> (a -> e)
+  -> (a -> Bool)
+  -> (a -> b)
+  -> (a -> WarningValidation w e b)
+verifyBool renderWarning softCheck renderError hardCheck cast = go
+  where
+  go a =
+    let
+      w = if softCheck a then renderWarning a else mempty
+    in
+      if hardCheck a 
+      then let b =        cast a in successBut w b
+      else let e = renderError a in failureAnd w e
+
+{-| Like 'verifyBool', but the messages (i.e. both the error message and the warning message), don't render the input (i.e. each is the same across all input).
+
+More convenient, but less informative. Practically, it means you can say stuff like @"the number must be positive"@ not @("expected a positive number, but received: " <> ...)@. 
+
+@
+= 'verifyBool' ('const' w) softCheck ('const' e) hardCheck cast
+@
+
+-}
+verifyBool_
+  :: ( Monoid w
+     )
+  => w
+  -> (a -> Bool)
+  -> e
+  -> (a -> Bool)
+  -> (a -> b)
+  -> (a -> WarningValidation w e b)
+verifyBool_ w softCheck e hardCheck cast =
+  verifyBool (const w) softCheck (const e) hardCheck cast
+{-# INLINE verifyBool_ #-}
+
+-- {- | See 'certifyMaybe'. 
+
+-- -}
+-- verifyMaybe
+--   :: ( Monoid w
+--      )
+--   => (e)
+--   -> (a -> Maybe b)
+--   -> (a -> WarningValidation w e b)
+-- verifyMaybe render check = go
+--   where
+--   go a = case check a of
+--     Nothing -> let e = render a in failure e
+--     Just b  -> success b
+-- {-# INLINE verifyMaybe #-}
+
+{- | Convert a simple @Maybe@-based validator into the more informative and flexible @WarningValidation@-based one.
+
+= Notes on transformations. 
+
+Loosely, @(certifyMaybe _)@ transforms a @Kleisli Maybe@ to a @Kleisli (WarningValidation w e)@:
+
+@
+(a -> Maybe b) -> (a -> WarningValidation w e b)
+~
+Kleisli Maybe a b -> Kleisli (WarningValidation w e) a b
+@
+
+and given these definition \/ this notation:
+
+@
+-- the kleisli arrow
+newtype Kleisli m a b = Kleisli (a -> m b)
+
+-- natural transformation between functors
+type (~>) f g = (forall x. f x -> g x)
+
+-- natural transformation between prounctors(?)
+type (~~>>) p q = (forall x y. p x y -> q x y)
+@
+
+it looks like:
+
+@
+(forall x y. Kleisli Maybe x y -> Kleisli (WarningValidation w e) x y)
+~
+Kleisli Maybe ~~>> Kleisli (WarningValidation w e)
+@
+
+-}
+certifyMaybe
+  :: ( Monoid w
+     )
+  => (a -> e)
+  -> (a -> Maybe b)
+  -> (a -> WarningValidation w e b)
+certifyMaybe render check = go
+  where
+  go a = case check a of
+    Nothing -> let e = render a in failure e
+    Just b  -> success b
+{-# INLINE certifyMaybe #-}
+
+{- | See 'certifyEither'. 
+
+-}
+verifyEither
+  :: ( Monoid w
+     )
+  => (a -> Either w ())
+  -> (a -> Either e b)
+  -> (a -> WarningValidation w e b)
+verifyEither softCheck hardCheck = go
+  where
+  go a =
+    let
+      w = softCheck a & either id (const mempty) 
+    in
+      case hardCheck a of
+        Right b -> successBut w b
+        Left  e -> failureAnd w e
+
+{-# INLINE verifyEither #-}
+
+{- | Convert a simple @Either@-based validator into the more informative and flexible @WarningValidation@-based one.
+
+= Notes on transformations. 
+
+Loosely, @certifyEither@ transforms a @Kleisli (Either e)@ to a @Kleisli (WarningValidation w e)@:
+
+@
+(a -> (Either e b) -> (a -> WarningValidation w e b)
+~
+Kleisli (Either e) a b -> Kleisli (WarningValidation w e) a b
+@
+
+and given these definition \/ this notation:
+
+@
+-- the kleisli arrow
+newtype Kleisli m a b = Kleisli (a -> m b)
+
+-- natural transformation between functors
+type (~>) f g = (forall x. f x -> g x)
+
+-- natural transformation between prounctors(?)
+type (~~>>) p q = (forall x y. p x y -> q x y)
+@
+
+it looks like:
+
+@
+(forall x y. Kleisli (Either e) x y -> Kleisli (WarningValidation w e) x y)
+~
+Kleisli (Either e) ~~>> Kleisli (WarningValidation w e)
+@
+
+-}
+certifyEither
+  :: ( Monoid w
+     )
+  => (a -> Either e b)
+  -> (a -> WarningValidation w e b)
+certifyEither check = go
+  where
+  go a = case check a of
+    Left  e -> failure e
+    Right b -> success b
+{-# INLINE certifyEither #-}
+
+----------------------------------------
+
+{-| The generic representation of an algebraic datatype is some sum-of-products (i.e. "cases with fields", i.e. @Either@'s of @(,)@'s). 
+
+-}
+verifyGeneric
+  :: ( 
+     )
+  => (Either (w,e) (w,a))
+  -> (WarningValidation w e a)
+verifyGeneric = \case
+  Left  (w,e) -> WarningFailure w e
+  Right (w,x) -> WarningSuccess w x
+
+{-| The generic representation of 'WarningValidation' with warnings ignored (e.g. @(w ~ ())@).
+
+-}
+certifyGeneric
+  :: ( Monoid w
+     )
+  => (Either              e a)
+  -> (WarningValidation w e a)
+certifyGeneric
+  = bimap (mempty,) (mempty,)
+  > verifyGeneric
+
+{-| A single "partition" is when the type getting validated, or a collection thereof, is itself is returned as a error or a warning. 
+
+@
+verifyPartition = 'verifyGeneric'
+@
+
+-}
+verifyPartition
+  :: ( Monoid a
+     )
+  => (Either (a,a) (a,a))
+  -> (WarningValidation a a a)
+verifyPartition = verifyGeneric
+
+{-| A single "partition" is when the type getting validated, or a collection thereof, is itself is returned as a error. 
+
+@
+certifyPartition = 'certifyGeneric'
+@
+
+-}
+certifyPartition
+  :: ( Monoid a
+     )
+  => (Either a a)
+  -> (WarningValidation a a a)
+certifyPartition = certifyGeneric
+
+----------------------------------------
+
+{- | Validates an @a@ from the given @Either@, failing with @e@ on @Left e@, and succeeding with @a@ on @Right a@. 
+
+@
+= 'either' 'failure' 'success'
+@
+
+-}
+either2validation
+  :: ( Monoid w
+     )
+  => (Either e a)
+  -> WarningValidation w e a
+either2validation = either failure success
+{-# INLINE either2validation #-}
+
+{- | Validates an @a@ from the given @Maybe@, failing with @e@ on @Nothing@, and succeeding with @a@ on @Just a@. 
+
+@
+= \e -> 'maybe' ('failure' e) 'success'
+@
+
+-}
+maybe2validation
+  :: ( Monoid w
+     )
+  => e
+  -> Maybe a
+  -> WarningValidation w e a
+maybe2validation e = maybe (failure e) success
+{-# INLINE maybe2validation #-}
+
+{- | Validates an @a@ from the given @Maybe@, failing on @Nothing@, and succeeding with @a@ on @Just a@. 
+
+@
+= 'maybe2validation' 'mempty'
+@
+
+-}
+maybe2validation_
+  :: ( Monoid w
+     , Monoid e
+     )
+  => Maybe a
+  -> WarningValidation w e a
+maybe2validation_ = maybe2validation mempty 
+{-# INLINE maybe2validation_ #-}
+
 {- | Validates an @a@ with the given predicate @p@, returning @e@ if the predicate does not hold.
 
 @
@@ -833,6 +1420,8 @@ boolean2validation message condition
   = predicate2validation (const message) (const condition) ()
 
 {-# INLINE boolean2validation #-}
+
+----------------------------------------
 
 {- | Asserts that given @condition@ holds @True@,
 failing with the @message@ otherwise.
@@ -879,6 +1468,109 @@ softAssertion message condition = WarningSuccess w ()
     else message
 
 {-# INLINE softAssertion #-}  
+
+----------------------------------------
+
+{-| A single "partition" is when the type getting validated is returned, and collected into: [1] disjoint successes\/failures; and [2] possibly overlapping warnings.
+
+e.g.:
+
+@
+partitionValidation           pure :: f a -> Validated f  a a
+partitionValidation @a @a @[] pure :: [a] -> Validated [] a a
+
+pure @(Validation w _ a) ≡ WarningSuccess (mempty @w)
+
+partitionValidation pure (                        xs)
+≡
+partitionValidation id   ('WarningSuccess' `fmap` xs)
+
+> partitionValidation @a @a @[] pure xs
+Validated
+ { '_successes' = 'WarningSuccess' `fmap` xs
+ , '_warnings'  = []
+ , '_errors'    = []
+ }
+
+@
+
+wraps 'partitionValidation'.
+
+-}
+partitionViaValidator 
+  :: forall a b f.
+     ( Monoid (f a) -- TODO Monoid1 f ??
+     , Monoid (f b) -- TODO Monoid1 f ??
+     , Applicative f
+     , Foldable    f
+     )
+  => (a -> WarningValidation a a b)
+  -> (f a -> Validated f a b)
+partitionViaValidator check
+  = fmap check
+  > partitionValidation
+
+{-|
+
+@
+= 'foldMap' 'validation2validated'
+@
+
+-}
+partitionValidation
+  :: forall a b f.
+     ( Monoid (f a) -- TODO Monoid1 f ??
+     , Monoid (f b) -- TODO Monoid1 f ??
+     , Foldable f
+     , Applicative f
+     )
+  => f (WarningValidation a a b)
+  -> Validated f a b
+partitionValidation
+  = foldMap validation2validated -- foldl' go mempty
+  --NOTES foldMap :: Monoid m => (a -> m) -> t a -> m
+
+{-|
+
+Either:
+
+@
+          '_successes' = 'pure' b 
+          '_warnings'  = 'pure' w
+          '_errors'    = 'mempty'
+
+@
+
+Or:
+
+@
+          '_successes' = 'mempty'
+          '_warnings'  = 'pure' w
+          '_errors'    = 'pure' a
+@
+
+-}
+validation2validated
+  :: forall a b f.
+     ( Monoid (f a) -- TODO Monoid1 f ??
+     , Monoid (f b) -- TODO Monoid1 f ??
+     , Applicative f
+     )
+  => WarningValidation a a b
+  -> Validated f a b
+validation2validated = \case
+  
+  WarningSuccess w b -> Validated{..}
+          where
+          _successes = pure b 
+          _warnings  = pure w
+          _errors    = mempty
+         
+  WarningFailure w a -> Validated{..}
+          where
+          _successes = mempty
+          _warnings  = pure w
+          _errors    = pure a
 
 ----------------------------------------
 
@@ -947,7 +1639,30 @@ newtype SimpleWarningValidation e a = SimpleWarningValidation
 -}
 
 
+
+{- | The type of strict pairs.
+
+@(,)@ is lazy, @(:!:)@ is strict. 
+
 -}
+data Pair a b
+ = !a :!: !b
+ deriving
+  ( Eq, Ord, Show, Read, Bounded, Ix
+
+  , Generic, Data
+  , Functor, Foldable, Traversable
+
+  )
+
+infixl 2 :!:
+
+type (:!:) = Pair
+
+
+-}
+
+
 
 ----------------------------------------
   
