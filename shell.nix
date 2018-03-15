@@ -4,28 +4,37 @@
 
 , compiler ? "default"
 /* =
-ghc7103
-ghc802
-ghc822
-ghc841
-ghcHEAD
-ghc7103Binary
-ghc821Binary
-ghcjs
-ghcjsHEAD       
-integer-simple
+"ghc7103"
+"ghc802"
+"ghc822"
+"ghc841"
+"ghcHEAD"
+"ghc7103Binary"
+"ghc821Binary"
+"ghcjs"
+"ghcjsHEAD"
+"integer-simple"
 */
 
-, profiled   ? false
-, hoogle     ? false 
+, withHoogle  ? false 
+#, withLLVM    ? false
 
-, tested      ? false
-, benchmarked ? false
-, documented  ? false
-, hyperlinked ? true
+, isProfiled    ? false
+, isTested      ? false
+, isBenchmarked ? false
+, isDocumented  ? false
+, isHyperlinked ? true
+, isDwarf       ? false
 
-, linker     ? "default"
-/* = "gold" 
+, whichObjectLibrary ? "default"
+/* = 
+"static" 
+"shared"
+*/
+
+, whichLinker ? "default"
+/* = 
+"gold" 
 */
 
 , development   ? true
@@ -60,7 +69,10 @@ let
 ### "IMPORTS"
 
 inherit (nixpkgs) pkgs;
-inherit (pkgs)    fetchFromGitHub;
+inherit (pkgs)    stdenv;
+# "import" utilities
+inherit (pkgs)       fetchFromGitHub;
+inherit (stdenv.lib) optionalAttrs;
 
 lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
 haskell = pkgs.haskell.lib; 
@@ -186,84 +198,90 @@ let
 
 # nix-shell --show-trace -p "(haskell.packages.${COMPILER}.override { overrides = self: super: { spiros = haskell.lib.dontCheck (haskell.lib.dontHaddock (self.callCabal2nix ''spiros'' ./. {})); }; }).ghcWithPackages (self: with self; [ spiros ])"
 
+####################
+
+customDerivationOptions = 
+    { enableLibraryProfiling = isProfiled; 
+      doCheck                = isTested; 
+      doBenchmark            = isBenchmarked; 
+      doHaddock              = isDocumented;
+      doHyperlinkSource      = isDocumented && isHyperlinked;
+      enableDWARFDebugging   = isDwarf;
+    } //
+    ( if   (whichObjectLibrary == "shared") 
+      then { enableSharedLibraries  = true; 
+           }
+      else 
+      if   (whichObjectLibrary == "static")
+      then { enableStaticLibraries  = true; 
+           }
+      else
+      if   (whichObjectLibrary == "both") # TODO
+      then { enableSharedLibraries  = true;
+             enableStaticLibraries  = true; 
+           }
+      else 
+      if   (whichObjectLibrary == "default")
+      then {}
+      else {} # TODO
+    ) // 
+    optionalAttrs (whichLinker == "gold") 
+      { linkWithGold = true;
+      }
+ ;
+
+####################
+
+hooglePackagesOverride = self: super:
+  {
+    ghcWithPackages = self.ghc.withPackages;
+
+    ghc = super.ghc //
+      { withPackages = super.ghc.withHoogle; 
+      };
+  };
+
+####################
+
+customMkDerivation = self: super: args:
+  super.mkDerivation
+    (args // customDerivationOptions);
+
+####################
+
+# llvmPackagesOverride = self: super:
+#   {
+#     ghcWithPackages = self.ghc.withPackages;
+
+#     ghc = super.ghc //
+#       { withPackages = super.ghc.llvmPackages; #TODO
+#       };
+#   };
+
 ### COMPILERS
 
-haskellPackagesWithCompiler = 
-  if compiler == "default"
+haskellPackagesWithCompiler1 = 
+  if   compiler == "default"
   then pkgs.haskellPackages
   else pkgs.haskell.packages.${compiler};
 
-haskellPackagesWithHoogle =
-  if hoogle
-  then haskellPackagesWithCompiler.override {
-         overrides = self: super: {
-           ghc = super.ghc //
-             { withPackages = super.ghc.withHoogle; 
-             };
-           ghcWithPackages = self.ghc.withPackages;
-         };
+haskellPackagesWithCustomPackages2 =
+  if   withHoogle
+  then haskellPackagesWithCompiler1.override {
+         overrides = hooglePackagesOverride;
        }
-  else haskellPackagesWithCompiler;
+  else haskellPackagesWithCompiler1;
 
-haskellPackagesWithProfiling = 
- haskellPackagesWithHoogle.override {
-         overrides = self: super: {
-           mkDerivation = args: super.mkDerivation
-            (args //
-              { enableLibraryProfiling = profiled; 
-              }
-            );
-         };
- };
-
-haskellPackagesWithHaddocks = 
- haskellPackagesWithProfiling.override {
-         overrides = self: super: {
-           mkDerivation = args: super.mkDerivation
-            (args //
-              { doHaddock         = documented;
-                doHyperlinkSource = documented && hyperlinked; 
-              }
-            );
-         };
- };
-
-haskellPackagesWithTests = 
- haskellPackagesWithHaddocks.override {
-         overrides = self: super: {
-           mkDerivation = args: super.mkDerivation
-            (args //
-              { doCheck = tested; 
-              }
-            );
-         };
- };
-
-haskellPackagesWithBenchmarks = 
- haskellPackagesWithTests.override {
-         overrides = self: super: {
-           mkDerivation = args: super.mkDerivation
-            (args //
-              { doBenchmark = benchmarked; 
-              }
-            );
-         };
- };
-
-haskellPackagesWithGoldLinker = 
- haskellPackagesWithBenchmarks.override {
-         overrides = self: super: {
-           mkDerivation = args: super.mkDerivation
-            (args // option {} (linker == "gold")
-              { linkWithGold ; 
-              }
-            );
-         };
- };
+haskellPackagesWithCustomDerivation3 = 
+  haskellPackagesWithCustomPackages2.override {
+    overrides = self: super: {
+      mkDerivation = customMkDerivation self super;
+    };
+  };
 
 # the last referenced, below
 # TODO scoping
-haskellPackagesWithCustomization = haskellPackagesWithGoldLinker;
+customizedHaskellPackages = haskellPackagesWithCustomDerivation3;
 
 /*
 nix-repl> haskell.packages._
@@ -364,7 +382,7 @@ myHaskellOverlaysWith = pkgs: self: super: let
 
   # protolude = hackage_ "protolude" "0.2.1";
 
-  vinyl = skipTests super.vinyl; 
+  # vinyl = skipTests super.vinyl; 
 
 #
 # test-suite doctests
@@ -387,9 +405,8 @@ let
 
 ### OTHER OVERRIDES
  
-modifiedHaskellPackages = haskellPackagesWithCustomization.override {
+modifiedHaskellPackages = customizedHaskellPackages.override {
 #  overrides = self: super: {
-
   overrides = self: super:
     myHaskellOverlaysWith pkgs self super // {
   };
@@ -403,44 +420,49 @@ let
 
 # theNixFile = ./.;
 
-installationDerivation = modifiedHaskellPackages.callPackage spiros_nix {};
+installationDerivation = modifiedHaskellPackages.callPackage
+ spiros_nix {};
 
 # development environment
 # for `nix-shell --pure`
-developmentDerivation = haskell.linkWithGold 
-    (haskell.addBuildDepends installationDerivation developmentPackages);
+developmentDerivation = (haskell.addBuildDepends installationDerivation
+ developmentPackages);
 
-developmentPackages = developmentHaskellPackages
-                   # ++ developmentEmacsPackages 
-                   ++ developmentSystemPackages;
+developmentPackages
+  = developmentHaskellPackages
+ # ++ developmentEmacsPackages 
+ ++ developmentSystemPackages;
 
 developmentSystemPackages = with pkgs; [
-  
+ #   
  cabal-install
-
+ # 
  coreutils
  inotify-tools
-  
+ #   
  emacs
  git
-
+ # 
 ];
 
 developmentHaskellPackages = with modifiedHaskellPackages; [
-  
+ #   
  # ghcid
  # ghc-mod
-
- stylish-haskell
- hasktags
- present
- hlint
+ # 
+ # 
  hoogle
+ # 
+ hasktags
+ hlint
+ # 
+ present
+ stylish-haskell
  hindent
-  
+ #   
 ];
 
- # developmentHaskellPackages = with Packages; [
+ # developmentEmacsHaskellPackages = with Packages; [
  #    dante
  #  ];
 
