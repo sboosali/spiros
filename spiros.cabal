@@ -211,7 +211,8 @@ test-suite unit
  build-depends:
     base
   , spiros
-
+  , tasty
+  , tasty-hunit
 
 ----------------------------------------
 

@@ -1,8 +1,9 @@
 { mkDerivation, base, bytestring, containers, data-default-class
 , deepseq, directory, doctest, exceptions, generic-deriving
 , hashable, mtl, prettyprinter, process, safe, safe-exceptions
-, split, stdenv, stm, string-conv, template-haskell, text, time
-, transformers, unordered-containers, vector, vinyl
+, split, stdenv, stm, string-conv, tasty, tasty-hunit
+, template-haskell, text, time, transformers, unordered-containers
+, vector, vinyl
 }:
 mkDerivation {
   pname = "spiros";
@@ -14,7 +15,7 @@ mkDerivation {
     safe-exceptions split stm string-conv template-haskell text time
     transformers unordered-containers vector vinyl
   ];
-  testHaskellDepends = [ base doctest ];
+  testHaskellDepends = [ base doctest tasty tasty-hunit ];
   homepage = "http://github.com/sboosali/spiros#readme";
   description = "my custom prelude";
   license = stdenv.lib.licenses.bsd3;

@@ -169,6 +169,32 @@ syntax:
 
 NOTES
 
+Foldable:
+
+@Foldable@ doesn't subclass @Functor@, and it absorbs several "secondary functions" as "primary methods", for efficiency:
+
+@
+-- e.g. list, the canonical foldable
+
+instance Foldable [] where
+    elem    = List.elem
+    foldl   = List.foldl
+    foldl'  = List.foldl'
+    foldl1  = List.foldl1
+    foldr   = List.foldr
+    foldr1  = List.foldr1
+    length  = List.length
+    maximum = List.maximum
+    minimum = List.minimum
+    null    = List.null
+    product = List.product
+    sum     = List.sum
+    toList  = id
+@
+
+
+@
+
 Lifted Classes:
 
 @
@@ -407,7 +433,7 @@ import "base" Data.Semigroup                         as X (Semigroup(..))
 import "base" Data.Monoid                            as X (Monoid(..))
 
 import "base" Data.Functor                           as X (Functor(..))
-import "base" Data.Foldable                          as X (Foldable(..))
+import "base" Data.Foldable                          as X (Foldable(elem,foldl,foldl',foldl1,foldr,foldr1,length,maximum,minimum,null,product,sum)) -- `Foldable(toList)` conflicts with `IsList(toList)`
 import "base" Data.Traversable                       as X (Traversable(..))
 
 import "base" Control.Applicative                    as X (Applicative(..))

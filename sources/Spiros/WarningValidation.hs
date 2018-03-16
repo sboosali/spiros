@@ -39,7 +39,7 @@ Examples:
 module Spiros.WarningValidation where
 
 import Prelude.Spiros.Reexports 
-import Prelude.Spiros.Classes hiding (toList)
+import Prelude.Spiros.Classes 
 import Prelude.Spiros.Utilities
 
 ----------------------------------------
