@@ -16,6 +16,12 @@
 "integer-simple"
 */
 
+, integer-simple ? false
+/* =
+false
+true
+*/
+
 , withHoogle  ? false 
 #, withLLVM    ? false
 
@@ -261,8 +267,11 @@ customMkDerivation = self: super: args:
 ### COMPILERS
 
 haskellPackagesWithCompiler1 = 
-  if   compiler == "default"
+  if   compiler == "default" # `integer-simple` is ignored
   then pkgs.haskellPackages
+  else 
+  if   integer-simple
+  then pkgs.haskell.packages.integer-simple.${compiler}
   else pkgs.haskell.packages.${compiler};
 
 haskellPackagesWithCustomPackages2 =

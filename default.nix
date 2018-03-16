@@ -1,0 +1,1 @@
+/home/sboo/haskell/spiros/nix/spiros.nix

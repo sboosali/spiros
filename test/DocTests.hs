@@ -12,7 +12,7 @@ main = do
     , headers
     , arguments
     ]
-    
+
 ----------------------------------------
 
 sources =

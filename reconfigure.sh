@@ -2,8 +2,11 @@
 set -e
 ########################################
 
+echo
+echo '----------------------------------'
+echo "[cabal2nix'ing...]"
+echo 
 mkdir -p nix/
-
 cabal2nix . > ./nix/spiros.nix
 
 echo
@@ -17,6 +20,12 @@ echo '----------------------------------'
 echo '[default.nix]'
 echo 
 cat default.nix
+
+echo
+echo '----------------------------------'
+echo '[default.nix (link)]'
+echo 
+readlink -f default.nix
 
 echo
 echo '----------------------------------'
