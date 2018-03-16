@@ -45,6 +45,12 @@ echo '[testing...]'
 echo 
 ./test.sh
 
+echo
+echo '----------------------------------'
+echo '[generating dependencies metadata...]'
+echo 
+./dependencies.sh
+
 ########################################
 #
 # SHELL_FILE=shell-reflex-vinyl.nix

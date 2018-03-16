@@ -1,10 +1,10 @@
-resolver: nightly-2017-12-09
-# compiler: ghc-8.2.2
+resolver: nightly-2018-03-12
 
 nix:
-  enable: false
+  enable: true
   pure: true
-  packages: []
+  packages:
+  - zlib
 
 packages:
 - .

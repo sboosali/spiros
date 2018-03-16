@@ -1,6 +1,13 @@
 { nixpkgs ? import <nixpkgs> {}
 
-, spiros_nix ? ./nix/spiros.nix # ./.
+, packageDotNix ? ./nix/spiros.nix
+/* 
+./.
+
+$ find ./nix
+./nix/spiros.nix
+./nix/spiros_only-library.nix
+*/
 
 , compiler ? "default"
 /* =
@@ -42,6 +49,10 @@ true
 /* = 
 "gold" 
 */
+
+, minimalDependencies ? false
+# skip all development tools, and (TODO) non-library packages
+# e.g. for `./dependencies.sh`
 
 , development   ? true
 }:
@@ -424,18 +435,20 @@ modifiedHaskellPackages = customizedHaskellPackages.override {
 in
 ########################################
 let
-
 ### DERIVATION / ENVIRONMENT
 
-# theNixFile = ./.;
+installationDerivation =
+ modifiedHaskellPackages.callPackage
+  packageDotNix 
+  {};
 
-installationDerivation = modifiedHaskellPackages.callPackage
- spiros_nix {};
+####################
 
 # development environment
 # for `nix-shell --pure`
-developmentDerivation = (haskell.addBuildDepends installationDerivation
- developmentPackages);
+developmentDerivation = 
+  haskell.addBuildDepends installationDerivation
+    developmentPackages;
 
 developmentPackages
   = developmentHaskellPackages
@@ -475,7 +488,25 @@ developmentHaskellPackages = with modifiedHaskellPackages; [
  #    dante
  #  ];
 
-environment = haskell.shellAware developmentDerivation;
+####################
+
+minimalDerivation =
+  haskell.addBuildDepends installationDerivation
+    minimalSystemPackages;
+
+minimalSystemPackages = with pkgs; [
+ graphviz
+  # for `dot`
+];
+
+####################
+
+environmentDerivation =
+ if   minimalDependencies
+ then minimalDerivation
+ else developmentDerivation;
+
+environment = haskell.shellAware environmentDerivation; 
    # if pkgs.lib.inNixShell then drv.env else drv;
 
 in

@@ -4,17 +4,21 @@ set -e
 
 # e.g.
 #
-# ./build.sh
+# ./environment.sh
 #
-# ./build.sh 802
-# ./build.sh js
+# ./environment.sh 802
+# ./environment.sh js
 #
-# ./build.sh --argstr compiler ghc802
-# ./build.sh --argstr compiler ghcjs
+# ./environment.sh --argstr compiler ghc802
+# ./environment.sh --argstr compiler ghcjs
 #
-# ./build.sh js --arg isProfiled true 
+# ./environment.sh js --arg isProfiled true 
 #
-# ./build.sh  --arg withHoogle true  --arg isProfiled true  --arg isTested true  --arg isBenchmarked true  --arg isDocumented true  --arg isHyperlinked true  --arg isDwarf true  --argstr whichLinker gold  --argstr whichObjectLibrary static
+# ./environment.sh --pure
+# 
+# ./environment.sh --arg packageDotNix ./nix/spiros_only-library.nix
+# 
+# ./environment.sh  --arg withHoogle true  --arg isProfiled true  --arg isTested true  --arg isBenchmarked true  --arg isDocumented true  --arg isHyperlinked true  --arg isDwarf true  --argstr whichLinker gold  --argstr whichObjectLibrary static
 #
 #
 
