@@ -2,8 +2,14 @@
 set -e
 
 # e.g.
+# 
+# ./install.sh '{test = true; bench = true; haddock = true; shared = true; static = true; }'
+# 
+# ./install.sh '{test = true; bench = false; haddock = false; shared = true; static = true; }'
+# 
 # ./install.sh '{test = true; bench = true; haddock = true; shared = true; static = true; goldLinker = true; deadCodeElimination = true; checkUnusedPackages = true; }'
-
+# 
+# 
 ########################################
 
 echo 
@@ -13,5 +19,13 @@ echo "[ARGUMENTS]" "$@"
 echo
 
 nix-build shell.nix --show-trace --arg options "$1" #TODO
+
+########################################
+
+echo 
+echo "[RESULT]"
+echo
+
+find ./result/
 
 ########################################
