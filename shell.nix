@@ -1,16 +1,46 @@
-{ nixpkgs ? import <nixpkgs> {}
+{ nixpkgsWith ? import <nixpkgs> 
+/* : PackageSetConfig -> PackageSet
+where
+type PackageSet = {<PackageName>: <Derivation>, ...}
 
-, packageDotNix ? ./nix/spiros.nix
-/* 
+"which raw `nixpkgs` repository?"
+*/
+
+, nixpkgs ? nixpkgsWith {}
+/* : PackageSet 
+
+i.e. 
+nixpkgs ? import <nixpkgs> {}
+
+you can configure the default (or a custom one) with custom overlays or whatever, e.g.:
+
+nixpkgs = nixpkgsWith { overlays = [(self: super: ...), ...] }
+
+*/
+
+, packageDotNix ? null
+/* : Maybe FilePath
+
+`null` means: use `cabal2nix ./.`
+
+=
+null
 ./.
+./nix/spiros.nix
+./nix/spiros_only-library.nix
+<etc>
 
 $ find ./nix
 ./nix/spiros.nix
 ./nix/spiros_only-library.nix
 */
 
-, compiler ? "default"
-/* =
+, compiler ? null
+/* : Maybe String 
+
+`null` means: use the default, 
+i.e. `haskellPackages` not `haskell.packages.${compiler}`
+
 "ghc7103"
 "ghc802"
 "ghc822"
@@ -21,40 +51,217 @@ $ find ./nix
 "ghcjs"
 "ghcjsHEAD"
 "integer-simple"
+
+*/
+
+, resolver ? null
+/* : Maybe String
+
+Whether to use the Stackage PackageSet and with which resolver.
+
+* `null` means: don't use Stackage 
+* `"default"` means: use Stackage, and with the latest (supported) one; currently `lts-107`
+* `"lts-107"` means: LTS 10.7`, using ghc-8.2.2, and published on 2018-02-24.
+* etc
+
+`lts-<X.Y>` means: use this `Stackage` resolver, via `nixpkgs-stackage` (which is assumed to be in the `nixpkgs` namespace, i.e. have been added as an overlay)
+
+https://www.stackage.org/lts-10.7
+
+=
+lts-107
+lts-106
+lts-105
+lts-104
+lts-103
+lts-102
+lts-101
+lts-100
+lts-921
+...
+lts-00 
+
+https://github.com/typeable/nixpkgs-stackage
+
 */
 
 , integer-simple ? false
-/* =
+/* : Boolean
+
+`true` means: use the `integer-simple` compilers, not the `integer-gmp`, (which is implicitly the default).
+
+i.e. `haskell.packages.integer-simple.${compiler}` not `haskell.packages.${compiler}`
+
+=
 false
 true
 */
 
-, withHoogle  ? false 
-#, withLLVM    ? false
+/* : Boolean
 
-, isProfiled    ? false
-, isTested      ? false
-, isBenchmarked ? false
-, isDocumented  ? false
-, isHyperlinked ? true
-, isDwarf       ? false
+the `isXxx` options mean: apply this option to the package itself only (c.f. `withXxx`).
+
+*/
+
+, withHoogle  ? false 
+/* : Boolean
+*/
+
+#, withLLVM    ? false
+/* : Boolean
+*/
+
+, withProfiled    ? false
+, withTested      ? false
+, withBenchmarked ? false
+, withDocumented  ? false
+, withHyperlinked ? true
+, withDwarf       ? false
+/* : Boolean
+
+the `withXxx` options mean: apply this option to all dependencies.
+
+*/
 
 , whichObjectLibrary ? "default"
-/* = 
+/* : String
+
+= 
 "static" 
 "shared"
+"both"
 */
 
 , whichLinker ? "default"
-/* = 
-"gold" 
+/* : String
+
+= 
+"gold"
+TODO? 
 */
 
 , minimalDependencies ? false
-# skip all development tools, and (TODO) non-library packages
-# e.g. for `./dependencies.sh`
+/* : Boolean
 
-, development   ? true
+`true` means: skip all development tools, and (TODO) non-library packages. e.g. for generating the libraries transitive dependencies via `./dependencies.sh`. 
+
+=
+false
+true
+*/
+
+, options ? {}
+
+/* options for building this package, by overriding the derivation. 
+
+`{ <option> : null }` and `{}` are the same, 
+i.e. fallback to the underlying defaults. 
+
+`{ <option> : true }` 
+is `do<Option>` or `enable<Option>` (or something else).
+
+`{ <option> : false }` 
+is `dont<Option>` or `disable<Option>` (or something else).
+
+unknown options are currently silently ignored. 
+
+: { test :: Maybe Bool
+  # true  = doCheck
+  # false = dontCheck
+  # null  = id
+  #
+  
+  , bench :: Maybe Bool
+  # true  = doBenchmark
+  # false = dontBenchmark
+  # null  = id
+  #
+  
+  , haddock :: Maybe Bool
+  # true  = doHaddock
+  # false = dontHaddock
+  # null  = id
+  #
+  
+  , coverage :: Maybe Bool
+  # true  = doCoverage
+  # false = dontCoverage
+  # null  = id
+  #
+  
+  , static :: Maybe Bool
+  # true  = enableStaticLibraries
+  # false = disableStaticLibraries
+  # null  = id
+  #
+    
+  , shared :: Maybe Bool
+  # true  = enableSharedLibraries
+  # false = disableSharedLibraries
+  # null  = id
+  #
+    
+  , sharedExecutables :: Maybe Bool
+  # true  = enableSharedExecutables
+  # false = disableSharedExecutables
+  # null  = id
+  #
+  
+  , strip :: Maybe Bool
+  # true  = doStrip
+  # false = dontStrip
+  # null  = id
+  #
+  
+  , goldLinker :: Maybe Bool
+  # true  = linkWithGold
+  # false = id?
+  # null  = id
+  #
+  
+  , deadCodeElimination :: Maybe Bool
+  # true  = enableDeadCodeElimination
+  # false = disableDeadCodeElimination
+  # null  = id
+  #
+  
+  , dwarfDebugging :: Maybe Bool
+  # true  = enableDWARFDebugging
+  # false = disableDWARFDebugging
+  # null  = id
+  #
+
+  , checkUnusedPackages :: Maybe Bool
+  # true  = checkUnusedPackages
+  # false = id?
+  # null  = id
+  #
+
+  , warningsAreErrors :: Maybe Bool
+  # true  = failOnAllWarnings
+  # false = id?
+  # null  = id
+  #
+
+  }
+
+TODO
+sdistTarball       
+triggerRebuild     
+buildStackProject  
+buildStrictly      
+
+*/
+
+, development ? true
+/* : Boolean
+
+`true` means: add development dependencies like Version Control stuff and editor stuff; and maybe modify the package itself if it supports a development flag, see source. 
+
+=
+false
+true
+*/
 }:
 
 /* Usage:
@@ -70,8 +277,6 @@ ghc821Binary
 ghcjs
 ghcjsHEAD       
 integer-simple
-
-
 
   nix-shell
   cabal configure 
@@ -94,8 +299,9 @@ inherit (stdenv.lib) optionalAttrs;
 lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
 haskell = pkgs.haskell.lib; 
 
-/* attrNames pkgs.haskell.lib;
-=
+/* 
+
+> attrNames pkgs.haskell.lib
 addBuildDepend             :: ? -> ?
 addBuildDepends            :: ? -> ?
 addBuildTool               :: ? -> ?
@@ -161,6 +367,31 @@ sdistTarball               :: ? -> ?
 shellAware                 :: ? -> ?
 triggerRebuild             :: ? -> ?
 
+configuration transformers:
+
+doCheck                    :: ? -> ?
+
+doBenchmark
+
+doHaddock                  :: ? -> ?
+doHyperlinkSource          :: ? -> ?
+doCoverage                 :: ? -> ?
+
+doJailbreak                :: ? -> ?
+
+linkWithGold
+
+enableDWARFDebugging       :: ? -> ?
+
+enableDeadCodeElimination  :: ? -> ?
+
+enableLibraryProfiling     :: ? -> ?
+
+enableSharedExecutables    :: ? -> ?
+
+enableSharedLibraries      :: ? -> ?
+enableStaticLibraries      :: ? -> ?
+
 */
 
 in
@@ -213,17 +444,25 @@ in
 ########################################
 let
 
-# nix-shell --show-trace -p "(haskell.packages.${COMPILER}.override { overrides = self: super: { spiros = haskell.lib.dontCheck (haskell.lib.dontHaddock (self.callCabal2nix ''spiros'' ./. {})); }; }).ghcWithPackages (self: with self; [ spiros ])"
+inherit (stdenv.lib)
+ isString
+ ;
+
+# TODO nix-shell --show-trace -p "(haskell.packages.${COMPILER}.override { overrides = self: super: { spiros = haskell.lib.dontCheck (haskell.lib.dontHaddock (self.callCabal2nix ''{{name}}'' ./. {})); }; }).ghcWithPackages (self: with self; [ {{name}} ])"
 
 ####################
 
+customMkDerivation = self: super: args:
+  super.mkDerivation
+    (args // customDerivationOptions);
+
 customDerivationOptions = 
-    { enableLibraryProfiling = isProfiled; 
-      doCheck                = isTested; 
-      doBenchmark            = isBenchmarked; 
-      doHaddock              = isDocumented;
-      doHyperlinkSource      = isDocumented && isHyperlinked;
-      enableDWARFDebugging   = isDwarf;
+    { enableLibraryProfiling = withProfiled; 
+      doCheck                = withTested; 
+      doBenchmark            = withBenchmarked; 
+      doHaddock              = withDocumented;
+      doHyperlinkSource      = withDocumented && withHyperlinked;
+      enableDWARFDebugging   = withDwarf;
     } //
     ( if   (whichObjectLibrary == "shared") 
       then { enableSharedLibraries  = true; 
@@ -260,10 +499,6 @@ hooglePackagesOverride = self: super:
 
 ####################
 
-customMkDerivation = self: super: args:
-  super.mkDerivation
-    (args // customDerivationOptions);
-
 ####################
 
 # llvmPackagesOverride = self: super:
@@ -278,11 +513,18 @@ customMkDerivation = self: super: args:
 ### COMPILERS
 
 haskellPackagesWithCompiler1 = 
-  if   compiler == "default" # `integer-simple` is ignored
+  if   compiler == null 
+       #TODO `integer-simple` is ignored if this matches
   then pkgs.haskellPackages
+
   else 
   if   integer-simple
   then pkgs.haskell.packages.integer-simple.${compiler}
+
+  else 
+  if   isString resolver
+  then pkgs.haskell.packages.stackage.${resolver} # e.g. "lts-107"
+
   else pkgs.haskell.packages.${compiler};
 
 haskellPackagesWithCustomPackages2 =
@@ -431,18 +673,277 @@ modifiedHaskellPackages = customizedHaskellPackages.override {
     myHaskellOverlaysWith pkgs self super // {
   };
 };
+in
+
+########################################
+let
+### "CMDLN" OPTIONS 
+
+inherit (stdenv.lib)
+ id foldl' mapAttrs attrValues 
+ ;
+
+compose =
+ f: g: x: f (g x)
+ ;
+
+# boolean eliminator
+bool = x: y: b:
+ if b then x else y
+ ;
+
+/* : { String : (Bool -> (Derivation -> Derivation)) }
+
+mapping between my alias for a configuration option (short to be specified at the command line), and the toggling functions of that configuration option
+
+*/
+aliasedDerivationTransformers = self: with self; 
+
+  { test                = bool doCheck
+                               dontCheck 
+  
+  ; bench               = bool doBenchmark
+                               dontBenchmark 
+  
+  ; haddock             = bool (compose doHyperlinkSource doHaddock)
+                               dontHaddock 
+  
+  ; coverage            = bool doCoverage
+                               dontCoverage 
+  
+  ; static              = bool enableStaticLibraries
+                               disableStaticLibraries 
+    
+  ; shared              = bool enableSharedLibraries
+                               disableSharedLibraries 
+    
+  ; sharedExecutables   = bool enableSharedExecutables
+                               disableSharedExecutables 
+  
+  ; strip               = bool doStrip
+                               dontStrip 
+  
+  ; goldLinker          = bool linkWithGold
+                               id 
+  
+  ; deadCodeElimination = bool enableDeadCodeElimination
+                               disableDeadCodeElimination 
+  
+  ; dwarfDebugging      = bool enableDWARFDebugging
+                               disableDWARFDebugging 
+
+  ; checkUnusedPackages = bool checkUnusedPackages
+                               id 
+
+  ; warningsAreErrors   = bool failOnAllWarnings
+                               id 
+
+  ;};
+
+/* : String -> Bool -> (Derivation -> Derivation)
+
+*/
+translateMyOptionToANixHaskellDerivationTransformer
+ = optionName: optionValue:
+   (aliasedDerivationTransformers haskell).${optionName} optionValue #TODO `self`
+ ;
+
+/* : List (Derivation -> Derivation)
+
+*/
+theseOptions =
+ attrValues
+  (mapAttrs translateMyOptionToANixHaskellDerivationTransformer 
+   options)
+ ;
+
+/* : Derivation -> Derivation
+
+NOTE 
+
+foldl :: (b ->        a -> b) -> b ->      [a] -> b
+
+($) :: (a -> b) -> a -> b
+($) = id @(a -> b)
+
+(.) :: (a -> a) -> (a -> a) -> (a -> a)
+
+specializations:
+
+foldl :: (b ->        a -> b) -> b ->      [a] -> b
+foldl :: (b -> (b -> b) -> b) -> b -> [b -> b] -> b
+
+foldl :: (b        ->        a ->        b) ->       b ->       [a] -> b
+foldl :: ((a -> a) -> (a -> a) -> (a -> a)) -> (a -> a) -> [a -> a] -> (a -> a)
+
+foldl :: ((Derivation -> Derivation) -> (Derivation -> Derivation) -> (Derivation -> Derivation)) -> (Derivation -> Derivation) -> [Derivation -> Derivation] -> (Derivation -> Derivation)
+
+*/
+thisOverride = 
+ foldl' compose id theseOptions
+ ;
+
+/* NOTES
+
+==========
+
+
+==========
+
+fold...
+
+  # Strict version of `foldl'.
+     The difference is that evaluation is forced upon access. Usually used
+     with small whole results (in contract with lazily-generated list or large
+     lists where only a part is consumed.)
+  #
+  foldl' = builtins.foldl' or foldl;
+
+  # “left fold”, like `foldr', but from the left:
+     `foldl op nul [x_1 x_2 ... x_n] == op (... (op (op nul x_1) x_2) ... x_n)`.
+     Type:
+       foldl :: (b -> a -> b) -> b -> [a] -> b
+     Example:
+       lconcat = foldl (a: b: a + b) "z"
+       lconcat [ "a" "b" "c" ]
+       => "zabc"
+       # different types
+       lstrange = foldl (str: int: str + toString (int + 1)) ""
+       strange [ 1 2 3 4 ]
+       => "a2345"
+  #
+  foldl = op: nul: list:
+    let
+      len = length list;
+      foldl' = n:
+        if n == -1
+        then nul
+        else op (foldl' (n - 1)) (elemAt list n);
+    in foldl' (length list - 1);
+
+==========
+
+attrValues...
+
+  # Return the values of all attributes in the given set, sorted by
+     attribute name.
+     Example:
+       attrValues {c = 3; a = 1; b = 2;}
+       => [1 2 3]
+  #
+  attrValues = builtins.attrValues or (attrs: attrVals (attrNames attrs) attrs);
+
+
+==========
+
+mapAttrs...
+
+  # Apply a function to each element in an attribute set.  The
+     function takes two arguments --- the attribute name and its value
+     --- and returns the new value for the attribute.  The result is a
+     new attribute set.
+     Example:
+       mapAttrs (name: value: name + "-" + value)
+          { x = "foo"; y = "bar"; }
+       => { x = "x-foo"; y = "y-bar"; }
+  #
+  mapAttrs = f: set:
+    listToAttrs (map (attr: { name = attr; value = f attr set.${attr}; }) (attrNames set));
+
+
+==========
+
+*/
 
 in
 ########################################
 let
 ### DERIVATION / ENVIRONMENT
 
-installationDerivation =
- modifiedHaskellPackages.callPackage
-  packageDotNix 
-  {};
+#package = packageDotNix
 
-####################
+rawDerivation =
+ if   packageDotNix == null
+ then automaticallyNixifiedDerivation
+ else manuallyNixifiedDerivation
+ ;
+
+automaticallyNixifiedDerivation =
+ modifiedHaskellPackages.callCabal2nix "spiros" ./. {}
+ ;
+
+manuallyNixifiedDerivation =
+ modifiedHaskellPackages.callPackage packageDotNix {}
+ ;
+
+installationDerivation =
+ thisOverride rawDerivation
+ ;
+
+/*
+
+==========
+
+==========
+
+haddock
+hyperlink
+coverage
+sharedLibraries
+staticLibraries
+sharedExecutables
+gold
+deadCodeElimination
+dwarfDebugging
+
+==========
+
+doCheck                    :: ? -> ?
+dontCheck                  :: ? -> ?
+
+doBenchmark                :: ? -> ?
+dontBenchmark              :: ? -> ?
+
+doHaddock                  :: ? -> ?
+dontHaddock                :: ? -> ?
+doHyperlinkSource          :: ? -> ?
+dontHyperlinkSource        :: ? -> ?
+doCoverage                 :: ? -> ?
+dontCoverage               :: ? -> ?
+
+doJailbreak                :: ? -> ?
+dontJailbreak              :: ? -> ?
+
+linkWithGold               :: ? -> ?
+
+enableSharedLibraries      :: ? -> ?
+disableSharedLibraries     :: ? -> ?
+enableStaticLibraries      :: ? -> ?
+disableStaticLibraries     :: ? -> ?
+enableSharedExecutables    :: ? -> ?
+disableSharedExecutables   :: ? -> ?
+
+appendConfigureFlag        :: ? -> ?
+removeConfigureFlag        :: ? -> ?
+
+
+TODO...
+
+jailbreak
+
+enableDWARFDebugging       :: ? -> ?
+
+enableDeadCodeElimination  :: ? -> ?
+
+enableLibraryProfiling     :: ? -> ?
+
+
+*/
+
+in
+########################################
+let
+### ENVIRONMENT
 
 # development environment
 # for `nix-shell --pure`
