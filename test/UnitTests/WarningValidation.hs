@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports #-}
 -- {-# LANGUAGE OverloadedStrings #-}
@@ -6,7 +8,7 @@
 module UnitTests.WarningValidation where
 
 --import "spiros" Spiros.WarningValidation
-import qualified "spiros" Example.WarningValidation as Example
+--import qualified "spiros" Example.WarningValidation as Example
 
 import "tasty"       Test.Tasty
 import "tasty-hunit" Test.Tasty.HUnit
@@ -18,9 +20,9 @@ import "spiros" Prelude.Spiros
 main = defaultMain $ do
   testCase "Example test case" $ do
     
-    2 + 2 @?= 4      -- `actual`   on left
+    2 + 2      @?= (4 :: Int)      -- `actual`   on left
     
-    6     @=? 3 + 3  -- `expected` on left
+    (6 :: Int) @=? 3 + 3           -- `expected` on left
     
     assertBool "the list is not empty" $ null []
 

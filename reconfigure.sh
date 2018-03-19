@@ -7,25 +7,19 @@ echo '----------------------------------'
 echo "[cabal2nix'ing...]"
 echo 
 mkdir -p nix/
-cabal2nix . > ./nix/spiros.nix
+cabal2nix . > spiros.nix
 
 echo
 echo '----------------------------------'
 echo '[spiros.nix]'
 echo 
-cat ./nix/spiros.nix
-
-echo
-echo '----------------------------------'
-echo '[default.nix]'
-echo 
-cat default.nix
+cat spiros.nix
 
 echo
 echo '----------------------------------'
 echo '[default.nix (link)]'
 echo 
-readlink -f default.nix
+readlink -f default.nix || true
 
 echo
 echo '----------------------------------'

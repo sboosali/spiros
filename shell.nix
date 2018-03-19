@@ -26,9 +26,12 @@ nixpkgs = nixpkgsWith { overlays = [(self: super: ...), ...] }
 =
 null
 ./.
-./nix/spiros.nix
-./nix/spiros_only-library.nix
+./default.nix
+./spiros.nix
+./spiros_only-library.nix
 <etc>
+
+the `.nix` must be in the same directory as the `.cabal`; in particular, not a symlink in the current directory that links to a file in another directory. 
 
 $ find ./nix
 ./nix/spiros.nix
@@ -237,8 +240,8 @@ unknown options are currently silently ignored.
   # null  = id
   #
 
-  , warningsAreErrors :: Maybe Bool
-  # true  = failOnAllWarnings
+  , strict :: Maybe Bool
+  # true  = buildStrictly
   # false = id?
   # null  = id
   #
@@ -296,7 +299,7 @@ inherit (pkgs)    stdenv;
 inherit (pkgs)       fetchFromGitHub;
 inherit (stdenv.lib) optionalAttrs;
 
-lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
+#lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
 haskell = pkgs.haskell.lib; 
 
 /* 
@@ -513,7 +516,7 @@ hooglePackagesOverride = self: super:
 ### COMPILERS
 
 haskellPackagesWithCompiler1 = 
-  if   compiler == null 
+  if   (compiler == null) || (compiler == "default")
        #TODO `integer-simple` is ignored if this matches
   then pkgs.haskellPackages
 
@@ -627,7 +630,7 @@ myHaskellOverlaysWith = pkgs: self: super: let
  github2nix_ = o:              github2nix o            {};
 
  #
- haskell = pkgs.haskell.lib; 
+ #haskell = pkgs.haskell.lib; 
  dependsOn = package: dependencies: 
   haskell.addBuildDepends package dependencies;
 
@@ -697,63 +700,111 @@ bool = x: y: b:
 mapping between my alias for a configuration option (short to be specified at the command line), and the toggling functions of that configuration option
 
 */
-aliasedDerivationTransformers = self: with self; 
+aliasedDerivationTransformers = self: 
 
-  { test                = bool doCheck
-                               dontCheck 
+  { test                = bool self.doCheck
+                               self.dontCheck 
   
-  ; bench               = bool doBenchmark
-                               dontBenchmark 
+  ; bench               = bool self.doBenchmark
+                               self.dontBenchmark 
   
-  ; haddock             = bool (compose doHyperlinkSource doHaddock)
-                               dontHaddock 
+  ; haddock             = bool (compose self.doHyperlinkSource self.doHaddock)
+                               self.dontHaddock 
   
-  ; coverage            = bool doCoverage
-                               dontCoverage 
+  ; coverage            = bool self.doCoverage
+                               self.dontCoverage 
   
-  ; static              = bool enableStaticLibraries
-                               disableStaticLibraries 
+  ; static              = bool self.enableStaticLibraries
+                               self.disableStaticLibraries 
     
-  ; shared              = bool enableSharedLibraries
-                               disableSharedLibraries 
+  ; shared              = bool self.enableSharedLibraries
+                               self.disableSharedLibraries 
     
-  ; sharedExecutables   = bool enableSharedExecutables
-                               disableSharedExecutables 
+  ; sharedExecutables   = bool self.enableSharedExecutables
+                               self.disableSharedExecutables 
   
-  ; strip               = bool doStrip
-                               dontStrip 
+  ; strip               = bool self.doStrip
+                               self.dontStrip 
   
-  ; goldLinker          = bool linkWithGold
+  ; goldLinker          = bool self.linkWithGold
                                id 
   
-  ; deadCodeElimination = bool enableDeadCodeElimination
-                               disableDeadCodeElimination 
+  ; deadCodeElimination = bool self.enableDeadCodeElimination
+                               self.disableDeadCodeElimination 
   
-  ; dwarfDebugging      = bool enableDWARFDebugging
-                               disableDWARFDebugging 
+  ; dwarfDebugging      = bool self.enableDWARFDebugging
+                               self.disableDWARFDebugging 
 
-  ; checkUnusedPackages = bool checkUnusedPackages
+  ; strict              = bool id# self.buildStrictly
                                id 
 
-  ; warningsAreErrors   = bool failOnAllWarnings
-                               id 
+  ; checkUnusedPackages = bool (self.checkUnusedPackages {})
+                               id
 
   ;};
+
+/*NOTES
+
+http://gsc.io/nixos/nixpkgs/manual/
+
+10.5.4.8.1. failOnAllWarnings
+Applying haskell.lib.failOnAllWarnings to a Haskell package enables the -Wall and -Werror GHC options to turn all warnings into build failures.
+
+
+10.5.4.8.2. buildStrictly
+Applying haskell.lib.buildStrictly to a Haskell package calls failOnAllWarnings on the given package to turn all warnings into build failures. Additionally the source of your package is gotten from first invoking cabal sdist to ensure all needed files are listed in the Cabal file.
+
+
+10.5.4.8.3. checkUnusedPackages
+Applying haskell.lib.checkUnusedPackages to a Haskell package invokes the packunused tool on the package. packunused complains when it finds packages listed as build-depends in the Cabal file which are redundant. For example:
+
+    $ nix-build -E 'let pkgs = import <nixpkgs> {}; in pkgs.haskell.lib.checkUnusedPackages {} pkgs.haskellPackages.scientific'
+    these derivations will be built:
+      /nix/store/3lc51cxj2j57y3zfpq5i69qbzjpvyci1-scientific-0.3.5.1.drv
+    ...
+    detected package components
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+     - library
+     - testsuite(s): test-scientific
+     - benchmark(s): bench-scientific*
+    
+    (component names suffixed with '*' are not configured to be built)
+    
+    library
+    ~~~~~~~
+    
+    The following package dependencies seem redundant:
+    
+     - ghc-prim-0.5.0.0
+    
+    testsuite(test-scientific)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    no redundant packages dependencies found
+    
+    builder for ‘/nix/store/3lc51cxj2j57y3zfpq5i69qbzjpvyci1-scientific-0.3.5.1.drv’ failed with exit code 1
+    error: build of ‘/nix/store/3lc51cxj2j57y3zfpq5i69qbzjpvyci1-scientific-0.3.5.1.drv’ failed
+
+As you can see, packunused finds out that although the testsuite component has no redundant dependencies the library component of scientific-0.3.5.1 depends on ghc-prim which is unused in the library.
+    
+*/
+
 
 /* : String -> Bool -> (Derivation -> Derivation)
 
 */
 translateMyOptionToANixHaskellDerivationTransformer
- = optionName: optionValue:
-   (aliasedDerivationTransformers haskell).${optionName} optionValue #TODO `self`
+ = self: optionName: optionValue:
+   (aliasedDerivationTransformers self).${optionName} optionValue #TODO `self`
  ;
 
 /* : List (Derivation -> Derivation)
 
 */
-theseOptions =
+theseOptions = self:
  attrValues
-  (mapAttrs translateMyOptionToANixHaskellDerivationTransformer 
+  (mapAttrs (translateMyOptionToANixHaskellDerivationTransformer self) 
    options)
  ;
 
@@ -779,8 +830,8 @@ foldl :: ((a -> a) -> (a -> a) -> (a -> a)) -> (a -> a) -> [a -> a] -> (a -> a)
 foldl :: ((Derivation -> Derivation) -> (Derivation -> Derivation) -> (Derivation -> Derivation)) -> (Derivation -> Derivation) -> [Derivation -> Derivation] -> (Derivation -> Derivation)
 
 */
-thisOverride = 
- foldl' compose id theseOptions
+thisOverride = self:
+ foldl' compose id (theseOptions self)
  ;
 
 /* NOTES
@@ -869,15 +920,25 @@ rawDerivation =
  ;
 
 automaticallyNixifiedDerivation =
- modifiedHaskellPackages.callCabal2nix "spiros" ./. {}
+ modifiedHaskellPackages.callCabal2nix 
+   "spiros"
+   ./.
+   {}
  ;
 
 manuallyNixifiedDerivation =
- modifiedHaskellPackages.callPackage packageDotNix {}
+ modifiedHaskellPackages.callPackage
+   packageDotNix
+   # ./spiros.nix 
+   # ./default.nix 
+   # ./.
+   {}
  ;
 
 installationDerivation =
- thisOverride rawDerivation
+ (thisOverride modifiedHaskellPackages 
+   (id # haskell.buildStrictly
+     rawDerivation))
  ;
 
 /*
@@ -948,7 +1009,8 @@ let
 # development environment
 # for `nix-shell --pure`
 developmentDerivation = 
-  haskell.addBuildDepends installationDerivation
+  haskell.addBuildDepends 
+    installationDerivation
     developmentPackages;
 
 developmentPackages
