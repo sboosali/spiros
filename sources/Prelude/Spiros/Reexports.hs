@@ -66,6 +66,12 @@ import "data-default-class" Data.Default.Class       as X
  (Default(..))
 
 ----------------------------------------
+
+import "semigroups" Data.Semigroup.Generic           as X
+ ( gmappend, gmempty
+ )
+
+---------------------------------------
 -- https://www.fpcomplete.com/blog/2016/06/announce-safe-exceptions
 
 import "safe-exceptions" Control.Exception.Safe      as X -- TODO mv so module, like Spiros.Exceptions?

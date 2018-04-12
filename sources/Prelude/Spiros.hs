@@ -43,7 +43,7 @@ Assertions can normally be turned on or off with a compiler flag (for GHC, asser
 
 These are re-exported by @Prelude.Spiros@.
 
-    "Prelude.Spiros.Reexports" re-exports the core types\/values from several packages, minus /all/ partial functions.
+    "Prelude.Spiros.Reexports" re-exports: the core types\/values from several packages; minus /all/ partial functions, /except/ for some functions whose names are prefixed with @"unsafe"@, i.e. "explicitly partial functions", e.g. 'unsafeNatural' (however, no @unsafeHead@ is exported, as its need often implies that the @[]@ being used is the wrong type).
 
     "Prelude.Spiros.Utilities" defines a few dozen simple utilities, like an extended prelude. 
 

@@ -388,6 +388,10 @@ import "hashable" Data.Hashable                      as X (hashUsing)
 
 import "data-default-class" Data.Default.Class       as X (Default(..))
 
+import "semigroups" Data.Semigroup.Generic           as X
+ ( gmappend, gmempty
+ )
+
 import "exceptions" Control.Monad.Catch              as X (MonadThrow(..))
 import "exceptions" Control.Monad.Catch              as X (MonadCatch(..))
 import "exceptions" Control.Monad.Catch              as X (MonadMask(..))
