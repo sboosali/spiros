@@ -20,7 +20,12 @@ set -e
 # 
 # ./environment.sh  --arg withHoogle true  --arg isProfiled true  --arg isTested true  --arg isBenchmarked true  --arg isDocumented true  --arg isHyperlinked true  --arg isDwarf true  --argstr whichLinker gold  --argstr whichObjectLibrary static
 #
-#
+# ./environment.sh  84  --argstr whichLinker gold   --arg isProfiled false  --arg isTested false  --arg isBenchmarked false  --arg isDocumented false
+# 
+# 
+# ./environment.sh  84  --argstr whichLinker gold   --arg withProfiled false  --arg withTested false  --arg withBenchmarked false  --arg withDocumented false   --arg isProfiled false  --arg isTested false  --arg isBenchmarked false  --arg isDocumented false
+# 
+# 
 
 ########################################
 
@@ -123,7 +128,7 @@ ghc822)
   ;;
 
 ghc841)
-  COMPILER="ghc842"
+  COMPILER="ghc841"
   shift 1
   ;;
     
@@ -172,7 +177,7 @@ i841|i8.4.1|integer-simple-8.4.1)
   ;;
 
 i84|i842|i8.4.2|integer-simple-8.4.2)
-  COMPILER="ghc842"
+  COMPILER="ghc841"
   INTEGER_SIMPLE=true
   shift 1
   ;;

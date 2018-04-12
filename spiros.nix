@@ -1,9 +1,8 @@
 { mkDerivation, base, bytestring, containers, data-default-class
 , deepseq, directory, doctest, exceptions, generic-deriving
-, hashable, mtl, prettyprinter, process, safe, safe-exceptions
-, split, stdenv, stm, string-conv, tasty, tasty-hunit
-, template-haskell, text, time, transformers, unordered-containers
-, vector, vinyl
+, hashable, mtl, process, safe, safe-exceptions, split, stdenv, stm
+, string-conv, tasty, tasty-hunit, template-haskell, text, time
+, transformers, unordered-containers, vector, vinyl
 }:
 mkDerivation {
   pname = "spiros";
@@ -11,7 +10,7 @@ mkDerivation {
   src = ./.;
   libraryHaskellDepends = [
     base bytestring containers data-default-class deepseq directory
-    exceptions generic-deriving hashable mtl prettyprinter process safe
+    exceptions generic-deriving hashable mtl process safe
     safe-exceptions split stm string-conv template-haskell text time
     transformers unordered-containers vector vinyl
   ];

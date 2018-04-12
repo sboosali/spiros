@@ -7,15 +7,14 @@ license:             BSD3
 license-file:        LICENSE
 author:              Spiros Boosalis
 maintainer:          samboosalis@gmail.com
-copyright:           2016 Spiros Boosalis
-category:            TODO
+copyright:           2018 Spiros Boosalis
+category:            Prelude
 build-type:          Simple
 cabal-version:       >=1.10
 tested-with:
-  GHC == 8.2.2
   GHC == 8.0.2
-
--- $ stack new PACKAGE spirosboosalis.hsfiles -p "module:MODULE"
+  GHC == 8.2.2
+  -- GHC == 8.4.1
 
 extra-source-files:
   README.md
@@ -110,8 +109,6 @@ library
  build-depends:
     base                 >= 4.6   && <5.0
 
-  -- , base-feature-macros  >= 0.1 && < 0.2
-
   , generic-deriving >= 1.11
     -- for Generics.Deriving.Semigroup
 
@@ -154,8 +151,11 @@ library
   , exceptions 
   , hashable
 
---  , semigroups
- -- TODO when was nonempty list and semigroup introduced into base? 
+  , semigroups >= 0.16.2
+    -- 0.16.2 introduces Data.Semigroup.Generic
+
+    -- for generically-deriving 
+    -- TODO when was nonempty list and semigroup introduced into base? 
 
   , stm
   , vinyl
@@ -163,7 +163,7 @@ library
   , data-default-class
   , unordered-containers
 
-  , prettyprinter 
+  -- , prettyprinter 
 --  , wl-pprint-text
   -- ??
 
@@ -176,7 +176,7 @@ library
 ----------------------------------------
 
 test-suite doctest
- if !flag(test-doctest)
+ if !impl(ghcjs) && !flag(test-doctest)
     buildable: False
 
  hs-source-dirs:      test
@@ -234,4 +234,3 @@ test-suite static
   , spiros
 
 ----------------------------------------
-

@@ -300,7 +300,7 @@ inherit (pkgs)       fetchFromGitHub;
 inherit (stdenv.lib) optionalAttrs;
 
 #lib = import "${nixpkgs.path}/pkgs/development/haskell-modules/lib.nix" { pkgs = nixpkgs; };
-haskell = pkgs.haskell.lib; 
+haskellUtilities = pkgs.haskell.lib; 
 
 /* 
 
@@ -403,9 +403,9 @@ let
 
 ### UTILITIES
 
-skipTests       = haskell.dontCheck; 
-jailbreak       = haskell.doJailbreak;
-dropUpperBounds = haskell.doJailbreak;
+skipTests       = haskellUtilities.dontCheck; 
+jailbreak       = haskellUtilities.doJailbreak;
+dropUpperBounds = haskellUtilities.doJailbreak;
 
 #:: String -> Path -> 
 execCabal2nix = options: src:
@@ -594,9 +594,10 @@ hackage_ : String/Name -> String/Version ->              -> Derivation
 */
 myHaskellOverlaysWith = pkgs: self: super: let
 #myHaskellOverlaysWith = pkgs: self: super: let
+ call = path: self.callPackage path {}; 
 
- nix        = path:
-              self.callPackage path; 
+ directory2string = path:
+  toString (baseNameOf path); 
 
  local      = path:
               self.callPackage path; 
@@ -621,29 +622,39 @@ myHaskellOverlaysWith = pkgs: self: super: let
  github2nix = o:
               cabal2nix o.repo (pkgs.fetchFromGitHub o); 
 
+ local2nix  = path:
+              cabal2nix (directory2string path) path;
+
  # override the package without overriding any dependencies
- nix_        = path:           nix        path         {};
  local_      = path:           local      path         {};
  github_     = o:              github     o            {};
  cabal2nix_  = name: source:   cabal2nix  name source  {};
  hackage_    = name: version:  hackage    name version {};
  github2nix_ = o:              github2nix o            {};
+ local2nix_  = path:           local2nix  path         {};
 
  #
  #haskell = pkgs.haskell.lib; 
  dependsOn = package: dependencies: 
-  haskell.addBuildDepends package dependencies;
+  haskellUtilities.addBuildDepends package dependencies;
 
  in
 
- let 
- reflex_dom = (import repositories.reflex-dom) self pkgs;
- in
+ # let 
+ # reflex_dom = (import repositories.reflex-dom) self pkgs;
+ # in
 
  {
    ########################################
    # Add Haskell Packages Below           #
    ######################################## 
+
+  vinyl = haskellUtilities.dontCheck
+   (local2nix_ ../vinyl);
+
+  safe-exceptions = local_ ./safe-exceptions.nix;
+
+  # singletons = haskellUtilities.dontCheck super.singletons;
 
   # protolude = hackage_ "protolude" "0.2.1";
 
@@ -937,7 +948,7 @@ manuallyNixifiedDerivation =
 
 installationDerivation =
  (thisOverride modifiedHaskellPackages 
-   (id # haskell.buildStrictly
+   (id # haskellUtilities.buildStrictly
      rawDerivation))
  ;
 
@@ -1009,7 +1020,7 @@ let
 # development environment
 # for `nix-shell --pure`
 developmentDerivation = 
-  haskell.addBuildDepends 
+  haskellUtilities.addBuildDepends 
     installationDerivation
     developmentPackages;
 
@@ -1036,15 +1047,15 @@ developmentHaskellPackages = with modifiedHaskellPackages; [
  # ghc-mod
  # 
  # 
- hoogle
- # 
- hasktags
- hlint
- # 
- present
- stylish-haskell
- hindent
- #   
+ # hoogle
+ # # 
+ # hasktags
+ # hlint
+ # # 
+ # present
+ # stylish-haskell
+ # hindent
+ # #   
 ];
 
  # developmentEmacsHaskellPackages = with Packages; [
@@ -1054,7 +1065,7 @@ developmentHaskellPackages = with modifiedHaskellPackages; [
 ####################
 
 minimalDerivation =
-  haskell.addBuildDepends installationDerivation
+  haskellUtilities.addBuildDepends installationDerivation
     minimalSystemPackages;
 
 minimalSystemPackages = with pkgs; [
@@ -1069,7 +1080,7 @@ environmentDerivation =
  then minimalDerivation
  else developmentDerivation;
 
-environment = haskell.shellAware environmentDerivation; 
+environment = haskellUtilities.shellAware environmentDerivation; 
    # if pkgs.lib.inNixShell then drv.env else drv;
 
 in
