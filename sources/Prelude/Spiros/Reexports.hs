@@ -299,12 +299,15 @@ import "base" GHC.Exts                               as X
   , groupWith, sortWith
   )
 
-import "base" GHC.Generics                           as X (Generic)
-import "base" Data.Data                              as X (Data)
+import "base" GHC.Generics                           as X
+ ( Generic
+ , Generic1
+ )
 import "base" Data.Typeable                          as X
  ( Typeable
  , typeRep
  )
+import "base" Data.Data                              as X (Data)
 
 import "base" Control.Exception                      as X (assert)
 
