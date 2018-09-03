@@ -1,25 +1,35 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveLift, DeriveAnyClass #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {-|
 
 (this module is similar to @Foundation.System@). 
 
 -}
+
 module Prelude.Spiros.System
   ( module Prelude.Spiros.System
   -- , module System.Info
   ) where
 
 ----------------------------------------
+----------------------------------------
 
-import Prelude.Spiros.Reexports
-import Prelude.Spiros.Utilities
+import qualified "cpuinfo" System.CPU as CPU
+
+----------------------------------------
+
+import         Prelude.Spiros.Reexports
+import         Prelude.Spiros.Utilities
+
+----------------------------------------
 
 import qualified "base" System.Info as Base
 import qualified "base" GHC.Conc as GHC
 
-----------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- | Enumeration of the known GHC supported operating systems.
 --
@@ -110,8 +120,116 @@ currentNumberOfCPUs = unsafeNatural <$> GHC.getNumProcessors
 
 ----------------------------------------
 
+getCPUsVerbose :: IO [CPU.CPU]
 
-{-
+getCPUsVerbose = do
+  allCpuInfo <- CPU.tryGetCPUs
+  return $ (allCpuInfo & maybe [] id)
+
+----------------------------------------
+
+getCPUsSummary :: IO CPUsSummary
+
+getCPUsSummary = do
+  cpus <- getCPUsVerbose
+  go cpus
+
+  where
+  go []   = return def
+  go cpus = do
+
+    let isHyperthreading = if CPU.hyperthreadingInUse cpus
+          then HyperthreadingIsEnabled
+          else HyperthreadingIsDisabled
+  
+    let physicalCores = CPU.physicalCores cpus & fromIntegral
+  
+    let logicalCores  = CPU.logicalCores  cpus & fromIntegral
+  
+    return CPUsSummary{..}
+  
+----------------------------------------
+
+data CPUsSummary = CPUsSummary
+
+  { isHyperthreading :: IsHyperthreading
+  , physicalCores    :: Natural
+  , logicalCores     :: Natural
+  } 
+
+  deriving (Show,Read,Eq,Ord,Lift,Generic,NFData,Hashable)
+
+instance Default CPUsSummary where
+  def = CPUsSummary{..}
+    where
+    isHyperthreading = def
+    physicalCores    = 0
+    logicalCores     = 0
+
+----------------------------------------
+
+{-| Whether the system is currently using any Hyperthreading.
+
+-}
+
+data IsHyperthreading
+
+  = HyperthreadingIsDisabled
+  | HyperthreadingIsEnabled
+
+  deriving (Enum,Bounded,Ix,Show,Read,Eq,Ord,Lift,Generic,NFData,Hashable)
+
+  -- deriving stock    (Enum,Bounded,Ix)
+  -- deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  -- deriving anyclass (Enumerable)
+  -- deriving anyclass (NFData,Hashable)
+
+instance Default IsHyperthreading where
+  def = HyperthreadingIsDisabled
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+{- NOTES
+
+
+
+
+
+
+
+physicalProcessors :: [CPU] -> Int
+
+Counts the number of physical processors in the system. A physical processor corresponds to a single CPU unit in a single socket, i.e. unless you have a multi-socket motherboard, this number will be one.
+
+
+physicalCores :: [CPU] -> Int
+
+Counts the number of physical cores in the system. A physical core is an independent processing unit that reads and executes instructions on its own, but potentially shares its die (and other resources) with other cores.
+
+
+logicalCores :: [CPU] -> Int
+
+Counts the number of logical cores in the system. A logical core is a virtual processing unit exposed to the operating system, that may or may not directly correspond with an independent physical processing unit, e.g. a hyperthread appears as an independent processing unit to the operating system, but has no physically dedicated execution resources.
+
+
+hyperthreadingFactor :: [CPU] -> Rational
+
+The hyperthreading factor is the number of logical cores divided by the number of physical cores. This quantity indicates the degree to which physical execution resources are shared among logical processors, and may be used to tune parallel applications.
+
+
+hyperthreadingInUse :: [CPU] -> Bool
+
+If hyperthreading is in use, the hyperthreadingFactor will be greater than 1.
+
+
+
+
+
+
+
+
+
 
 https://guide.aelve.com/haskell/cpp-vww0qd72
 
@@ -167,3 +285,5 @@ powerpc_HOST_ARCH
 sparc_HOST_ARCH
 
 -}
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------

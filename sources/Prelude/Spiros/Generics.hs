@@ -85,14 +85,14 @@ infixr 6 `mappendGeneric`
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeOperators #-}
 
-#if __GLASGOW_HASKELL__ >= 701
+-- #if __GLASGOW_HASKELL__ >= 701
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE Safe #-}
-#endif
+-- #endif
 
-#if __GLASGOW_HASKELL__ >= 705
+-- #if __GLASGOW_HASKELL__ >= 705
 {-# LANGUAGE PolyKinds #-}
-#endif
+-- #endif
 
 module Generics.Deriving.Semigroup (
   -- * Generic semigroup class
@@ -108,25 +108,25 @@ module Generics.Deriving.Semigroup (
 
 import Control.Applicative
 import Data.Monoid as Monoid
-#if MIN_VERSION_base(4,5,0)
+-- #if MIN_VERSION_base(4,5,0)
   hiding ((<>))
-#endif
+-- #endif
 import Generics.Deriving.Base
 
-#if MIN_VERSION_base(4,7,0)
+-- #if MIN_VERSION_base(4,7,0)
 import Data.Proxy (Proxy)
-#endif
+-- #endif
 
-#if MIN_VERSION_base(4,8,0)
+-- #if MIN_VERSION_base(4,8,0)
 import Data.Functor.Identity (Identity)
 import Data.Void (Void)
-#endif
+-- #endif
 
-#if MIN_VERSION_base(4,9,0)
+-- #if MIN_VERSION_base(4,9,0)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Semigroup as Semigroup
 import Generics.Deriving.Monoid (GMonoid(..))
-#endif
+-- #endif
 
 -------------------------------------------------------------------------------
 
@@ -151,10 +151,10 @@ instance (GSemigroup' f, GSemigroup' g) => GSemigroup' (f :*: g) where
 infixr 6 `gsappend`
 class GSemigroup a where
   gsappend :: a -> a -> a
-#if __GLASGOW_HASKELL__ >= 701
+-- #if __GLASGOW_HASKELL__ >= 701
   default gsappend :: (Generic a, GSemigroup' (Rep a)) => a -> a -> a
   gsappend = gsappenddefault
-#endif
+-- #endif
 
   gstimes :: Integral b => b -> a -> a
   gstimes y0 x0
@@ -170,13 +170,13 @@ class GSemigroup a where
         | y == 1 = gsappend x z
         | otherwise = g (gsappend x x) (pred y `quot` 2) (gsappend x z)
 
-#if MIN_VERSION_base(4,9,0)
+-- #if MIN_VERSION_base(4,9,0)
   -- | Only available with @base-4.9@ or later
   gsconcat :: NonEmpty a -> a
   gsconcat (a :| as) = go a as where
     go b (c:cs) = gsappend b (go c cs)
     go b []     = b
-#endif
+-- #endif
 
 infixr 6 `gsappenddefault`
 gsappenddefault :: (Generic a, GSemigroup' (Rep a)) => a -> a -> a
@@ -205,10 +205,10 @@ instance GSemigroup [a] where
   gsappend = mappend
 instance GSemigroup (Endo a) where
   gsappend = mappend
-#if MIN_VERSION_base(4,8,0)
+-- #if MIN_VERSION_base(4,8,0)
 instance Alternative f => GSemigroup (Alt f a) where
   gsappend = mappend
-#endif
+-- #endif
 
 -- Handwritten instances
 instance GSemigroup a => GSemigroup (Dual a) where
@@ -225,26 +225,26 @@ instance GSemigroup (Either a b) where
   gsappend Left{} b = b
   gsappend a      _ = a
 
-#if MIN_VERSION_base(4,7,0)
+-- #if MIN_VERSION_base(4,7,0)
 instance GSemigroup
-# if MIN_VERSION_base(4,9,0)
+-- # if MIN_VERSION_base(4,9,0)
                  (Proxy s)
-# else
+-- # else
                  (Proxy (s :: *))
-# endif
+-- # endif
                  where
   gsappend    = gsappenddefault
-#endif
+-- #endif
 
-#if MIN_VERSION_base(4,8,0)
+-- #if MIN_VERSION_base(4,8,0)
 instance GSemigroup a => GSemigroup (Identity a) where
   gsappend = gsappenddefault
 
 instance GSemigroup Void where
   gsappend a _ = a
-#endif
+-- #endif
 
-#if MIN_VERSION_base(4,9,0)
+-- #if MIN_VERSION_base(4,9,0)
 instance GSemigroup (Semigroup.First a) where
   gsappend = (<>)
 
@@ -265,7 +265,7 @@ instance GSemigroup a => GSemigroup (Option a) where
 
 instance GMonoid m => GSemigroup (WrappedMonoid m) where
   gsappend (WrapMonoid a) (WrapMonoid b) = WrapMonoid (gmappend a b)
-#endif
+-- #endif
 
 -- Tuple instances
 instance (GSemigroup a,GSemigroup b) => GSemigroup (a,b) where

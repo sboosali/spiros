@@ -1,7 +1,7 @@
 name:                spiros
 version:             0.2
-synopsis:            my custom prelude
-description:         my custom prelude. diverges from base's; adding, removing, and shadowing.
+synopsis:            My custom prelude
+description:         My (@sboosali's) custom prelude. diverges from base's; adding, removing, and shadowing.
 homepage:            http://github.com/sboosali/spiros#readme
 license:             BSD3
 license-file:        LICENSE
@@ -12,9 +12,9 @@ category:            Prelude
 build-type:          Simple
 cabal-version:       >=1.10
 tested-with:
-  GHC == 8.0.2
-  GHC == 8.2.2
-  -- GHC == 8.4.1
+   GHC == 8.0.2
+   GHC == 8.2.2
+   GHC == 8.4.3
 
 extra-source-files:
   README.md
@@ -29,6 +29,14 @@ extra-source-files:
 source-repository head
   type:     git
   location: https://github.com/sboosali/spiros
+
+----------------------------------------
+
+-- custom-setup
+--   setup-depends:
+--     base, Cabal
+--   -- [^ NOTE] https://github.com/haskell/cabal/issues/3394
+-- [^ NOTE] didn't work.
 
 ----------------------------------------
 
@@ -107,16 +115,15 @@ library
       -- requires -XDerivingStrategies
 
  build-depends:
-    base                 >= 4.6   && <5.0
-
-  , generic-deriving >= 1.11
+               base                 >= 4.6   && <5.0
+             , generic-deriving >= 1.11
     -- for Generics.Deriving.Semigroup
 
-  , template-haskell     >= 2.11
+             , template-haskell     >= 2.11
 
   --TODO , clock 
 
-  , string-conv
+             , string-conv
 
   -- , protolude            >= 0.2.1
   -- -- ^ string-conv
@@ -128,42 +135,45 @@ library
   -- --  all of base, modulo conflicting symbols
   -- , mtl-prelude
   -- --  Reexports of most definitions from \"mtl\" and \"transformers\".
-  , safe
-  , safe-exceptions 
+
+             , safe
+             , safe-exceptions 
     -- re-exports exceptions
 
-  , mtl
-  , transformers
-  , text
-  , bytestring
-  , deepseq 
-    -- >= 1.4.3 
+             , mtl
+             , transformers
+             , text
+             , bytestring
+             , deepseq      >= 1.4.3 
     -- NFData1, NFData2
-  , containers
-  , vector
-  , time
-  , process
-  , directory
+             , containers
+             , vector
+
+             , time
+             , process
+             , directory
+             , cpuinfo >= 0.1.0.1
+
   -- , shake
   -- , optparse-applicative >= 0.10  && <0.13
   -- , optparse-generic     >= 1.1.0 && <1.2
 
-  , exceptions 
-  , hashable
+             , exceptions
+             , hashable
 
-  , semigroups >= 0.16.2
+             , semigroups >= 0.16.2
     -- 0.16.2 introduces Data.Semigroup.Generic
 
     -- for generically-deriving 
     -- TODO when was nonempty list and semigroup introduced into base? 
 
-  , stm
-  , vinyl
-  , split
-  , data-default-class
-  , unordered-containers
+             , stm
+             , vinyl
+             , split
+             , data-default-class
+             , unordered-containers
 
-  -- , prettyprinter 
+             , prettyprinter 
 --  , wl-pprint-text
   -- ??
 
@@ -176,8 +186,11 @@ library
 ----------------------------------------
 
 test-suite doctest
- if !impl(ghcjs) && !flag(test-doctest)
-    buildable: False
+
+ if flag(test-doctest) && !impl(ghcjs)
+    buildable: True
+ else
+    buildable: False   
 
  hs-source-dirs:      test
  main-is:             DocTests.hs
@@ -195,8 +208,6 @@ test-suite doctest
 ----------------------------------------
 
 test-suite unit
- if !(flag(test-unit) && flag(examples))
-    buildable: False
 
  hs-source-dirs:      test
  main-is:             UnitTests.hs
@@ -217,7 +228,10 @@ test-suite unit
 ----------------------------------------
 
 test-suite static
- if !flag(test-static)
+           
+ if flag(test-static)
+    buildable: True
+ else
     buildable: False
 
  hs-source-dirs:      test
