@@ -1,7 +1,15 @@
 -- {-# LANGUAGE CPP #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskellQuotes, RecordWildCards, PackageImports, LambdaCase, PatternSynonyms, BangPatterns, DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE PackageImports        #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE PackageImports        #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 {- |
 
@@ -14,27 +22,33 @@ see 'throwS', 'throwN', 'throwL'.
 -}
 module Prelude.Spiros.Exception where
 
+--------------------------------------------------
+
 import Prelude.Spiros.Utilities
 import Prelude.Spiros.GUI
 import Prelude.Spiros.Reexports
 --import Prelude.Spiros.Classes
 
---
+--------------------------------------------------
 
---import "exceptions" Control.Monad.Catch hiding (throwM) -- from `safe-exceptions`
+--import "exceptions" Control.Monad.Catch hiding (throwM)
 --import "safe-exceptions" Control.Exception.Safe 
 
+--------------------------------------------------
 
 import "data-default-class" Data.Default.Class 
  (Default(..))
 
---
+--------------------------------------------------
+
 --import qualified "containers" Data.Sequence as Seq
 import           "containers" Data.Sequence (Seq)
 
+--------------------------------------------------
+
 import "template-haskell" Language.Haskell.TH.Syntax -- (Name)
 
---
+--------------------------------------------------
 
 --import "base" Control.Applicative
 --import "base" Data.Function
@@ -48,7 +62,7 @@ import "base" Control.Monad.Fail (MonadFail(..))
 import           "base" GHC.Stack.Types (HasCallStack)
 import           "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
 
---
+--------------------------------------------------
 
 --import qualified "base" Prelude
 import           "base" Prelude hiding
@@ -56,7 +70,7 @@ import           "base" Prelude hiding
  , (>), (<)
  )
 
-----------------------------------------
+--------------------------------------------------
 
 {-
   
@@ -72,7 +86,7 @@ getCallStack' = getCallStack
 
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 newtype CallStack' = CallStack'
   { toCallFrames :: Seq CallFrame
@@ -145,7 +159,7 @@ data FilePosition = FilePosition
 --   , _sourceEndColumn   :: Int
 --   }  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,Exception)
 
-----------------------------------------
+--------------------------------------------------
 
 {-| 
 
@@ -176,7 +190,7 @@ throwEitherWith
   = (first (show > someQuotedException 'throwEitherWith))
   > throwEither
 
-----------------------------------------
+--------------------------------------------------
 
 throwMaybe
   :: ( MonadThrow m
@@ -197,7 +211,7 @@ throwMaybeWith e
  = maybe2either e
  > throwEither
 
-----------------------------------------
+--------------------------------------------------
 
 throwList
   :: ( MonadThrow m
@@ -218,7 +232,7 @@ throwListWith e
   = list2maybe
   > throwMaybeWith e
 
-----------------------------------------
+--------------------------------------------------
 
 -- throwNonEmpty
 --   :: ( MonadThrow m
@@ -240,7 +254,7 @@ throwListWith e
 --   = list2maybe
 --   > throwMaybeWith e
 
-----------------------------------------
+--------------------------------------------------
 
 data SimpleException = SimpleException
  { _SimpleException_message :: !String
@@ -264,7 +278,7 @@ instance Default SimpleException where
 instance IsString SimpleException where
   fromString = SimpleException
 
-----------------------------------------
+--------------------------------------------------
 
 {-|
 
@@ -287,7 +301,7 @@ displaySimpleException SimpleException{..} =
   caller  = displayQualifiedVariable 'throwS
   -- caller_ = displayQualifiedVariable 'throwS_
 
-----------------------------------------
+--------------------------------------------------
   
 data QuotedException = QuotedException
  { _QuotedException_caller   :: !GUI
@@ -331,7 +345,7 @@ instance IsString QuotedException where
 --     hashStringWithSalt :: Int -> String -> Int
 --     hashStringWithSalt = hashWithSalt
 
-----------------------------------------
+--------------------------------------------------
 
 {-NOTES
 
@@ -363,7 +377,7 @@ displayQuotedException QuotedException{..}
   where
   caller = _QuotedException_caller & displayGUI -- QualifiedVariable
 
-----------------------------------------
+--------------------------------------------------
 
 data LocatedException = LocatedException
  { _LocatedException_stack    :: !CallStack
@@ -389,7 +403,7 @@ instance Default LocatedException where
 instance IsString LocatedException where
   fromString = LocatedException callStack 
 
-----------------------------------------
+--------------------------------------------------
 
 -- | @'LocatedException' 'callStack' _@
 toLocatedException :: (HasCallStack) => String -> LocatedException
@@ -439,7 +453,7 @@ instance (HasCallStack) => IsString LocatedException where
 
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 formatCustomExceptionWithCaller
   :: String -> String 
@@ -476,7 +490,7 @@ formatCustomExceptionWithCallStack caller message stack =
       , "\n"
       ]
 
-----------------------------------------
+--------------------------------------------------
 
 {-|
 
@@ -500,7 +514,7 @@ displayQualifiedVariable name
   -- globalName = fromGlobalName name
   -- go (PkgName p, ModName m, OccName i) = concat [p,":",m,".",i]
 
-----------------------------------------
+--------------------------------------------------
 -- MONAD THROW
 
 {- | @E@ for 'Exception',
@@ -630,7 +644,7 @@ throwL s = throwM (toLocatedException s)
 
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 {- | @E@ for 'Exception', calls 'throwM'.
 
@@ -728,7 +742,7 @@ divide :: (MonadThrow m, Ord b, Fractional b) => b -> b -> m b
 
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 -- | 'someSimpleException_'
 uninformative :: SomeException
@@ -749,7 +763,7 @@ someLocatedException_ :: HasCallStack => SomeException
 someLocatedException_ = SomeException
  (def :: LocatedException)
 
-----------------------------------------
+--------------------------------------------------
 
 -- | 
 someSimpleException
@@ -774,7 +788,7 @@ someLocatedException
 someLocatedException s = SomeException $
  (toLocatedException s)
 
-----------------------------------------
+--------------------------------------------------
 
 -- -- | 
 -- throwE :: (MonadThrow m, HasCallStack) => String -> m a
@@ -808,4 +822,4 @@ locatedException = SomeException $ errorCallWithCallStackException "" ?callStack
 
 -}
 
-----------------------------------------
+--------------------------------------------------

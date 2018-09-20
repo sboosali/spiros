@@ -82,26 +82,28 @@ library
     -- for `base-feature-macros`
 
  exposed-modules:
-   Prelude.Spiros
+                 Prelude.Spiros
 
-   Spiros
-   Spiros.Enable
-   Spiros.WarningValidation 
-   Spiros.WarningValidation.Simple
-   Spiros.WarningValidation.Bifunctor
-   Spiros.WarningValidation.ErrorValidation
+                 Spiros
+                 Spiros.Enable
+                 Spiros.WarningValidation
+                 Spiros.WarningValidation.Simple
+                 Spiros.WarningValidation.Bifunctor
+                 Spiros.WarningValidation.ErrorValidation
 
-   Prelude.Spiros.Reexports
-   Prelude.Spiros.Utilities
-   Prelude.Spiros.Classes
-   Prelude.Spiros.Types
+                 Prelude.Spiros.Reexports
+                 Prelude.Spiros.Utilities
+                 Prelude.Spiros.Classes
+                 Prelude.Spiros.Types
 
-   Prelude.Spiros.System 
-   Prelude.Spiros.Exception
-   Prelude.Spiros.Validator 
-   Prelude.Spiros.GUI
-   Prelude.Spiros.TemplateHaskell
-   Prelude.Spiros.Generics
+                 Prelude.Spiros.Generics
+                 Prelude.Spiros.Exception
+                 Prelude.Spiros.TemplateHaskell
+                 Prelude.Spiros.System
+                 Prelude.Spiros.Validator
+                 Prelude.Spiros.GUI
+                 Prelude.Spiros.Pretty
+                 Prelude.Spiros.Enriched
 
  -- the above are conceptually `other-modules:`, but exposed for haddock.
 

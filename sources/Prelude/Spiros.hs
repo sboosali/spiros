@@ -24,6 +24,7 @@ import Prelude.Spiros.Validator                      as X
 import Prelude.Spiros.GUI                            as X
 import Prelude.Spiros.TemplateHaskell                as X
 import Prelude.Spiros.Generics                       as X
+import Prelude.Spiros.Enriched                       as X
 
 {- $usage
 

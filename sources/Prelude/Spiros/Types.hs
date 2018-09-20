@@ -1,5 +1,4 @@
 
-
 {-| re-export custom data types that are generally useful for me.
 
 the @newtype@s distinguish them with more meaningful names (of constructors, accessors, transformers, etc), but still support the convenience of automatically deriving as many instances as correct. 

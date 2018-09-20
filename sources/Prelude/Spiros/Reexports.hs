@@ -7,8 +7,12 @@
 #if !HAVE_MONAD_FAIL
 {-# LANGUAGE ConstraintKinds #-}
 #endif
+
+--------------------------------------------------
+--------------------------------------------------
   
 {-|
+
 Module      :  Prelude.Spiros.Reexports
 Stability   :  experimental
 Portability :  non-portable (multi-param classes, functional dependencies)
@@ -39,7 +43,12 @@ Also see (these aren't dependencies, just influences):
 * <https://github.com/quchen/articles/blob/master/haskell-cpp-compatibility.md>
 
 -}
+
+--------------------------------------------------
+--------------------------------------------------
+
 module Prelude.Spiros.Reexports
+  
  ( module X -- re-eXports
  , module Base
 #if !HAVE_MONAD_FAIL
@@ -48,18 +57,19 @@ module Prelude.Spiros.Reexports
  )
 where
 
-----------------------------------------
+--------------------------------------------------
+--------------------------------------------------
 
 import "generic-deriving" Generics.Deriving.Enum     as X
  ( GEnum(genum)
  , GIx
  )
 
-----------------------------------------
+--------------------------------------------------
 
 import "safe" Safe                                   as X
 
-----------------------------------------
+--------------------------------------------------
 
 import "hashable" Data.Hashable                      as X
  ( Hashable(..)
@@ -67,12 +77,12 @@ import "hashable" Data.Hashable                      as X
    -- for defining instances manually 
  )
 
-----------------------------------------
+--------------------------------------------------
 
 import "data-default-class" Data.Default.Class       as X
  (Default(..))
 
-----------------------------------------
+--------------------------------------------------
 
 import "semigroups" Data.Semigroup.Generic           as X
  ( gmappend, gmempty
@@ -84,7 +94,7 @@ import "semigroups" Data.Semigroup.Generic           as X
 import "safe-exceptions" Control.Exception.Safe      as X -- TODO mv so module, like Spiros.Exceptions?
 --import "exceptions" Control.Monad.Catch           as X (MonadThrow(..))
 
-----------------------------------------
+--------------------------------------------------
 
 -- import "unordered-containers" Data.HashSet        as X (HashSet)
 -- import "unordered-containers" Data.HashMap.Strict as X (HashMap)
@@ -100,7 +110,7 @@ import "string-conv" Data.String.Conv                as X
  , convSL
  )
 
-----------------------------------------
+--------------------------------------------------
 -- the standard library (i.e. the libraries GHC bootstraps with, and thus are always available)
 
 import "deepseq" Control.DeepSeq                     as X
@@ -108,19 +118,19 @@ import "deepseq" Control.DeepSeq                     as X
  , force
  )
 
-----------------------------------------
+--------------------------------------------------
 
-import "text" Data.Text.Lazy                         as X (Text)         --  lazy 
+import "text" Data.Text.Lazy                         as X (Text)         -- lazy -- TODO strict
 
-----------------------------------------
+--------------------------------------------------
 
-import "bytestring" Data.ByteString.Lazy             as X (ByteString)   -- lazy 
+import "bytestring" Data.ByteString.Lazy             as X (ByteString)   -- lazy -- TODO strict
 
-----------------------------------------
+--------------------------------------------------
 
 import "transformers" Control.Monad.Trans.Class      as X (MonadTrans(..))
 
-----------------------------------------
+--------------------------------------------------
 
 --import "mtl" Control.Monad.Trans                   as X (MonadTrans(..))
 
@@ -173,7 +183,7 @@ import "mtl" Control.Monad.Except                    as X
 
 -- import "mtl" Control.Monad.Writer.Strict          as X
 
-----------------------------------------
+--------------------------------------------------
 
 import "containers" Data.Set                         as X (Set)
 import "containers" Data.Map                         as X (Map)
@@ -183,13 +193,13 @@ import "containers" Data.IntMap                      as X (IntMap)
 import "containers" Data.Graph                       as X (Graph)
 import "containers" Data.Tree                        as X (Tree)
 
-----------------------------------------
+--------------------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax as X (Lift)
 
 -- import "template-haskell" Language.Haskell.TH.Syntax as X
 
-----------------------------------------
+--------------------------------------------------
 
 --import "base" Control.Exception                    as X (evaluate)
 
@@ -318,7 +328,7 @@ import "base" Data.Data                              as X (Data)
 
 import "base" Control.Exception                      as X (assert)
 
-----------------------------------------
+--------------------------------------------------
 
 #if MIN_VERSION_base(4,8,0)
 #else
@@ -347,7 +357,7 @@ import Data.Bitraversable as X
 -- import Data.Monoid as X hiding ((<>))
 -- #endif
 
-----------------------------------------
+--------------------------------------------------
 -- the Prelude
 
 import Data.List as Base hiding
@@ -379,15 +389,12 @@ import Prelude as Base hiding
  , toEnum
  )
 
-----------------------------------------
+--------------------------------------------------
 -- backwards-compatibility
 
 #if !HAVE_MONAD_FAIL
 type MonadFail m = Monad m
 #endif
 
-----------------------------------------
-
-
-
-----------------------------------------
+--------------------------------------------------
+--------------------------------------------------
