@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedLists   #-}
 
 {-# LANGUAGE PackageImports             #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE KindSignatures             #-}
@@ -32,6 +33,7 @@ module Prelude.Spiros.Pretty where
 --------------------------------------------------
 
 import Prelude.Spiros.Classes
+import Prelude.Spiros.Reexports
 
 --------------------------------------------------
 
@@ -229,6 +231,7 @@ newtype SimpleParserM (m :: * -> *) (a :: *) = SimpleParserM
 -}
 
 data TokenStyle = TokenStyle
+
   { separator :: WordSeparator
   , casing    :: WordCasing
   }
@@ -242,7 +245,7 @@ data TokenStyle = TokenStyle
 
 -}
 
-newtype WordSeparator = Separator
+newtype WordSeparator = WordSeparator
 
   (Maybe Char)
 
@@ -256,7 +259,7 @@ newtype WordSeparator = Separator
 
 -}
 
-data WordCasing = WordCasing
+data WordCasing = WordCasing -- TODO acronyms/abbreviations
 
   { firstWord  :: SubwordCasing
   , laterWords :: SubwordCasing
@@ -351,10 +354,84 @@ pattern FilepathCase = SlashCase
 --------------------------------------------------
 
 fromKnownTokenStyle :: KnownTokenStyle -> TokenStyle
-fromKnownTokenStyle = _
+fromKnownTokenStyle = \case
+
+  UnderscoreCase              -> separatorTokenStyle '_'
+  HyphenCase                  -> separatorTokenStyle '-'
+  SlashCase                   -> separatorTokenStyle '/'
+  DotCase                     -> separatorTokenStyle '.'
+
+  CamelCase                   -> TokenStyle { separator = noSeparator
+                                            , casing    = WordCasing { firstWord  = LowerCased
+                                                                     , laterWords = TitleCased
+                                                                     }
+                                            }
+
+  ClassCase                   -> TokenStyle { separator = noSeparator
+                                            , casing    = uniformWordCasing TitleCased
+                                            }
+
+  ConstCase                   -> TokenStyle { separator = charSeparator '_'
+                                            , casing    = uniformWordCasing UpperCased
+                                            }
+
+  PascalCase                  -> TokenStyle { separator = charSeparator '_'
+                                            , casing    = uniformWordCasing TitleCased
+                                            }
 
 --------------------------------------------------
 
+{-|
+
+-}
+
+separatorTokenStyle :: Char -> TokenStyle
+separatorTokenStyle c = TokenStyle
+
+  { separator = charSeparator c
+  , casing    = uniformWordCasing LowerCased
+  }
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+uniformWordCasing :: SubwordCasing -> WordCasing
+uniformWordCasing x = WordCasing
+
+  { firstWord  = x
+  , laterWords = x
+  }
+
+--------------------------------------------------
+
+{-|
+
+@
+≡ 'Nothing'
+@
+
+-}
+
+noSeparator :: WordSeparator
+noSeparator = WordSeparator Nothing
+
+-- (Nothing :: Maybe Char)
+
+--------------------------------------------------
+
+{-|
+
+@
+≡ 'Just'
+@
+
+-}
+
+charSeparator :: Char -> WordSeparator
+charSeparator c = coerce (Just c)
 
 --------------------------------------------------
 --------------------------------------------------
