@@ -31,6 +31,8 @@ import Prelude.Spiros.Reexports
 
 --------------------------------------------------
 
+import qualified "base" Control.Exception as E
+
 --import "exceptions" Control.Monad.Catch hiding (throwM)
 --import "safe-exceptions" Control.Exception.Safe 
 
@@ -47,6 +49,10 @@ import           "containers" Data.Sequence (Seq)
 --------------------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax -- (Name)
+
+--------------------------------------------------
+
+import qualified "safe" Safe
 
 --------------------------------------------------
 
@@ -86,6 +92,128 @@ getCallStack' = getCallStack
 
 -}
 
+--------------------------------------------------
+--------------------------------------------------
+
+{-| A default 'Exception', useful when manipulating 'MonadThrow' instances.
+
+An 'ErrorCall' (whose message is uninformative).
+
+-}
+
+someMonadThrowException
+  :: (Show a)
+  => a -> SomeException
+someMonadThrowException x = E.toException exception
+  where
+  exception = E.ErrorCall message
+  message   = "[MonadThrow] " <> s
+  s         = show x
+
+--------------------------------------------------
+
+{-|
+
+Generalize 'Maybe' (a concrete, pure 'MonadThrow' instance),
+to an abstract 'MonadThrow' @m@.
+
+@
+≡ 'maybe' ('throwM' _) 'return'
+@
+
+-}
+
+maybeMonadThrow
+  :: (MonadThrow m)
+  => Maybe a -> m a
+
+maybeMonadThrow = maybeMonadThrowWith e
+  where
+  e = someMonadThrowException (Nothing :: Maybe ())
+
+--------------------------------------------------
+
+{-|
+
+Generalize 'Maybe' (a concrete, pure 'MonadThrow' instance),
+to an abstract 'MonadThrow' @m@.
+
+@
+'maybeMonadThrowWith' ≡ 'maybe' ('throwM' e) 'return'
+@
+
+-}
+
+maybeMonadThrowWith
+  :: (MonadThrow m)
+  => SomeException
+  -> Maybe a -> m a
+ 
+maybeMonadThrowWith e = maybe (throwM e) return
+
+--------------------------------------------------
+
+{-|
+
+Generalize '[]' (a concrete, pure 'MonadThrow' instance),
+to an abstract 'MonadThrow' @m@.
+
+@
+'listMonadThrow' ≡ \\case
+  []    -> 'throwM' _
+  (x:_) -> 'return' x
+@
+
+Only return the first success (i.e. the head of the "list of successes").
+
+-}
+
+listMonadThrow
+  :: (MonadThrow m)
+  => [a] -> m a
+
+listMonadThrow = listMonadThrowWith e
+  where
+  e = someMonadThrowException ([] :: [()])
+
+--------------------------------------------------
+
+{-|
+
+Generalize '[]' (a concrete, pure 'MonadThrow' instance),
+to an abstract 'MonadThrow' @m@.
+
+-}
+
+listMonadThrowWith
+  :: (MonadThrow m)
+  => SomeException
+  -> [a] -> m a
+ 
+listMonadThrowWith e
+  = Safe.headMay
+  > maybeMonadThrowWith e
+
+--------------------------------------------------
+
+{-|
+
+Generalize @'Either' 'SomeException'@ (a concrete, pure 'MonadThrow' instance),
+to an abstract 'MonadThrow' @m@.
+
+@
+≡ 'either' 'throwM' 'return'
+@
+
+-}
+
+eitherMonadThrow
+  :: (MonadThrow m)
+  => Either SomeException a -> m a
+
+eitherMonadThrow = either throwM return
+
+--------------------------------------------------
 --------------------------------------------------
 
 newtype CallStack' = CallStack'
