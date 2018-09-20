@@ -50,6 +50,13 @@ where
 
 ----------------------------------------
 
+import "generic-deriving" Generics.Deriving.Enum     as X
+ ( GEnum(genum)
+ , GIx
+ )
+
+----------------------------------------
+
 import "safe" Safe                                   as X
 
 ----------------------------------------

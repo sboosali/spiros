@@ -1,6 +1,8 @@
-{-# LANGUAGE CPP  #-}
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE PackageImports    #-}
+
+--------------------------------------------------
 
 {-| This module re-exports several "standard" typeclasses (that every type should derive, if it can), and their methods. It only re-exports other (non-typeclass, non-method) definitions when they are convenient for manually defining instances.
 
@@ -361,58 +363,101 @@ For an enumeration, the nullary constructors are assumed to be numbered left-to-
 @
 
 -}
+
+--------------------------------------------------
+
 module Prelude.Spiros.Classes
+
+--------------------------------------------------
+
   ( module X
   , module Prelude.Spiros.Classes
   ) where
 
---
+--------------------------------------------------
+-- `deepseq`
+--------------------------------------------------
 
 import "deepseq" Control.DeepSeq                     as X (NFData(..))
 import "base"    Prelude                             as X (seq)
---
+
 #if MIN_VERSION_deepseq(1,4,3)
 import "deepseq" Control.DeepSeq                     as X (NFData1(..))
 import "deepseq" Control.DeepSeq                     as X (NFData2(..))
 import "deepseq" Control.DeepSeq                     as X (rnf1,rnf2)
 #endif
---
+
 #if MIN_VERSION_deepseq(1,4,3)
 import "deepseq" Control.DeepSeq                     as X (rwhnf)  
 #else
 -- see below
 #endif
 
+--------------------------------------------------
+-- `hashable`
+--------------------------------------------------
+
 import "hashable" Data.Hashable                      as X (Hashable(..))
 import "hashable" Data.Hashable                      as X (hashUsing)
 
+--------------------------------------------------
+-- `data-default-class`
+--------------------------------------------------
+
 import "data-default-class" Data.Default.Class       as X (Default(..))
+
+--------------------------------------------------
+-- `semigroups`
+--------------------------------------------------
 
 import "semigroups" Data.Semigroup.Generic           as X
  ( gmappend, gmempty
  )
 
+--------------------------------------------------
+-- `exceptions`
+--------------------------------------------------
+
 import "exceptions" Control.Monad.Catch              as X (MonadThrow(..))
 import "exceptions" Control.Monad.Catch              as X (MonadCatch(..))
 import "exceptions" Control.Monad.Catch              as X (MonadMask(..))
 
---
+--------------------------------------------------
+-- `generic-deriving`
+--------------------------------------------------
+
+import "generic-deriving" Generics.Deriving.Enum     as X
+ ( GEnum(..)
+ -- , GIx -- NOTE GIx's methods conflict with Ix.
+ )
+
+--------------------------------------------------
+-- `mtl`
+--------------------------------------------------
 
 import "mtl" Control.Monad.Reader.Class              as X (MonadReader(..))
 import "mtl" Control.Monad.Writer.Class              as X (MonadWriter(..))
 import "mtl" Control.Monad.State.Class               as X (MonadState(..))
 import "mtl" Control.Monad.Error.Class               as X (MonadError(..))
 
+--------------------------------------------------
+-- `transformers`
+--------------------------------------------------
+
 import "transformers" Control.Monad.Trans.Class      as X (MonadTrans(..))
+
+--------------------------------------------------
+-- `template-haskell`
+--------------------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax as X (Lift)
 
---
+--------------------------------------------------
+-- `base:Prelude`
+--------------------------------------------------
 
 import "base" Prelude                                as X (Show(..))
 import "base" Prelude                                as X (Read(..))
-import "base" Text.ParserCombinators.ReadP           as X
- (ReadP,ReadS,readP_to_S,readS_to_P)
 
 import "base" Prelude                                as X (Eq(..))
 import "base" Prelude                                as X
@@ -428,6 +473,10 @@ import "base" Prelude                                as X (Fractional(..))
 import "base" Prelude                                as X (Floating(..))
 import "base" Prelude                                as X (RealFrac(..))
 import "base" Prelude                                as X (RealFloat(..))
+
+--------------------------------------------------
+-- `base`
+--------------------------------------------------
 
 import "base" Data.Ix                                as X (Ix(..))
 import "base" Data.Bits                              as X (Bits(..))
@@ -477,6 +526,10 @@ import "base" Data.Bitraversable                     as X (Bitraversable(..))
 import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
 import "base" Control.Exception                      as X (Exception(..))
 
+import "base" Text.ParserCombinators.ReadP           as X
+ (ReadP,ReadS,readP_to_S,readS_to_P)
+ -- for writing `Read` instances
+
 import "base" Foreign.Storable                       as X (Storable(..))
 
 import "base" GHC.Generics                           as X (Generic, Rep)
@@ -494,14 +547,11 @@ import Data.Functor.Classes                          as X (Ord1(..),compare1)
 import Data.Functor.Classes                          as X (Show1(..),showsPrec1)
 import Data.Functor.Classes                          as X (Read1(..),readsPrec1)
 
--- biary lifted
+-- binary lifted
 import Data.Functor.Classes                          as X (Eq2(..),eq2)
 import Data.Functor.Classes                          as X (Ord2(..),compare2)
 import Data.Functor.Classes                          as X (Show2(..),showsPrec2)
 import Data.Functor.Classes                          as X (Read2(..),readsPrec2)
-
--- non-exports
-import qualified "base" GHC.Generics                 as Generic
 
 {-
 
@@ -520,7 +570,16 @@ import "base" Control.Arrow                          as X (ArrowLoop(..))
 
 -}
 
-----------------------------------------
+--------------------------------------------------
+-- Non-Export Imports ----------------------------
+--------------------------------------------------
+
+import qualified "base" GHC.Generics                 as Generic
+
+--------------------------------------------------
+-- Definitions -----------------------------------
+--------------------------------------------------
+
 -- shims for backwards-compability (motivated by the `2018 reflex-platform`)
 
 #if MIN_VERSION_deepseq(1,4,3)
@@ -530,7 +589,7 @@ rwhnf :: a -> ()
 rwhnf = (`seq` ())
 #endif
   
-----------------------------------------
+--------------------------------------------------
 -- generics
 
 -- | A generic representation, "specialized" to no additional metadata. 
@@ -582,7 +641,9 @@ toGeneric1 = Generic.to1
 --warning: [-Wdodgy-exports]
 --    The export item `module Prelude.Spiros.Classes' exports nothing
 
-----------------------------------------
+--------------------------------------------------
+-- Notes / Old Code / Other Comments -------------
+--------------------------------------------------
 
 {-TODO
 
@@ -604,3 +665,4 @@ prints "[() ]". Note the use of formatString to take care of field formatting sp
 
 
 -}
+--------------------------------------------------
