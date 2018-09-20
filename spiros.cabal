@@ -178,8 +178,9 @@ library
              , data-default-class
              , unordered-containers
 
-             , prettyprinter 
---  , wl-pprint-text
+             , prettyprinter
+             , show-prettyprint
+
   -- ??
 
   -- , async

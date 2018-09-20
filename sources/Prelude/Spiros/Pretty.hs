@@ -1,12 +1,18 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLists   #-}
 
 {-# LANGUAGE PackageImports             #-}
 {-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE FlexibleContexts           #-}
+
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DeriveLift                 #-}
@@ -23,6 +29,72 @@
 
 {-|
 
+TODO separate packages?
+
+@simple-print-parse@ re-exports these packages:
+
+* @simple-print@;
+* @simple-parse@, which has more dependencies (like on the @exceptions@ package).
+
+
+## Description
+
+Provides utilities (and aliases) for defining simple ad-hoc parsers and (pretty-)printers for types (especially sum types).
+
+
+## Motivation
+
+Useful when:
+
+* you want your program to print out a human-friendly representations of haskell types,
+or to be able to consume them in either a consistent format or a versatile format;
+* but, you don't want to be burdened by a dependency on some parser package.
+
+(i.e. by "human-friendly", I mean "more pleasantly readable and writable than with 'Show' \/ 'Read'").
+
+
+uses of 'Print' include:
+
+* error messages.
+
+
+uses of 'Parse' include:
+
+* command-line options.
+
+
+
+## Features
+
+Such "formats" include:
+
+* several "casing formats", like 'ClassCase' or  'CamelCase';
+* several "separator formats", like 'UnderscoreCase' or  'HyphenCase';
+* plus, variations of the above.
+
+i.e. the user can define custom capitalization (via 'WordCasing') or a custom separator (via 'WordSeparator').
+
+by default, each format's utility functions assume that:
+
+* constructors are written in (the conventional) class-case (i.e. @ClassCase@); and
+* the types are finite (satisfying 'Enum' or 'GEnum').
+
+but, each format's module also provides (more general) versions, which can be given:
+
+* some list of values; or,
+* even manually tokenized strings.
+
+
+## Examples
+
+to print out a constructor, the default 'toPrinter' function does the following:
+
+* 'show' it;
+* break up the string shown in its words and/or subwords;
+* merge that list of strings (back into a single string) via some 'TokenStyle' (by default, 'HyphenCase').
+
+'HyphenCase' being the most readable, imo. it's most common token style for: command line options, URLs, and so on.
+
 
 
 -}
@@ -34,6 +106,8 @@ module Prelude.Spiros.Pretty where
 
 import Prelude.Spiros.Classes
 import Prelude.Spiros.Reexports
+import Prelude.Spiros.Exception
+import Prelude.Spiros.Utilities
 
 --------------------------------------------------
 
@@ -53,7 +127,7 @@ import "exceptions" Control.Monad.Catch (MonadThrow)
 
 --------------------------------------------------
 
---import "base" Prelude
+import qualified "base" Prelude
 
 --------------------------------------------------
 --------------------------------------------------
@@ -68,8 +142,8 @@ Here is an example printer,
 printVerbosity :: 'Parse' Verbosity
 printVerbosity = \case
 
-  Concise -> "concise"
-  Verbose -> "verbose"
+  Concise -> \"concise\"
+  Verbose -> \"verbose\"
 @
 
 for this type
@@ -129,13 +203,13 @@ parseVerbosity s = go s
   where
   go = \case
   
-    "concise" -> return Concise
-    "verbose" -> return Verbose
+    \"concise\" -> return Concise
+    \"verbose\" -> return Verbose
   
-    "Concise" -> return Concise
-    "Verbose" -> return Verbose
+    \"Concise\" -> return Concise
+    \"Verbose\" -> return Verbose
   
-    "default" -> return def
+    \"default\" -> return def
   
     _         -> throwString s
 
@@ -176,13 +250,13 @@ parseVerbosity s = go s
   where
   go = \case
   
-    "concise" -> return Concise
-    "verbose" -> return Verbose
+    \"concise\" -> return Concise
+    \"verbose\" -> return Verbose
   
-    "Concise" -> return Concise
-    "Verbose" -> return Verbose
+    \"Concise\" -> return Concise
+    \"Verbose\" -> return Verbose
   
-    "default" -> return def
+    \"default\" -> return def
   
     _         -> throwString s
 
@@ -268,6 +342,15 @@ data WordCasing = WordCasing -- TODO acronyms/abbreviations
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
 
+{-
+
+TODO acronyms:
+
+@\"XMLHttp\"@
+@[ \"xml\", \"http\" ]@
+either @\"XmlHttp\"@ or @\"XMLHttp\"@?
+
+-}
 --------------------------------------------------
 
 {-|
@@ -298,6 +381,7 @@ data KnownTokenStyle
   | ClassCase                   -- ^ e.g. @"ClassCase"@
   | ConstCase                   -- ^ e.g. @"CONST_CASE"@
   | PascalCase                  -- ^ e.g. @"Pascal_Case"@
+  | SqueezeCase                 -- ^ e.g. @"squeezecase"@
 
   | UnderscoreCase              -- ^ e.g. @"underscore_case"@
   | HyphenCase                  -- ^ e.g. @"hyphen-case"@
@@ -353,6 +437,175 @@ pattern FilepathCase = SlashCase
 --------------------------------------------------
 --------------------------------------------------
 
+-- | 
+
+type ShowPrinter t a = (Enum a, Show a, IsString t)
+
+--------------------------------------------------
+
+-- | 
+
+type ReadParser t a = (Read a, String ~ t)
+
+--------------------------------------------------
+
+{-|  
+
+-}
+
+data PrintConfig t a = PrintConfig
+
+  { style       :: TokenStyle    -- ^ The style a constructor is printed as.
+  , showHaskell :: (a -> t)      -- ^ How to show a value as a Haskell identifier\/constructor (often 'show').
+--, values :: [a]                -- 
+  }
+
+  deriving stock    (Generic)
+  deriving anyclass (NFData)
+
+--------------------------------------------------
+
+-- | @= 'defaultPrintConfig'@
+
+instance (ShowPrinter t a) => Default (PrintConfig t a) where
+  def = defaultPrintConfig
+
+{-|
+
+@
+'style' = 'fromKnownTokenStyle' 'HyphenCase'
+@
+
+-}
+
+defaultPrintConfig :: (ShowPrinter t a) => PrintConfig t a
+defaultPrintConfig = PrintConfig
+
+  { style       = fromKnownTokenStyle HyphenCase
+  , showHaskell = fromString . show
+  }
+
+--------------------------------------------------
+
+{-|  
+
+-}
+
+data ParseConfig t a = ParseConfig
+
+  { styles      :: [TokenStyle]    -- ^ Which styles the paser accepts.
+  , readHaskell :: (t -> Maybe a)  -- ^ How to read a value as a Haskell identifier\/constructor (often 'readMay').
+  }
+
+  deriving stock    (Generic)
+  deriving anyclass (NFData)
+
+--------------------------------------------------
+
+-- | @= 'defaultParseConfig'@
+
+instance (ReadParser t a) => Default (ParseConfig t a) where
+  def = defaultParseConfig
+
+{-|
+
+@
+'styles' = ['fromKnownTokenStyle' 'HyphenCase']
+@
+
+-}
+
+defaultParseConfig :: (ReadParser t a) => ParseConfig t a
+defaultParseConfig = ParseConfig
+
+  { styles      = [fromKnownTokenStyle HyphenCase]
+  , readHaskell = readMay
+  }
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+printer :: (ShowPrinter String a) => Print a
+printer = printerWith defaultPrintConfig
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+printerWith :: PrintConfig String a -> Print a
+printerWith PrintConfig{..} = go
+
+  where
+  go x = munge (showHaskell x)
+
+  munge s = s                   -- TODO 
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+parser :: (ReadParser String a) => Parse a
+parser = parserWith defaultParseConfig
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+parserWith :: ParseConfig String a -> Parse a
+parserWith ParseConfig{..} = go > maybeMonadThrow
+
+  where
+  go s = readHaskell (munge s)
+
+  munge s = s                   -- TODO 
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+printWithTokenStyle
+  :: TokenStyle
+  -> String -> String
+
+printWithTokenStyle TokenStyle{..} = go
+  where
+  go s = s
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+parseWithTokenStyle
+  :: TokenStyle
+  -> String -> String
+
+parseWithTokenStyle TokenStyle{..} = go
+  where
+  go s = s
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
 fromKnownTokenStyle :: KnownTokenStyle -> TokenStyle
 fromKnownTokenStyle = \case
 
@@ -379,6 +632,8 @@ fromKnownTokenStyle = \case
                                             , casing    = uniformWordCasing TitleCased
                                             }
 
+  SqueezeCase                 -> emptyTokenStyle
+
 --------------------------------------------------
 
 {-|
@@ -389,6 +644,19 @@ separatorTokenStyle :: Char -> TokenStyle
 separatorTokenStyle c = TokenStyle
 
   { separator = charSeparator c
+  , casing    = uniformWordCasing LowerCased
+  }
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+emptyTokenStyle :: TokenStyle
+emptyTokenStyle = TokenStyle
+
+  { separator = noSeparator
   , casing    = uniformWordCasing LowerCased
   }
 
@@ -461,12 +729,10 @@ newtype Casing = Casing
 
 
 
-  = CamelCase
-  | ClassCase
-  | SnakeCase
-  | LispCase
-  | FileCase
-  | NamespaceCase
+data KnownTokenStyle
+
+  | TrainCase                   -- ^ e.g. @"TRAIN-CASE"@
+  | SqueezeCase                 -- ^ e.g. @"squeezecase"@
 
 
 
@@ -502,6 +768,46 @@ type ParseM a =
 --------------------------------------------------
 --------------------------------------------------
 {- Notes
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+
+https://en.m.wikipedia.org/wiki/Naming_convention_(programming)
+
+> In the C standard library, abbreviated names are the most common (e.g. isalnum for a function testing whether a character is alphanumeric),
+
+> UpperCamelCase for class names, CAPITALIZED_WITH_UNDERSCORES for constants, and lowercase_separated_by_underscores for other names.
+
+
+https://en.m.wikipedia.org/wiki/Sigil_(computer_programming)
+
+> In Common Lisp, special variables (with dynamic scope) are typically surrounded with * in what is dubbed the “earmuff convention”. While this is only convention, and not enforced, the language itself adopts the practice (e.g., *standard-output*). Similarly, some programmers surround constants with +.
+
+> In Scheme, by convention, the names of procedures that always return a boolean value usually end in "?". Likewise, the names of procedures that store values into parts of previously allocated Scheme objects (such as pairs, vectors, or strings) usually end in "!".
+
+> In Unix shell scripting and in utilities such as Makefiles, the "$" is a unary operator that translates the name of a variable into its contents. While this may seem similar to a sigil, it is properly a unary operator for lexical indirection, similar to the * dereference operator for pointers in C, as noticeable from the fact that the dollar sign is omitted when assigning to a variable.
+
+
+https://en.m.wikipedia.org/wiki/Stropping_(syntax)
+
+> 
+
+
+
+
+
+
+
+
+
 
 --------------------------------------------------
 
