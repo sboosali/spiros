@@ -223,6 +223,141 @@ newtype SimpleParserM (m :: * -> *) (a :: *) = SimpleParserM
 
 --------------------------------------------------
 --------------------------------------------------
+
+{-|  
+
+-}
+
+data TokenStyle = TokenStyle
+  { separator :: WordSeparator
+  , casing    :: WordCasing
+  }
+
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+newtype WordSeparator = Separator
+
+  (Maybe Char)
+
+  deriving stock    (Show,Read,Lift,Generic)
+  deriving newtype  (Eq,Ord)
+  deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+{-|  
+
+-}
+
+data WordCasing = WordCasing
+
+  { firstWord  :: SubwordCasing
+  , laterWords :: SubwordCasing
+  }
+
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+data SubwordCasing
+
+  = LowerCased                  -- ^ e.g. @"lower"@
+  | TitleCased                  -- ^ e.g. @"Title"@
+  | UpperCased                  -- ^ e.g. @"UPPER"@
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+data KnownTokenStyle
+
+  = CamelCase                   -- ^ e.g. @"camelCase"@
+  | ClassCase                   -- ^ e.g. @"ClassCase"@
+  | ConstCase                   -- ^ e.g. @"CONST_CASE"@
+  | PascalCase                  -- ^ e.g. @"Pascal_Case"@
+
+  | UnderscoreCase              -- ^ e.g. @"underscore_case"@
+  | HyphenCase                  -- ^ e.g. @"hyphen-case"@
+  | SlashCase                   -- ^ e.g. @"slash/case"@
+  | DotCase                     -- ^ e.g. @"dot.case"@
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+pattern SnakeCase :: KnownTokenStyle
+pattern SnakeCase = UnderscoreCase
+
+pattern KebabCase :: KnownTokenStyle
+pattern KebabCase = HyphenCase
+
+--------------------------------------------------
+
+pattern BashCase    :: KnownTokenStyle
+pattern BashCase    = ConstCase
+
+pattern PythonCase  :: KnownTokenStyle
+pattern PythonCase  = UnderscoreCase
+
+pattern LispCase    :: KnownTokenStyle
+pattern LispCase    = HyphenCase
+
+pattern HaskellCase :: KnownTokenStyle
+pattern HaskellCase = CamelCase
+
+--------------------------------------------------
+
+pattern ModuleCase  :: KnownTokenStyle
+pattern ModuleCase  = ClassCase
+
+pattern PackageCase :: KnownTokenStyle
+pattern PackageCase = HyphenCase
+
+
+-- pattern HaskellModuleCase  = ClassCase
+-- pattern HaskellPackageCase = HyphenCase
+
+--pattern ModuleCase = DotCase
+
+--------------------------------------------------
+
+pattern FilepathCase :: KnownTokenStyle
+pattern FilepathCase = SlashCase
+
+--------------------------------------------------
+--------------------------------------------------
+
+fromKnownTokenStyle :: KnownTokenStyle -> TokenStyle
+fromKnownTokenStyle = _
+
+--------------------------------------------------
+
+
+--------------------------------------------------
+--------------------------------------------------
 {- Old Code
 --------------------------------------------------
 
