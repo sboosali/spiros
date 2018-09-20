@@ -6,12 +6,15 @@
 {-# LANGUAGE PackageImports             #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
+
 {-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
@@ -571,6 +574,168 @@ parserWith ParseConfig{..} = go > maybeMonadThrow
   munge s = s                   -- TODO 
 
 --------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+newtype Tokens = Tokens
+
+  [String]
+
+  deriving stock    (Show,Read,Lift,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+instance IsList Tokens where
+  type Item Tokens = String
+  fromList = coerce
+  toList   = coerce
+
+instance IsString Tokens where   -- TODO
+  fromString = (:[]) > coerce
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+data AcronymStyle
+
+  = UpperCasedAcronym
+  | TitleCasedAcronym
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'defaultAcronymStyle'@
+instance Default AcronymStyle where
+  def = defaultAcronymStyle
+
+-- | @= 'UpperCasedAcronym'@
+defaultAcronymStyle :: AcronymStyle
+defaultAcronymStyle = UpperCasedAcronym
+
+--------------------------------------------------
+
+{-|  
+
+-}
+
+data DetokenizeConfig = DetokenizeConfig
+
+  { acronymStyle :: AcronymStyle
+  }
+
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'defaultDetokenizeConfig '@
+
+instance Default DetokenizeConfig  where
+  def = defaultDetokenizeConfig 
+
+defaultDetokenizeConfig :: DetokenizeConfig 
+defaultDetokenizeConfig =  DetokenizeConfig
+  { acronymStyle = def
+  }
+
+--------------------------------------------------
+
+{-|  
+
+-}
+
+data TokenizeConfig = TokenizeConfig
+
+  { acronymStyle :: AcronymStyle
+  }
+
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'defaultTokenizeConfig '@
+
+instance Default TokenizeConfig  where
+  def = defaultTokenizeConfig 
+
+defaultTokenizeConfig :: TokenizeConfig 
+defaultTokenizeConfig =  TokenizeConfig
+  { acronymStyle = def
+  }
+
+--------------------------------------------------
+
+{-|  
+
+-}
+
+data RestyleConfig = RestyleConfig
+
+  { acronymStyle :: AcronymStyle
+  }
+
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'defaultRestyleConfig '@
+
+instance Default RestyleConfig  where
+  def = defaultRestyleConfig 
+
+defaultRestyleConfig :: RestyleConfig 
+defaultRestyleConfig =  RestyleConfig
+  { acronymStyle = def
+  }
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+detokenizeTokenStyle :: DetokenizeConfig -> TokenStyle -> Tokens -> String
+detokenizeTokenStyle DetokenizeConfig{..} TokenStyle{..} (Tokens ts) = s
+  where
+  s = "TODO"
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+tokenizeTokenStyle :: TokenizeConfig -> TokenStyle -> String -> Tokens
+tokenizeTokenStyle TokenizeConfig{..} TokenStyle{..} s = Tokens ts
+  where
+  ts = ["TODO"]
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+restyleTokenStyle :: RestyleConfig -> TokenStyle -> Tokens -> Tokens
+restyleTokenStyle RestyleConfig{..} TokenStyle{..} (Tokens xs) = Tokens ys
+  where
+  ys = ["TODO"]
+
 --------------------------------------------------
 
 {-|
