@@ -120,7 +120,7 @@ library
       -- requires -XDerivingStrategies
 
  build-depends:
-               base                 >= 4.6   && <5.0
+               base                 >= 4.7   && <5.0
              , generic-deriving >= 1.11
     -- for Generics.Deriving.Semigroup
 

@@ -101,6 +101,11 @@ to print out a constructor, the default 'toPrinter' function does the following:
 'HyphenCase' being the most readable, imo. it's most common token style for: command line options, URLs, and so on.
 
 
+## Naming
+
+NOTE In this package, the word "print" means "convert to a human-friendly string", not "write to stdout".
+
+
 
 -}
 
@@ -121,10 +126,6 @@ import Prelude.Spiros.Utilities
 
 --------------------------------------------------
 
--- import qualified "" _ as _
-
---------------------------------------------------
-
 ---import           "case-insensitive" Data.CaseInsensitive  ( CI )
 import qualified "case-insensitive" Data.CaseInsensitive as CI
 
@@ -134,6 +135,11 @@ import "exceptions" Control.Monad.Catch (MonadThrow)
  -- ( MonadThrow (throwM)
  -- , MonadCatch (catch)
  -- )
+
+--------------------------------------------------
+
+import qualified "base" Data.List.NonEmpty as NonEmpty
+---import qualified "base" Data.List          as List
 
 --------------------------------------------------
 
@@ -613,25 +619,50 @@ which is equivalent to (i.e. lower-cased and without the smart-constructors):
 
 newtype Tokens = Tokens
 
-  [Token]
+  (NonEmpty Token)
 
   deriving stock    (Show,Read,Generic)
-  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (Eq,Ord,Semigroup)
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
 
--- | @newtype@ wrapping\/unwrapping only.
+{- | @newtype@ wrapping\/unwrapping only.
 
+NOTE 'fromList' is /partial/, crashing on an empty list literal
+(see 'unsafeTokensFromList').
+
+-}
 instance IsList Tokens where
   type Item Tokens = Token
-  fromList = coerce
-  toList   = coerce
+  fromList = unsafeTokensFromList
+  toList   = coerce > NonEmpty.toList
 
--- | (Singleton token)
+{- | @≡ (':|' [])@
+
+(i.e. a singleton token.)
+
+-}
 
 instance IsString Tokens where   -- TODO
-  fromString = fromString > (:[]) > fromList
+  fromString = fromString > (:| []) > Tokens
+
+--------------------------------------------------
+
+{-| Dumb constructor.
+
+NOTE 'fromList' is /partial/, crashing on an empty list literal.
+
+-}
+
+unsafeTokensFromList :: [Token] -> Tokens
+unsafeTokensFromList = \case
+
+  []       -> Prelude.error message     -- TODO `Partial`
+  (t : ts) -> coerce (t :| ts)
+
+  where
+  message = "« Tokens » the list must be non-empty"
 
 --------------------------------------------------
 
@@ -726,7 +757,8 @@ newtype Subword = Subword
 
 {-| @≡ 'toSubword'@
 
-NOTE 'error's on the empty string literal (it's really 'unsafeSubword'').
+NOTE 'fromString' is /partial/, crashing on an empty string literal
+(see 'unsafeSubword'').
 While 'fromString' may be called directly, it's (idiomatically) called "indirectly"
 by the compiler, when converting string literals under @-XOverloadedStrings@;
 thus, many error messages from its partiality /should/ have a stack traces.
@@ -765,10 +797,10 @@ See 'safeSubword' (which this wraps).
 unsafeSubword :: String -> Subword
 unsafeSubword
   = safeSubword
-  > maybe (Prelude.error message) id
+  > maybe (Prelude.error message) id  -- TODO `Partial`
 
   where
-  message = "[Subword] string must be non-empty"
+  message = "« Subword » the string must be non-empty"
 
 --------------------------------------------------
 
@@ -921,38 +953,6 @@ restyleString TokenizationConfig{..} input = output
 
 {-|
 
--}
-
-printTokens
-  :: PrintTokenConfig
-  -> Tokens
-  -> String
-
-printTokens PrintTokenConfig{ acronymStyle, tokenStyle } = go
-  where
-
-  go _ = ""
-
---------------------------------------------------
-
-{-|
-
--}
-
-parseTokens
-  :: ParseTokenConfig
-  -> String
-  -> Tokens
-
-parseTokens ParseTokenConfig{ acronymStyle, tokenStyle } = go
-  where
-
-  go s = fromString s
-
---------------------------------------------------
-
-{-|
-
 Specializes 'restyleString';
 with 'ClassCase', 'HyphenCase', and 'UpperCasedAcronym'.
 
@@ -977,6 +977,147 @@ restyleClassCasedToHyphenated = restyleString config
     } 
 
 -- restyleHaskellContructorTo
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+-}
+
+printTokens
+  :: PrintTokenConfig
+  -> Tokens
+  -> String
+
+printTokens config@PrintTokenConfig{tokenStyle = TokenStyle{separator,casing}} = go
+  where
+
+  go (Tokens ts)
+    = ts
+    & ( fmap _printToken_
+      > _capitalizing_
+      > _separating_
+      > NonEmpty.toList
+      > concat
+      )
+
+  _printToken_ = printToken config
+
+  _capitalizing_ = capitalizeByCasing casing
+
+  _separating_ = intersperseBySeparator separator
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+intersperseBySeparator
+  :: WordSeparator
+  -> NonEmpty String -> NonEmpty String
+
+intersperseBySeparator = \case
+    WordSeparator (Just c) -> NonEmpty.intersperse [c]
+    _                      -> id
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+capitalizeByCasing
+  :: WordCasing
+  -> NonEmpty String -> NonEmpty String
+
+capitalizeByCasing (WordCasing {firstWord, laterWords}) = go
+
+  where
+  go (t :| ts) = (capitalizeHead t :| capitalizeTail ts)
+
+  capitalizeHead =       capitalizeBy firstWord
+  capitalizeTail = fmap (capitalizeBy laterWords)
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+capitalizeBy
+  :: SubwordCasing
+  -> String -> String
+
+capitalizeBy = \case     -- TODO replace all Strings with Text, for correct unicode operations
+  LowerCased                  -> lowercaseString
+  TitleCased                  -> titlecaseString
+  UpperCased                  -> uppercaseString
+
+--------------------------------------------------
+
+-- |
+lowercaseString :: String -> String
+lowercaseString = fmap toLower
+
+-- |
+titlecaseString :: String -> String
+titlecaseString = \case
+  []       -> []
+  (c : cs) -> toTitle c : uppercaseString cs
+
+-- |
+uppercaseString :: String -> String
+uppercaseString = fmap toUpper
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+printToken
+  :: PrintTokenConfig
+  -> Token
+  -> String
+
+printToken PrintTokenConfig{ acronymStyle, tokenStyle } = go
+  where
+
+  go _ = ""
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+parseTokens
+  :: ParseTokenConfig
+  -> String
+  -> Tokens
+
+parseTokens ParseTokenConfig{ acronymStyle, tokenStyle } = go
+  where
+
+  go s = fromString s
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+parseToken
+  :: ParseTokenConfig
+  -> String
+  -> Token
+
+parseToken ParseTokenConfig{ acronymStyle, tokenStyle } = go
+  where
+
+  go s = fromString s
 
 --------------------------------------------------
 --------------------------------------------------
@@ -1260,6 +1401,59 @@ instance CI.FoldCase Token where
 --------------------------------------------------
 
 
+unsafeTokensFromList = coerce > NonEmpty.fromList
+
+
+--------------------------------------------------
+
+
+
+printTokens config@PrintTokenConfig{ acronymStyle, tokenStyle } =
+ \(Tokens ts)
+   -> (go <$> ts)
+    > NonEmpty.intersperse sep
+
+  where
+  go = printToken config
+
+
+
+
+
+  go (Tokens ts)
+    = NonEmpty.toList ts
+    & ( fmap _printToken_
+      > capitalizeCons
+      > intersperseSeparator
+      > concat
+      )
+
+  _printToken_ = printToken config
+
+  intersperseSeparator = case separator of
+      WordSeparator (Just c) -> intersperse [c]
+      _                      -> id
+
+
+
+
+--------------------------------------------------
+
+
+
+  capitalizers
+    :: ( String -> String
+       , String -> String
+       )
+
+  capitalizers =
+    ( id
+    , id
+    )
+
+
+
+
 
 
 
@@ -1272,7 +1466,8 @@ instance CI.FoldCase Token where
 
 
 -}
-
+--------------------------------------------------
+--------------------------------------------------
 
 
 
