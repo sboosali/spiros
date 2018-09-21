@@ -147,8 +147,10 @@ library
 
              , mtl
              , transformers
+
              , text
              , bytestring
+
              , deepseq      >= 1.4.3 
     -- NFData1, NFData2
              , containers
@@ -177,6 +179,8 @@ library
              , split
              , data-default-class
              , unordered-containers
+
+             , case-insensitive
 
              , prettyprinter
              , show-prettyprint

@@ -8,6 +8,7 @@
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE InstanceSigs               #-}
 
 {-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE RankNTypes                 #-}
@@ -121,6 +122,11 @@ import Prelude.Spiros.Utilities
 --------------------------------------------------
 
 -- import qualified "" _ as _
+
+--------------------------------------------------
+
+import           "case-insensitive" Data.CaseInsensitive  ( CI )
+import qualified "case-insensitive" Data.CaseInsensitive as CI
 
 --------------------------------------------------
 
@@ -583,9 +589,9 @@ parserWith ParseConfig{..} = go > maybeMonadThrow
 
 newtype Tokens = Tokens
 
-  [String]
+  [Token]
 
-  deriving stock    (Show,Read,Lift,Generic)
+  deriving stock    (Show,Read,Generic)
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (NFData,Hashable)
 
@@ -594,13 +600,62 @@ newtype Tokens = Tokens
 -- | @newtype@ wrapping\/unwrapping only.
 
 instance IsList Tokens where
-  type Item Tokens = String
+  type Item Tokens = Token
   fromList = coerce
   toList   = coerce
 
 -- | (Singleton token)
+
 instance IsString Tokens where   -- TODO
-  fromString = (:[]) > coerce
+  fromString = fromString > (:[]) > fromList
+
+--------------------------------------------------
+
+{-|
+
+Under tokenization (i.e. parsing into tokens),
+some information about capitalization must be preserved.
+
+For example, this \"word\":
+
+@"GHCVersion"
+@
+
+is represented as (and should be parsed into):
+
+@
+[ 'AcronymToken' \"ghc\"
+, 'SubwordToken' \"version\"
+] :: 'Tokens'
+@
+
+-}
+
+data Token
+
+  = SubwordToken (String)
+  | AcronymToken [Char]
+
+  deriving stock    (Show,Read,Eq,Ord,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'SubwordToken'@
+
+instance IsString Token where
+  fromString = CI. > SubwordToken
+
+--------------------------------------------------
+
+-- | @= 'SubwordToken'@
+
+instance CI.FoldCase Token where
+
+  foldCase :: Token -> Token
+  foldCase = \case
+    SubwordToken subword -> SubwordToken (CI. subword)
+    AcronymToken acronym -> AcronymToken (CI. acronym)
 
 --------------------------------------------------
 
@@ -628,6 +683,7 @@ instance Default AcronymStyle where
 defaultAcronymStyle :: AcronymStyle
 defaultAcronymStyle = UpperCasedAcronym
 
+--------------------------------------------------
 --------------------------------------------------
 
 {-|  
@@ -784,6 +840,9 @@ parseTokens ParseTokenConfig{ acronymStyle, tokenStyle } = go
 
 {-|
 
+Specializes 'restyleString';
+with 'ClassCase', 'HyphenCase', and 'UpperCasedAcronym'.
+
 >>> restyleClassCasedToHyphenated "WMClass"
 "wm-class"
 >>> restyleClassCasedToHyphenated "WindowId"
@@ -912,6 +971,11 @@ charSeparator c = coerce (Just c)
 --------------------------------------------------
 {- Old Code
 --------------------------------------------------
+
+
+
+
+
 
 
 
@@ -1054,9 +1118,57 @@ parseWithTokenStyle TokenStyle{..} = go
 
 
 
+data Token
+
+  = SubwordToken (CI String)
+  | AcronymToken [CI Char]
+
+  deriving stock    (Show,Read,Eq,Ord,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'SubwordToken'@
+
+instance IsString Token where
+  fromString = CI.mk > SubwordToken
+
+--------------------------------------------------
+
+-- | @= 'SubwordToken'@
+
+instance CI.FoldCase Token where
+
+  foldCase :: Token -> Token
+  foldCase = \case
+    SubwordToken subword -> 
+    AcronymToken acronym -> 
+
+--------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
 
 
 -}
+
+
+
+
+
+
+
+
+
+
 --------------------------------------------------
 --------------------------------------------------
 {- Notes
@@ -1092,6 +1204,57 @@ https://en.m.wikipedia.org/wiki/Stropping_(syntax)
 
 > 
 
+
+
+
+
+
+
+
+--------------------------------------------------
+
+
+Data.CaseInsensitive
+
+This module is intended to be imported qualified. May I suggest:
+
+import           Data.CaseInsensitive  ( CI )
+import qualified Data.CaseInsensitive as CI
+
+Note that the FoldCase instance for ByteStrings is only guaranteed to be correct for ISO-8859-1 encoded strings!
+
+
+data CI s
+
+A CI s provides Case Insensitive comparison for the string-like type s (for example: String, Text, ByteString, etc.).
+
+Note that CI s has an instance for IsString which together with the OverloadedStrings language extension allows you to write case insensitive string literals as in:
+
+> ("Content-Type" :: CI Text) == ("CONTENT-TYPE" :: CI Text)
+True
+
+
+
+
+
+
+instance FoldCase Char where
+    foldCase     = toLower
+    foldCaseList = TL.unpack . TL.toCaseFold . TL.pack
+
+instance FoldCase T.Text  where foldCase = T.toCaseFold
+instance FoldCase TL.Text where foldCase = TL.toCaseFold
+instance FoldCase (CI s)  where foldCase (CI _ l) = CI l l
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
 
 
 
