@@ -137,7 +137,7 @@ import "exceptions" Control.Monad.Catch (MonadThrow)
 
 --------------------------------------------------
 
----import qualified "base" Prelude
+import qualified "base" Prelude
 
 --------------------------------------------------
 --------------------------------------------------
@@ -637,7 +637,7 @@ instance IsString Tokens where   -- TODO
 
 {-|
 
-A valid token MUST be:
+A valid 'Token' MUST be:
 
 * case-insensitive (i.e. 'CI.foldCase');
 * non-empty (i.e. not @""@ and\/or @[]@).
@@ -646,7 +646,7 @@ A valid token MUST be:
 
 data Token
 
-  = SubwordToken (String)
+  = SubwordToken Subword
   | AcronymToken [Char]
 
   deriving stock    (Show,Read,Eq,Ord,Generic)
@@ -667,8 +667,10 @@ instance CI.FoldCase Token where
 
   foldCase :: Token -> Token
   foldCase = \case
-    SubwordToken subword -> toSubwordToken subword
-    AcronymToken acronym -> toAcronymToken acronym
+    AcronymToken acronym           -> toAcronymToken acronym
+    SubwordToken (Subword subword) -> toSubwordToken subword
+
+--    SubwordToken (Subword subword) -> SubwordToken (CI.foldCase subword)
 
 --------------------------------------------------
 
@@ -679,7 +681,9 @@ Calls 'CI.foldCase' for case-insensitivity.
 -}
 
 toSubwordToken :: String -> Token
-toSubwordToken = CI.foldCase > SubwordToken
+toSubwordToken
+  = safeSubword
+  > maybe (SubwordToken "") SubwordToken
 
 --------------------------------------------------
 
@@ -691,6 +695,80 @@ Calls 'CI.foldCase' for case-insensitivity.
 
 toAcronymToken :: String -> Token
 toAcronymToken = CI.foldCase > AcronymToken
+
+--------------------------------------------------
+
+{-| Represents one part of word being tokenized.
+
+A valid 'Subword', like a valid 'Token', MUST be:
+
+* case-insensitive (i.e. 'CI.foldCase');
+* non-empty (i.e. not @""@).
+
+NOTE 'Subword' is a 'Semigroup' but /not/ a 'Monoid'.
+
+Conceptually, it's one-or-more case-folded characters:
+
+@'NonEmpty' ('CI' 'Char')
+@
+
+-}
+
+newtype Subword = Subword
+
+  String
+
+  deriving stock    (Show,Read,Lift,Generic)
+  deriving newtype  (Eq,Ord,Semigroup)
+  deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+{-| @≡ 'toSubword'@
+
+NOTE 'error's on the empty string literal (it's really 'unsafeSubword'').
+While 'fromString' may be called directly, it's (idiomatically) called "indirectly"
+by the compiler, when converting string literals under @-XOverloadedStrings@;
+thus, many error messages from its partiality /should/ have a stack traces.
+
+-}
+
+instance IsString Subword where
+  fromString = coerce
+
+--------------------------------------------------
+
+{-| Smart constructor for 'Subword'.
+
+Besides the constructor itself, it calls:
+
+* 'CI.foldCase' for case-insensitivity.
+
+-}
+
+safeSubword :: String -> Maybe Subword
+safeSubword = \case
+  "" -> Nothing
+  s  -> Just (go s)
+
+  where
+  go = CI.foldCase > Subword
+
+--------------------------------------------------
+
+{-| Dumb constructor, for 'Subword'.
+
+See 'safeSubword' (which this wraps).
+
+-}
+
+unsafeSubword :: String -> Subword
+unsafeSubword
+  = safeSubword
+  > maybe (Prelude.error message) id
+
+  where
+  message = "[Subword] string must be non-empty"
 
 --------------------------------------------------
 
