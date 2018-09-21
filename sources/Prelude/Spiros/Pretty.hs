@@ -125,7 +125,7 @@ import Prelude.Spiros.Utilities
 
 --------------------------------------------------
 
-import           "case-insensitive" Data.CaseInsensitive  ( CI )
+---import           "case-insensitive" Data.CaseInsensitive  ( CI )
 import qualified "case-insensitive" Data.CaseInsensitive as CI
 
 --------------------------------------------------
@@ -585,6 +585,30 @@ parserWith ParseConfig{..} = go > maybeMonadThrow
 
 {-|
 
+Under tokenization (i.e. parsing into tokens),
+some information about capitalization must be preserved.
+
+For example, this \"word\":
+
+@"GHCVersion"
+@
+
+is represented as (and should be parsed into):
+
+@
+[ 'toAcronymToken' \"GHC\"
+, 'toSubwordToken' \"Version\"
+] :: 'Tokens'
+@
+
+which is equivalent to (i.e. lower-cased and without the smart-constructors):
+
+@
+[ 'AcronymToken' \"ghc\"
+, 'SubwordToken' \"version\"
+] :: 'Tokens'
+@
+
 -}
 
 newtype Tokens = Tokens
@@ -613,21 +637,10 @@ instance IsString Tokens where   -- TODO
 
 {-|
 
-Under tokenization (i.e. parsing into tokens),
-some information about capitalization must be preserved.
+A valid token MUST be:
 
-For example, this \"word\":
-
-@"GHCVersion"
-@
-
-is represented as (and should be parsed into):
-
-@
-[ 'AcronymToken' \"ghc\"
-, 'SubwordToken' \"version\"
-] :: 'Tokens'
-@
+* case-insensitive (i.e. 'CI.foldCase');
+* non-empty (i.e. not @""@ and\/or @[]@).
 
 -}
 
@@ -641,21 +654,43 @@ data Token
 
 --------------------------------------------------
 
--- | @= 'SubwordToken'@
+-- | @= 'toSubwordToken'@
+--
+-- With case-folding via 'CI.foldCase'.
 
 instance IsString Token where
-  fromString = CI. > SubwordToken
+  fromString = toSubwordToken
 
 --------------------------------------------------
-
--- | @= 'SubwordToken'@
 
 instance CI.FoldCase Token where
 
   foldCase :: Token -> Token
   foldCase = \case
-    SubwordToken subword -> SubwordToken (CI. subword)
-    AcronymToken acronym -> AcronymToken (CI. acronym)
+    SubwordToken subword -> toSubwordToken subword
+    AcronymToken acronym -> toAcronymToken acronym
+
+--------------------------------------------------
+
+{-| Smart constructor for 'SubwordToken'.
+
+Calls 'CI.foldCase' for case-insensitivity.
+
+-}
+
+toSubwordToken :: String -> Token
+toSubwordToken = CI.foldCase > SubwordToken
+
+--------------------------------------------------
+
+{-| Smart constructor for 'AcronymToken'.
+
+Calls 'CI.foldCase' for case-insensitivity.
+
+-}
+
+toAcronymToken :: String -> Token
+toAcronymToken = CI.foldCase > AcronymToken
 
 --------------------------------------------------
 
@@ -736,7 +771,7 @@ data ParseTokenConfig = ParseTokenConfig
 {-|
 
 
-Example...
+[Example]
 
 
 (1) We have an @Enum@ whose constructors' names:
