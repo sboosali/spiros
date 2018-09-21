@@ -5,6 +5,7 @@
 
 {-# LANGUAGE PackageImports             #-}
 {-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 
@@ -114,8 +115,8 @@ import Prelude.Spiros.Utilities
 
 --------------------------------------------------
 
-import qualified        Prelude.Spiros.Enriched as T        (replace)
-import qualified "text" Data.Text               as T hiding (replace)
+---import qualified        Prelude.Spiros.Enriched as T        (replace)
+---import qualified "text" Data.Text               as T hiding (replace)
 
 --------------------------------------------------
 
@@ -130,7 +131,7 @@ import "exceptions" Control.Monad.Catch (MonadThrow)
 
 --------------------------------------------------
 
-import qualified "base" Prelude
+---import qualified "base" Prelude
 
 --------------------------------------------------
 --------------------------------------------------
@@ -590,11 +591,14 @@ newtype Tokens = Tokens
 
 --------------------------------------------------
 
+-- | @newtype@ wrapping\/unwrapping only.
+
 instance IsList Tokens where
   type Item Tokens = String
   fromList = coerce
   toList   = coerce
 
+-- | (Singleton token)
 instance IsString Tokens where   -- TODO
   fromString = (:[]) > coerce
 
@@ -630,25 +634,15 @@ defaultAcronymStyle = UpperCasedAcronym
 
 -}
 
-data DetokenizeConfig = DetokenizeConfig
+data TokenizationConfig = TokenizationConfig
 
   { acronymStyle :: AcronymStyle
+  , inputStyle   :: TokenStyle
+  , outputStyle  :: TokenStyle
   }
 
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
-
--- | @= 'defaultDetokenizeConfig '@
-
-instance Default DetokenizeConfig  where
-  def = defaultDetokenizeConfig 
-
-defaultDetokenizeConfig :: DetokenizeConfig 
-defaultDetokenizeConfig =  DetokenizeConfig
-  { acronymStyle = def
-  }
 
 --------------------------------------------------
 
@@ -656,25 +650,14 @@ defaultDetokenizeConfig =  DetokenizeConfig
 
 -}
 
-data TokenizeConfig = TokenizeConfig
+data PrintTokenConfig = PrintTokenConfig
 
   { acronymStyle :: AcronymStyle
+  , tokenStyle   :: TokenStyle
   }
 
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
-
--- | @= 'defaultTokenizeConfig '@
-
-instance Default TokenizeConfig  where
-  def = defaultTokenizeConfig 
-
-defaultTokenizeConfig :: TokenizeConfig 
-defaultTokenizeConfig =  TokenizeConfig
-  { acronymStyle = def
-  }
 
 --------------------------------------------------
 
@@ -682,37 +665,104 @@ defaultTokenizeConfig =  TokenizeConfig
 
 -}
 
-data RestyleConfig = RestyleConfig
+data ParseTokenConfig = ParseTokenConfig
 
   { acronymStyle :: AcronymStyle
+  , tokenStyle   :: TokenStyle
   }
 
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------
-
--- | @= 'defaultRestyleConfig '@
-
-instance Default RestyleConfig  where
-  def = defaultRestyleConfig 
-
-defaultRestyleConfig :: RestyleConfig 
-defaultRestyleConfig =  RestyleConfig
-  { acronymStyle = def
-  }
-
 --------------------------------------------------
+
+{-|
+
+
+Example...
+
+
+(1) We have an @Enum@ whose constructors' names:
+
+* are class-cased (the conventional styling);
+* are suffixed by the name of their type;
+* and may have acronyms (i.e. an alpha-numeric sequence,
+with all letters being upper-case).
+
+e.g.:
+
+@
+data Query
+
+  = WindowIdQuery
+  | WMClassQuery
+
+  deriving (Enum,Bounded,Show,Read)
+@
+
+
+(2) We want to render its constructors' names, as the valid values of a command-line option
+
+i.e.:
+
+@
+printQueryForCmdLn :: Print Query
+printQueryForCmdLn WindowIdQuery = "window-id
+printQueryForCmdLn WMClassQuery  = "wm-class
+@
+
+NOTE the acronym @"WM"@ is (correctly) grouped into a single Token; c.f. the (incorrectly) un-grouped @"w-m-class"@, which is less legible.
+
+
+(3) We can also print it as an idiomatic command-line option, by (type) name.
+
+i.e.:
+
+@
+printQueryAsLongOptionAndShortOption :: (String, Char)
+printQueryAsLongOptionAndShortOption = ("query", 'q')
+@
+
+e.g. (assuming an executable named @.\/example@):
+
+@
+$ .\/example --query=window-id
+$ .\/example -q wm-class
+@
+
+-}
+
+restyleString
+  :: TokenizationConfig
+  -> (String -> String)
+
+restyleString TokenizationConfig{..} input = output
+  where
+
+  output
+    = tokens
+    & printTokens PrintTokenConfig{acronymStyle, tokenStyle = outputStyle}
+
+  tokens
+    = input
+    & parseTokens ParseTokenConfig{acronymStyle, tokenStyle = inputStyle}
+
 --------------------------------------------------
 
 {-|
 
 -}
 
-detokenizeTokenStyle :: DetokenizeConfig -> TokenStyle -> Tokens -> String
-detokenizeTokenStyle DetokenizeConfig{..} TokenStyle{..} (Tokens ts) = s
+printTokens
+  :: PrintTokenConfig
+  -> Tokens
+  -> String
+
+printTokens PrintTokenConfig{ acronymStyle, tokenStyle } = go
   where
-  s = "TODO"
+
+  go _ = ""
 
 --------------------------------------------------
 
@@ -720,49 +770,41 @@ detokenizeTokenStyle DetokenizeConfig{..} TokenStyle{..} (Tokens ts) = s
 
 -}
 
-tokenizeTokenStyle :: TokenizeConfig -> TokenStyle -> String -> Tokens
-tokenizeTokenStyle TokenizeConfig{..} TokenStyle{..} s = Tokens ts
+parseTokens
+  :: ParseTokenConfig
+  -> String
+  -> Tokens
+
+parseTokens ParseTokenConfig{ acronymStyle, tokenStyle } = go
   where
-  ts = ["TODO"]
+
+  go s = fromString s
 
 --------------------------------------------------
 
 {-|
 
--}
-
-restyleTokenStyle :: RestyleConfig -> TokenStyle -> Tokens -> Tokens
-restyleTokenStyle RestyleConfig{..} TokenStyle{..} (Tokens xs) = Tokens ys
-  where
-  ys = ["TODO"]
-
---------------------------------------------------
-
-{-|
+>>> restyleClassCasedToHyphenated "WMClass"
+"wm-class"
+>>> restyleClassCasedToHyphenated "WindowId"
+"window-id"
 
 -}
 
-printWithTokenStyle
-  :: TokenStyle
-  -> String -> String
+restyleClassCasedToHyphenated
+  :: String -> String
 
-printWithTokenStyle TokenStyle{..} = go
+restyleClassCasedToHyphenated = restyleString config
+
   where
-  go s = s
+  config = TokenizationConfig
 
---------------------------------------------------
+    { acronymStyle = UpperCasedAcronym
+    , inputStyle   = fromKnownTokenStyle ClassCase
+    , outputStyle  = fromKnownTokenStyle HyphenCase
+    } 
 
-{-|
-
--}
-
-parseWithTokenStyle
-  :: TokenStyle
-  -> String -> String
-
-parseWithTokenStyle TokenStyle{..} = go
-  where
-  go s = s
+-- restyleHaskellContructorTo
 
 --------------------------------------------------
 --------------------------------------------------
@@ -922,6 +964,91 @@ type Parse a =
 type ParseM a =
 
   (forall m. (MonadThrow m) => String -> m a)
+
+
+
+
+
+
+
+
+
+
+{-|
+
+-}
+
+detokenizeTokenStyle :: DetokenizeConfig -> TokenStyle -> Tokens -> String
+detokenizeTokenStyle DetokenizeConfig{..} TokenStyle{..} (Tokens ts) = s
+  where
+  s = "TODO"
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+tokenizeTokenStyle :: TokenizationConfig -> String -> Tokens
+tokenizeTokenStyle TokenizationConfig{..} s = Tokens ts
+  where
+  ts = ["TODO"]
+
+--------------------------------------------------
+
+
+
+--------------------------------------------------
+
+-- | @= 'defaultTokenizationConfig '@
+
+instance Default TokenizationConfig where
+  def = defaultTokenizationConfig 
+
+defaultTokenizationConfig :: TokenizationConfig 
+defaultTokenizationConfig =  TokenizationConfig
+  { acronymStyle = def
+  }
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+printWithTokenStyle
+  :: TokenStyle
+  -> String -> String
+
+printWithTokenStyle TokenStyle{..} = go
+  where
+  go s = s
+
+--------------------------------------------------
+
+{-|
+
+-}
+
+parseWithTokenStyle
+  :: TokenStyle
+  -> String -> String
+
+parseWithTokenStyle TokenStyle{..} = go
+  where
+  go s = s
+
+
+
+
 
 
 
