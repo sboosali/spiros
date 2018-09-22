@@ -71,6 +71,10 @@ import "safe" Safe                                   as X
 
 --------------------------------------------------
 
+import           "exceptions" Control.Monad.Catch   as X (MonadThrow(..))
+
+--------------------------------------------------
+
 import "hashable" Data.Hashable                      as X
  ( Hashable(..)
  , hashUsing
@@ -91,7 +95,7 @@ import "semigroups" Data.Semigroup.Generic           as X
 ---------------------------------------
 -- https://www.fpcomplete.com/blog/2016/06/announce-safe-exceptions
 
-import "safe-exceptions" Control.Exception.Safe      as X -- TODO mv so module, like Spiros.Exceptions?
+--import "safe-exceptions" Control.Exception.Safe      as X -- TODO mv so module, like Spiros.Exceptions?
 --import "exceptions" Control.Monad.Catch           as X (MonadThrow(..))
 
 --------------------------------------------------

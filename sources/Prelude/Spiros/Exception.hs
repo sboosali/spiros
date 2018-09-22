@@ -33,6 +33,10 @@ import Prelude.Spiros.Reexports
 
 import qualified "base" Control.Exception as E
 
+--------------------------------------------------
+
+import "exceptions" Control.Monad.Catch (MonadThrow(..))
+
 --import "exceptions" Control.Monad.Catch hiding (throwM)
 --import "safe-exceptions" Control.Exception.Safe 
 
@@ -95,7 +99,7 @@ getCallStack' = getCallStack
 --------------------------------------------------
 --------------------------------------------------
 
-{-| A default 'Exception', useful when manipulating 'MonadThrow' instances.
+{-| A default 'E.Exception', useful when manipulating 'MonadThrow' instances.
 
 An 'ErrorCall' (whose message is uninformative).
 
@@ -103,7 +107,7 @@ An 'ErrorCall' (whose message is uninformative).
 
 someMonadThrowException
   :: (Show a)
-  => a -> SomeException
+  => a -> E.SomeException
 someMonadThrowException x = E.toException exception
   where
   exception = E.ErrorCall message
@@ -146,7 +150,7 @@ to an abstract 'MonadThrow' @m@.
 
 maybeMonadThrowWith
   :: (MonadThrow m)
-  => SomeException
+  => E.SomeException
   -> Maybe a -> m a
  
 maybeMonadThrowWith e = maybe (throwM e) return
@@ -187,7 +191,7 @@ to an abstract 'MonadThrow' @m@.
 
 listMonadThrowWith
   :: (MonadThrow m)
-  => SomeException
+  => E.SomeException
   -> [a] -> m a
  
 listMonadThrowWith e
@@ -198,7 +202,7 @@ listMonadThrowWith e
 
 {-|
 
-Generalize @'Either' 'SomeException'@ (a concrete, pure 'MonadThrow' instance),
+Generalize @'Either' 'E.SomeException'@ (a concrete, pure 'MonadThrow' instance),
 to an abstract 'MonadThrow' @m@.
 
 @
@@ -209,7 +213,7 @@ to an abstract 'MonadThrow' @m@.
 
 eitherMonadThrow
   :: (MonadThrow m)
-  => Either SomeException a -> m a
+  => Either E.SomeException a -> m a
 
 eitherMonadThrow = either throwM return
 
@@ -300,7 +304,7 @@ throwEither = 'either'
 -}
 throwEither
   :: ( MonadThrow m
-     , Exception e
+     , E.Exception e
      )    
   => Either e a
   -> m a
@@ -330,7 +334,7 @@ throwMaybe = throwMaybeWith
 
 throwMaybeWith
   :: ( MonadThrow m
-     , Exception e
+     , E.Exception e
      )    
   => e
   -> Maybe a
@@ -351,7 +355,7 @@ throwList = throwListWith
 
 throwListWith
   :: ( MonadThrow m
-     , Exception e
+     , E.Exception e
      )    
   => e
   -> List a
@@ -373,7 +377,7 @@ throwListWith e
 
 -- throwNonEmptyWith
 --   :: ( MonadThrow m
---      , Exception e 
+--      , E.Exception e 
 --      )    
 --   => e
 --   -> NonEmpty a
@@ -388,7 +392,7 @@ data SimpleException = SimpleException
  { _SimpleException_message :: !String
  } deriving (Read,Eq,Ord,Generic,NFData,Hashable)
 
-instance Exception SimpleException 
+instance E.Exception SimpleException 
 
 {- | custom for @Exception@ (non-@Read@able).
 
@@ -436,7 +440,7 @@ data QuotedException = QuotedException
  , _QuotedException_message  :: !String
  } deriving (Eq,Ord,Generic,NFData,Hashable)
 
-instance Exception QuotedException
+instance E.Exception QuotedException
 
 {- | custom for @Exception@ (non-@Read@able).
 
@@ -513,7 +517,7 @@ data LocatedException = LocatedException
  --} deriving (Eq,Ord,Generic,NFData,Hashable)
  } deriving (Generic)
 
-instance Exception LocatedException
+instance E.Exception LocatedException
 
 {- | custom for @Exception@ (non-@Read@able).
 
@@ -548,7 +552,7 @@ displayLocatedException LocatedException{..}
       _LocatedException_message
       callstack
   where
-  caller = 'throwM & displayQualifiedVariable
+  caller = 'throwM & displayQualifiedVariable 
   callstack = prettyCallStack _LocatedException_stack 
 
 {-
@@ -650,7 +654,7 @@ displayQualifiedVariable name
 'throwM's a 'SimpleException'.
 
 -}
-throwE :: (MonadThrow m, Exception e) => e -> m a
+throwE :: (MonadThrow m, E.Exception e) => e -> m a
 throwE e = throwM e
 
 {- | @S@ for 'String',
@@ -796,13 +800,13 @@ Nothing
 -}
 guardE
   :: ( MonadThrow m
-     , Exception e
+     , E.Exception e
      )
   => e
   -> Bool -> m ()
 guardE e = \case
   True  -> pure ()
-  False -> throwM (toException e)
+  False -> throwM (E.toException e)
 
 -- | @M@ for 'MonadThrow', like 'throwM'. 
 --
@@ -873,22 +877,22 @@ divide :: (MonadThrow m, Ord b, Fractional b) => b -> b -> m b
 --------------------------------------------------
 
 -- | 'someSimpleException_'
-uninformative :: SomeException
+uninformative :: E.SomeException
 uninformative = someSimpleException_
 
 -- | the 'def'ault 'SimpleException'. 
-someSimpleException_ :: SomeException
-someSimpleException_ = SomeException
+someSimpleException_ :: E.SomeException
+someSimpleException_ = E.SomeException
  (def :: SimpleException)
 
 -- | the 'def'ault 'QuotedException'. 
-someQuotedException_ :: SomeException
-someQuotedException_ = SomeException
+someQuotedException_ :: E.SomeException
+someQuotedException_ = E.SomeException
  (def :: QuotedException)
 
 -- | the 'def'ault 'LocatedException'. 
-someLocatedException_ :: HasCallStack => SomeException
-someLocatedException_ = SomeException
+someLocatedException_ :: HasCallStack => E.SomeException
+someLocatedException_ = E.SomeException
  (def :: LocatedException)
 
 --------------------------------------------------
@@ -896,24 +900,24 @@ someLocatedException_ = SomeException
 -- | 
 someSimpleException
   :: String
-  -> SomeException
-someSimpleException s = SomeException $ 
+  -> E.SomeException
+someSimpleException s = E.SomeException $ 
  (SimpleException s)
 
 -- | 
 someQuotedException
   :: Name
   -> String
-  -> SomeException
-someQuotedException n s = SomeException $
+  -> E.SomeException
+someQuotedException n s = E.SomeException $
  (QuotedException (unsafeGUI n) s)
 
 -- | 
 someLocatedException
   :: HasCallStack
   => String
-  -> SomeException
-someLocatedException s = SomeException $
+  -> E.SomeException
+someLocatedException s = E.SomeException $
  (toLocatedException s)
 
 --------------------------------------------------
@@ -929,7 +933,7 @@ guard           :: (Alternative f) => Bool -> f ()
 guard True      =  pure ()
 guard False     =  empty
 
-guardM :: (MonadThrow f) => SomeException -> Bool -> f ()
+guardM :: (MonadThrow f) => E.SomeException -> Bool -> f ()
 guardM _ True      =  pure ()
 guardM e False     =  throwM e
 
@@ -937,7 +941,7 @@ guardM :: (MonadThrow f) => Bool -> f ()
 guardM True  =  pure ()
 guardM False =  throwM uninformativeException
 
-uninformativeException :: SomeException
+uninformativeException :: E.SomeException
 uninformativeException = ErrorCall ""
 
 guardM_ :: (MonadThrow f, HasCallStack) => Bool -> f ()
@@ -945,8 +949,8 @@ guardM_ = \case
   True -> pure ()
   False -> throwM locatedException
 
-locatedException :: HasCallStack => SomeException
-locatedException = SomeException $ errorCallWithCallStackException "" ?callStack
+locatedException :: HasCallStack => E.SomeException
+locatedException = E.SomeException $ errorCallWithCallStackException "" ?callStack
 
 -}
 

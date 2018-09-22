@@ -142,7 +142,7 @@ library
   -- --  Reexports of most definitions from \"mtl\" and \"transformers\".
 
              , safe
-             , safe-exceptions 
+             --, safe-exceptions 
     -- re-exports exceptions
 
              , mtl
