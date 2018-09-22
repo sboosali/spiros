@@ -679,6 +679,7 @@ data Token
 
   = SubwordToken Subword
   | AcronymToken [Char]
+  | EmptyToken
 
   deriving stock    (Show,Read,Eq,Ord,Generic)
   deriving anyclass (NFData,Hashable)
@@ -700,6 +701,7 @@ instance CI.FoldCase Token where
   foldCase = \case
     AcronymToken acronym           -> toAcronymToken acronym
     SubwordToken (Subword subword) -> toSubwordToken subword
+    t                              -> t
 
 --    SubwordToken (Subword subword) -> SubwordToken (CI.foldCase subword)
 
@@ -714,7 +716,7 @@ Calls 'CI.foldCase' for case-insensitivity.
 toSubwordToken :: String -> Token
 toSubwordToken
   = safeSubword
-  > maybe (SubwordToken "") SubwordToken
+  > maybe (EmptyToken) SubwordToken
 
 --------------------------------------------------
 
@@ -1012,6 +1014,13 @@ printTokens config@PrintTokenConfig{tokenStyle = TokenStyle{separator,casing}} =
 
 {-|
 
+>>> :set -XOverloadedStrings
+>>> :set -XOverloadedLists
+>>> toList (intersperseBySeparator (WordSeparator (Just '-')) ["cabal","new","build"])
+["cabal","-","new","-","build"]
+>>> toList (intersperseBySeparator (WordSeparator Nothing) ["cabal","new","build"])
+["cabal","new","build"]
+
 -}
 
 intersperseBySeparator
@@ -1086,7 +1095,8 @@ printToken PrintTokenConfig{ acronymStyle, tokenStyle } = go
   where
 
   go _ = ""
-
+ 
+--------------------------------------------------
 --------------------------------------------------
 
 {-|
@@ -1118,6 +1128,10 @@ parseToken ParseTokenConfig{ acronymStyle, tokenStyle } = go
   where
 
   go s = fromString s
+
+--------------------------------------------------
+
+
 
 --------------------------------------------------
 --------------------------------------------------
