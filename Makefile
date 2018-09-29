@@ -53,7 +53,7 @@ test:
 ##################################################
 
 clean:
-	rm -rf "dist/" "dist-newstyle/"
+	rm -rf "dist/" dist-*/ ".stack-work"
 	rm -f *.project.local .ghc.environment.*
 
 .PHONY: clean
@@ -78,5 +78,25 @@ sdist: build
 	cabal sdist
 
 .PHONY: sdist
+
+##################################################
+
+configure: configure-8-4
+
+.PHONY: configure
+
+##################################################
+
+configure-8-4:
+	cabal new-configure --enable-nix -w ghc-8.4.3
+
+.PHONY: configure-8-4
+
+##################################################
+
+configure-8-6:
+	cabal new-configure --enable-nix -w ghc-8.6.1
+
+.PHONY: configure-8-6
 
 ##################################################

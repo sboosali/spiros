@@ -1,4 +1,3 @@
 packages:
-  ./
+  ./spiros
 
-with-compiler: ghc-8.6.1

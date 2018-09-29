@@ -7,7 +7,7 @@ nix:
   - zlib
 
 packages:
-- .
+- ./spiros
 
 extra-deps: []
 
