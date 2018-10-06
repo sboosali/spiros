@@ -2,9 +2,21 @@
 # Makefile Variables
 ##################################################
 
-BaseDirectory=$(CURDIR)
+BaseDirectory?=$(CURDIR)
 
-DefaultTarget=spiros
+DefaultTarget?=spiros
+
+##################################################
+
+##TagsFile?=$(DefaultTarget).TAGS
+
+TagsScript?=":etags\n:quit\n"
+
+##################################################
+# Makefile Settings
+##################################################
+
+SHELL=bash
 
 ##################################################
 # the `default` target
@@ -55,6 +67,7 @@ test:
 clean:
 	rm -rf "dist/" dist-*/ ".stack-work"
 	rm -f *.project.local .ghc.environment.*
+	find .  -type f  -name 'TAGS'  -exec rm -f \{} \+
 
 .PHONY: clean
 
@@ -98,5 +111,16 @@ configure-8-6:
 	cabal new-configure --enable-nix -w ghc-8.6.1
 
 .PHONY: configure-8-6
+
+##################################################
+
+tags:
+	cabal new-repl $(DefaultTarget) < <(echo -e $(TagsScript))
+
+        # ^ NOTE:
+        # * the « <(...) » is a Process Substitution, while
+        # * the « ... < ... » is a Redirection.
+
+.PHONY: tags
 
 ##################################################
