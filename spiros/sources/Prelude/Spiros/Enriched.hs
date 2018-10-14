@@ -4,14 +4,10 @@
            , DeriveFoldable
            , DeriveTraversable
            , DeriveGeneric
-           , DeriveLift
            , DeriveAnyClass
  #-}
 
 {-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-
-{-# LANGUAGE PackageImports #-}
 
 --------------------------------------------------
 --------------------------------------------------

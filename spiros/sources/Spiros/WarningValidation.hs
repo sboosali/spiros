@@ -9,7 +9,6 @@
     DeriveFunctor,
     DeriveFoldable,
     DeriveTraversable,
-    DeriveLift,
     GeneralizedNewtypeDeriving,
     TypeFamilies,
     LambdaCase,
@@ -125,14 +124,19 @@ Specializations (a.k.a. "What can @w@ and\/or @e@ be?""):
 * custom types: e.g. @(w ~ URLValidationWarning)@ and @(e ~ URLValidationError)@; with @type URLValidator = Text -> Validation URLValidationWarning URLValidationError URL@; @URLValidationError@ can also instantiate 'Exception' with a 'Show' that pretty-prints it. 
 
 -}
-data WarningValidation w e a 
+data WarningValidation w e a
+
  = WarningFailure !w !e
  | WarningSuccess !w (a)
- deriving 
-  ( Eq, Ord, Show, Read
-  , Generic, Data
-  , Functor, Foldable, Traversable
-  )
+
+  deriving ( Generic, Data
+           , Functor, Foldable, Traversable
+           , Show, Read, Eq, Ord
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 800)
+           , Lift
+#endif
+           , NFData, Hashable
+           )
 
 {-
  = WarningFailure !w !e

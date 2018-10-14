@@ -82,7 +82,7 @@ instance Hashable GUI where
       VarName -> 0
       DataName -> 1
       TcClsName -> 2
-    
+
 ----------------------------------------
 
 -- {- | An identifer of a haskell /value/,

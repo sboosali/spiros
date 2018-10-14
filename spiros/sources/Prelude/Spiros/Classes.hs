@@ -482,8 +482,8 @@ import "base" Data.Ix                                as X (Ix(..))
 import "base" Data.Bits                              as X (Bits(..))
 import "base" Data.Bits                              as X (FiniteBits(..))
 
-import "base" Data.Semigroup                         as X (Semigroup(..))
 import "base" Data.Monoid                            as X (Monoid(..))
+import "base" Data.Semigroup                         as X (Semigroup(..))
 
 import "base" Data.Functor                           as X (Functor(..))
 import "base" Data.Foldable                          as X (Foldable(elem,foldl,foldl',foldl1,foldr,foldr1,length,maximum,minimum,null,product,sum)) -- `Foldable(toList)` conflicts with `IsList(toList)`

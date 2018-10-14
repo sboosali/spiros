@@ -7,7 +7,6 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE InstanceSigs               #-}
 
 {-# LANGUAGE PatternSynonyms            #-}
@@ -20,12 +19,11 @@
 
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DeriveLift                 #-}
+
 
 -- {-# LANGUAGE DeriveFoldable             #-}
 -- {-# LANGUAGE DeriveTraversable          #-}
 
-{-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 

@@ -6,7 +6,6 @@
     DeriveFunctor,
     DeriveFoldable,
     DeriveTraversable,
-    DeriveLift,
     DeriveAnyClass,
     LambdaCase,
     AutoDeriveTypeable
@@ -29,15 +28,20 @@ Philosophically, 'Enablement' is "disabled by default": the 'Disabled' construct
 It's Like @Either a a@, but with different instances (and different kind-arity). Relatedly, it's isomorphic to @(Bool, a)@. 
 
 -}
+
 data Enablement a
+
   = Disabled !a
   | Enabled  !a
-  deriving
-    (Generic
-    ,Functor,Foldable,Traversable
-    ,Show,Read,Eq,Ord,Data,Lift
-    ,NFData,Hashable
-    )
+
+  deriving ( Generic, Data
+           , Functor, Foldable, Traversable
+           , Show, Read, Eq, Ord
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 800)
+           , Lift
+#endif
+           , NFData, Hashable
+           )
 
 --TODO ; the 'Default' instance defaults to the underlying default (i.e. @'def' :: a@) being present but disabled ??
 
@@ -129,7 +133,9 @@ fromEnablement = enablement Left Right
 ----------------------------------------
 
 
+
 ----------------------------------------
+
 
 
 ----------------------------------------

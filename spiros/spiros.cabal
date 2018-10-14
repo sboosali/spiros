@@ -4,6 +4,10 @@ name:                spiros
 version:             0.2
 build-type:          Simple
 
+--------------------------------------------------
+-- Information -----------------------------------
+--------------------------------------------------
+
 synopsis:            My custom prelude
 description:         My (@sboosali's) custom prelude. diverges from base's; adding, removing, and shadowing.
 homepage:            http://github.com/sboosali/spiros#readme
@@ -14,17 +18,15 @@ maintainer:          samboosalis@gmail.com
 copyright:           2018 Spiros Boosalis
 category:            Prelude
 
-tested-with:
-   GHC == 8.0.2
-   GHC == 8.2.2
-   GHC == 8.4.3
+tested-with: GHC == 8.6.1
+           , GHC == 8.4.3
+           , GHC == 8.2.2
+           , GHC == 8.0.2
+--           , GHC == 7.10.3
 
 extra-source-files:
   README.md
-  .gitignore
-  .travis.yml
   HLint.hs
-  stack.yaml
 
 --data-files:
 --  data/
@@ -33,7 +35,7 @@ source-repository head
   type:     git
   location: https://github.com/sboosali/spiros
 
-----------------------------------------
+--------------------------------------------------
 
 -- custom-setup
 --   setup-depends:
@@ -41,17 +43,25 @@ source-repository head
 --   -- [^ NOTE] https://github.com/haskell/cabal/issues/3394
 -- [^ NOTE] didn't work.
 
-----------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
+-- Flags -----------------------------------------
+--------------------------------------------------
 
 flag examples
   default:     True
   description: Build the examples in @examples/@. They are exposed library modules, for better haddocks and for guaranteeing that they typecheck. 
+
+--------------------------------------------------
 
 -- You can disable the doctests test suite with -f-test-doctests.
 flag test-doctest
   default:     True
   description: Run the doctests (with the eponymous `doctest`), called the `test doctest` unit (in this cabal file), to verify the documentation's examples. 
   manual:      True
+
+--------------------------------------------------
 
 flag test-unit
   default:     True 
@@ -60,27 +70,22 @@ flag test-unit
   description: Run the unit tests. 
   manual:      True
 
+--------------------------------------------------
+
 flag test-static
   default: False
            -- TODO  
   description: Whether to build the `static` test modules; i.e. the fact that they type check correctly is the test, there's nothing (necessarily) "dynamic" that is tested by running. 
   manual: True
 
---------------------------------------
+--------------------------------------------------
+-- Library ---------------------------------------
+--------------------------------------------------
 
 library
- hs-source-dirs:      sources
 
- include-dirs:     include
- install-includes: include/base-feature-macros.h
-
- default-language:    Haskell2010
- ghc-options:         -Wall
-
- if impl(ghc >= 8.2)
-    ghc-options: -Wcpp-undef
-    -- for `base-feature-macros`
-
+ hs-source-dirs: sources
+                 -- for `base-feature-macros`
  exposed-modules:
                  Prelude.Spiros
 
@@ -119,12 +124,20 @@ library
       Data.Digit
       -- requires -XDerivingStrategies
 
+ ------------------------------
+
+ include-dirs:     include
+ install-includes: include/base-feature-macros.h
+
+ ------------------------------
+
  build-depends:
                base                 >= 4.7   && <5.0
+               
              , generic-deriving >= 1.11
     -- for Generics.Deriving.Semigroup
 
-             , template-haskell     >= 2.11
+             , template-haskell     >= 2.10
 
   --TODO , clock 
 
@@ -151,8 +164,6 @@ library
              , text
              , bytestring
 
-             , deepseq      >= 1.4.3 
-    -- NFData1, NFData2
              , containers
              , vector
 
@@ -185,15 +196,52 @@ library
              , prettyprinter
              , show-prettyprint
 
+                   
   -- ??
 
   -- , async
   -- , parallel
 
   -- , interpolatedstring-perl6
-  -- needs haskell-src-exts
+  -- needs haskell-src-exts, which is sloooooooooow to build (~1h)
 
-----------------------------------------
+  
+ if impl(ghc >= 8.2)
+    build-depends:
+                  deepseq      >= 1.4.3
+                  -- NFData1, NFData2
+ else
+    build-depends:
+                  deepseq      >= 1.0
+
+ ------------------------------
+
+ default-language: Haskell2010
+
+ default-extensions: CPP
+                   , PackageImports
+                   
+ if impl(ghc >= 8.0)
+    default-extensions: TemplateHaskellQuotes
+                      , DuplicateRecordFields
+
+ if impl(ghc >= 8.2)
+    default-extensions: DeriveLift
+                        
+
+ if impl(ghc >= 8.4)
+    default-extensions: DerivingStrategies
+
+ ------------------------------
+
+ ghc-options:         -Wall
+
+ if impl(ghc >= 8.2)
+    ghc-options: -Wcpp-undef
+
+--------------------------------------------------
+-- Tests -----------------------------------------
+--------------------------------------------------
 
 test-suite doctest
 
@@ -215,7 +263,7 @@ test-suite doctest
   , spiros
   , doctest
 
-----------------------------------------
+--------------------------------------------------
 
 test-suite unit
 
@@ -235,7 +283,7 @@ test-suite unit
   , tasty
   , tasty-hunit
 
-----------------------------------------
+--------------------------------------------------
 
 test-suite static
            
@@ -257,4 +305,4 @@ test-suite static
     base
   , spiros
 
-----------------------------------------
+--------------------------------------------------

@@ -1,7 +1,5 @@
--- {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE PackageImports        #-}
-{-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE LambdaCase            #-}

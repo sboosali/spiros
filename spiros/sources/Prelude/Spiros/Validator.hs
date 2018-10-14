@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskellQuotes, RecordWildCards, PackageImports, LambdaCase, PatternSynonyms, BangPatterns #-}
+{-# LANGUAGE RecordWildCards, PackageImports, LambdaCase, PatternSynonyms, BangPatterns #-}
 {-# LANGUAGE Rank2Types, ScopedTypeVariables #-}
 
 {- |

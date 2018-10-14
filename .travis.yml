@@ -1,14 +1,40 @@
-# https://docs.travis-ci.com/user/languages/haskell
+language: c
 
-#   - 8.0
-ghc:
-  - 7.10
-  - 7.8
+sudo: false
 
-# install: stack install
+cache:
+  directories:
+    - ~/.cabal/packages
+    - ~/.cabal/store
 
-# script: stack test
+matrix:
+  include:
+    - env: CABALVER=2.4 GHCVER=7.8.4
+      addons: {apt: {packages: [cabal-install-2.4,ghc-7.8.4], sources: [hvr-ghc]}}
+    - env: CABALVER=2.4 GHCVER=7.10.3
+      addons: {apt: {packages: [cabal-install-2.4,ghc-7.10.3],sources: [hvr-ghc]}}
+    - env: CABALVER=2.4 GHCVER=8.0.2
+      addons: {apt: {packages: [cabal-install-2.4,ghc-8.0.2], sources: [hvr-ghc]}}
+    - env: CABALVER=2.4 GHCVER=8.2.2
+      addons: {apt: {packages: [cabal-install-2.4,ghc-8.2.2], sources: [hvr-ghc]}}
+    - env: CABALVER=2.4 GHCVER=8.4.3
+      addons: {apt: {packages: [cabal-install-2.4,ghc-8.4.3], sources: [hvr-ghc]}}
+    - env: CABALVER=2.4 GHCVER=8.6.1
+      addons: {apt: {packages: [cabal-install-2.4,ghc-8.6.1], sources: [hvr-ghc]}}
+
+before_install:
+  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+
+install:
+  - cabal --version
+  - ghc --version
+  - travis_retry cabal new-update
+
+script:
+  - cabal new-build all --enable-tests --enable-benchmarks
+  - cabal new-test all
+  - cabal new-haddock all
+  - cabal new-sdist all
 
 notifications:
-  email:
-    - samboosalis@gmail.com
+  email: samboosalis@gmail.com

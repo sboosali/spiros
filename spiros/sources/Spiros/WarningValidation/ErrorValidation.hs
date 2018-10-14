@@ -9,7 +9,7 @@
     DeriveFunctor,
     DeriveFoldable,
     DeriveTraversable,
-    DeriveLift,
+   
     GeneralizedNewtypeDeriving,
     TypeFamilies,
     LambdaCase,
