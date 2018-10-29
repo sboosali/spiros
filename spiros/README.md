@@ -27,6 +27,10 @@ either indirectly via `base`:
 
 or directly:
 
+    #if MIN_VERSION_GLASGOW_HASKELL(7,6,0,0)
+
+or, with an older macro:
+
     #if __GLASGOW_HASKELL__ >= 706
 
 # Checking host platform

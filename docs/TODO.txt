@@ -1,0 +1,45 @@
+
+--TODO CPP for AnyClass and Generic
+
+
+
+==================== Derived instances ====================
+Derived instances:
+  instance GHC.Show.Show Prelude.Spiros.GUI.GUI where
+    GHC.Show.showsPrec
+      a_aQeh
+      (Prelude.Spiros.GUI.GUI b1_aQei b2_aQej b3_aQek b4_aQel)
+      = GHC.Show.showParen
+          (a_aQeh GHC.Classes.>= 11)
+          ((GHC.Base..)
+             (GHC.Show.showString "GUI {")
+             ((GHC.Base..)
+                (GHC.Show.showString "_guiPackage = ")
+                ((GHC.Base..)
+                   (GHC.Show.showsPrec 0 b1_aQei)
+                   ((GHC.Base..)
+                      (GHC.Show.showString ", ")
+                      ((GHC.Base..)
+                         (GHC.Show.showString "_guiModule = ")
+                         ((GHC.Base..)
+                            (GHC.Show.showsPrec 0 b2_aQej)
+                            ((GHC.Base..)
+                               (GHC.Show.showString ", ")
+                               ((GHC.Base..)
+                                  (GHC.Show.showString "_guiIdentifier = ")
+                                  ((GHC.Base..)
+                                     (GHC.Show.showsPrec 0 b3_aQek)
+                                     ((GHC.Base..)
+                                        (GHC.Show.showString ", ")
+                                        ((GHC.Base..)
+                                           (GHC.Show.showString "_guiNamespace = ")
+                                           ((GHC.Base..)
+                                              (GHC.Show.showsPrec 0 b4_aQel)
+                                              (GHC.Show.showString "}")))))))))))))
+    GHC.Show.showList = GHC.Show.showList__ (GHC.Show.showsPrec 0)
+  
+==================== ==================== ====================
+
+
+
+

@@ -1,0 +1,59 @@
+/* #if !defined(HS_BASE_FEATURE_MACROS_H) */
+/* #define HS_BASE_FEATURE_MACROS_H       */
+
+/* #if !defined(MIN_VERSION_base) */
+/* #error MIN_VERSION_base macro not defined */
+/* #endif */
+
+#ifndef MIN_VERSION_GLASGOW_HASKELL
+#define MIN_VERSION_GLASGOW_HASKELL(x,y,z1,z2) 0
+#endif
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 0
+#endif
+
+/* NOTE `ghc-7.10` introduced `MIN_VERSION_GLASGOW_HASKELL`. */
+
+#define HAVE_APPLICATIVE_MONAD                  MIN_VERSION_base(4,8,0)
+
+#define HAVE_FOLDABLE_TRAVERSABLE_IN_PRELUDE    MIN_VERSION_base(4,8,0)
+
+#define HAVE_MONOID_IN_PRELUDE                  MIN_VERSION_base(4,8,0)
+
+#define HAVE_NATURAL_IN_BASE                    MIN_VERSION_base(4,8,0)
+
+#define HAVE_SEMIGROUP_IN_BASE                  MIN_VERSION_base(4,9,0)
+
+#define HAVE_MONAD_FAIL                         MIN_VERSION_base(4,9,0)
+
+/* #endif */
+
+
+
+
+module Prelude.Spiros.Reexports
+
+ ( module X -- re-eXports
+ , module Base
+#if !HAS_MONAD_FAIL
+ , module Prelude.Spiros.Reexports
+#endif
+ )
+where
+
+#include <sboo-base-feature-macros.h>
+
+--------------------------------------------------
+--------------------------------------------------
+
+#ifdef HAS_MONAD_FAIL
+import "base" Control.Monad.Fail                     as X (MonadFail(..))
+#endif
+
+
+
+
+
+
+
