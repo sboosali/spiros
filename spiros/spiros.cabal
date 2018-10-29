@@ -1,14 +1,16 @@
 cabal-version:       >=1.10
+build-type:          Simple
+
+--------------------------------------------------
 
 name:                spiros
 version:             0.2
-build-type:          Simple
 
 --------------------------------------------------
 -- Information -----------------------------------
 --------------------------------------------------
 
-synopsis:            My custom prelude
+synopsis:            Custom Prelude (sboo / sboosali)
 description:         My (@sboosali's) custom prelude. diverges from base's; adding, removing, and shadowing.
 homepage:            http://github.com/sboosali/spiros#readme
 license:             BSD3
@@ -84,17 +86,14 @@ flag test-static
 
 library
 
- hs-source-dirs: sources
-                 -- for `base-feature-macros`
- exposed-modules:
-                 Prelude.Spiros
+ ------------------------------
 
+ hs-source-dirs: sources
+                 -- for `sboo-base-feature-macros`
+ exposed-modules:
                  Spiros
-                 Spiros.Enable
-                 Spiros.WarningValidation
-                 Spiros.WarningValidation.Simple
-                 Spiros.WarningValidation.Bifunctor
-                 Spiros.WarningValidation.ErrorValidation
+
+                 Prelude.Spiros
 
                  Prelude.Spiros.Reexports
                  Prelude.Spiros.Utilities
@@ -107,27 +106,50 @@ library
                  Prelude.Spiros.System
                  Prelude.Spiros.Validator
                  Prelude.Spiros.GUI
-                 Prelude.Spiros.Pretty
                  Prelude.Spiros.Enriched
+                 Prelude.Spiros.Compatibility
 
- -- the above are conceptually `other-modules:`, but exposed for haddock.
+ ------------------------------
+
+ if impl(ghc >= 8.0)
+    exposed-modules:
+                 Spiros.Enable
+                 Prelude.Spiros.Pretty
+
+ ------------------------------
+
+ if impl(ghc >= 8.0)
+    exposed-modules:
+                 Spiros.WarningValidation
+                 Spiros.WarningValidation.Simple
+                 Spiros.WarningValidation.Bifunctor
+                 Spiros.WarningValidation.ErrorValidation
+
+ ------------------------------
 
  if flag(examples)
     hs-source-dirs: examples
-    exposed-modules:
-      Examples_spiros
-      Example.WarningValidation
 
- if impl(ghc >= 8.2.1)
-    hs-source-dirs: other-sources
     exposed-modules:
-      Data.Digit
-      -- requires -XDerivingStrategies
+                    Examples_spiros
+
+    if impl(ghc >= 8.0)
+       exposed-modules:
+                       Example.WarningValidation
+
+ ------------------------------
+
+ if impl(ghc >= 8.2)
+    hs-source-dirs: other-sources
+
+    exposed-modules:
+                    Data.Digit
+                    -- requires -XDerivingStrategies
 
  ------------------------------
 
  include-dirs:     include
- install-includes: include/base-feature-macros.h
+ install-includes: include/sboo-base-feature-macros.h
 
  ------------------------------
 
@@ -204,7 +226,6 @@ library
 
   -- , interpolatedstring-perl6
   -- needs haskell-src-exts, which is sloooooooooow to build (~1h)
-
   
  if impl(ghc >= 8.2)
     build-depends:
@@ -220,14 +241,20 @@ library
 
  default-extensions: CPP
                    , PackageImports
+
+ ------------------------------
+
+ if impl(ghc >= 7.4)
+    default-extensions: ConstraintKinds
                    
  if impl(ghc >= 8.0)
     default-extensions: TemplateHaskellQuotes
-                      , DuplicateRecordFields
+                        DuplicateRecordFields
+                        DeriveLift
 
  if impl(ghc >= 8.2)
     default-extensions: DeriveLift
-                        
+                        DeriveAnyClass
 
  if impl(ghc >= 8.4)
     default-extensions: DerivingStrategies
@@ -245,7 +272,7 @@ library
 
 test-suite doctest
 
- if flag(test-doctest) && !impl(ghcjs)
+ if flag(test-doctest) && impl(ghc)
     buildable: True
  else
     buildable: False   
@@ -266,6 +293,11 @@ test-suite doctest
 --------------------------------------------------
 
 test-suite unit
+
+ if impl(ghc >= 8.0)
+    buildable: True
+ else
+    buildable: False   
 
  hs-source-dirs:      test
  main-is:             UnitTests.hs

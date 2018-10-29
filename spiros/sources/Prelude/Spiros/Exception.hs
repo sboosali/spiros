@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE RecordWildCards       #-}
@@ -9,24 +13,33 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 
+{-# LANGUAGE TemplateHaskell #-} -- TODO rm this, create two modules Prelude.Spiros.Exception.Quoted.{GHC7,GHC8}. why? to use only TemplateHaskellQuotes.
+
+--------------------------------------------------
+
 {- |
 
-see 'SimpleException', 'QuotedException', 'LocatedException'. 
+See 'SimpleException', 'QuotedException', 'LocatedException'. 
 
-see 'throwEither' (and 'throwMaybe', 'throwList'). 
+See 'throwEither' (and 'throwMaybe', 'throwList'). 
 
-see 'throwS', 'throwN', 'throwL'. 
+See 'throwS', 'throwN', 'throwL'. 
 
 -}
 module Prelude.Spiros.Exception where
 
+#include <sboo-base-feature-macros.h>
+
 --------------------------------------------------
+
+import Prelude.Spiros.Compatibility
 
 import Prelude.Spiros.Utilities
 import Prelude.Spiros.GUI
 import Prelude.Spiros.Reexports
---import Prelude.Spiros.Classes
 
+--------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 import qualified "base" Control.Exception as E
@@ -58,17 +71,16 @@ import qualified "safe" Safe
 
 --------------------------------------------------
 
+--import qualified "base" GHC.Stack.Types as GHC
+
+--------------------------------------------------
+
 --import "base" Control.Applicative
 --import "base" Data.Function
 --import "base" Data.List.NonEmpty (NonEmpty(..))
 import "base" Data.Bifunctor (first)
 import "base" GHC.Exts (IsString(..))
 import "base" Control.Monad (MonadPlus(..))
-import "base" Control.Monad.Fail (MonadFail(..))
-
---import qualified "base" GHC.Stack.Types as GHC
-import           "base" GHC.Stack.Types (HasCallStack)
-import           "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
 
 --------------------------------------------------
 
@@ -78,6 +90,22 @@ import           "base" Prelude hiding
  , (>), (<)
  )
 
+--------------------------------------------------
+-- Imports: CPP ----------------------------------
+--------------------------------------------------
+
+#if !HAS_PRELUDE_OPERATOR_Append
+import "base" Data.Monoid ((<>))
+#endif
+
+--------------------------------------------------
+
+#if HAS_GHC_HasCallStack
+import           "base" GHC.Stack.Types (HasCallStack)
+import           "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
+#endif
+
+--------------------------------------------------
 --------------------------------------------------
 
 {-
@@ -300,6 +328,7 @@ throwEither = 'either'
 @
 
 -}
+
 throwEither
   :: ( MonadThrow m
      , E.Exception e
@@ -509,82 +538,6 @@ displayQuotedException QuotedException{..}
 
 --------------------------------------------------
 
-data LocatedException = LocatedException
- { _LocatedException_stack    :: !CallStack
- , _LocatedException_message  :: !String
- --} deriving (Eq,Ord,Generic,NFData,Hashable)
- } deriving (Generic)
-
-instance E.Exception LocatedException
-
-{- | custom for @Exception@ (non-@Read@able).
-
-@= 'displayLocatedException'@
-
--}
-instance Show LocatedException where
-  show = displayLocatedException
-
--- | @"" :: LocatedException@ (see the 'IsString' instance).
-instance Default LocatedException where
-  def = fromString ""
-
--- | Requires 'HasCallStack' around wherever the string literal is (i.e. at the "call-site" of @fromString@). 
-instance IsString LocatedException where
-  fromString = LocatedException callStack 
-
---------------------------------------------------
-
--- | @'LocatedException' 'callStack' _@
-toLocatedException :: (HasCallStack) => String -> LocatedException
-toLocatedException _LocatedException_message =
-  LocatedException{..}
-  where
-  _LocatedException_stack = callStack
-
--- | 'formatCustomExceptionWithCallStack'
-displayLocatedException :: LocatedException -> String
-displayLocatedException LocatedException{..}
-  = formatCustomExceptionWithCallStack
-      caller
-      _LocatedException_message
-      callstack
-  where
-  caller = 'throwM & displayQualifiedVariable 
-  callstack = prettyCallStack _LocatedException_stack 
-
-{-
-
-    • Illegal implicit parameter ‘?callStack::CallStack’
-    • In the context: HasCallStack
-      While checking an instance declaration
-      In the instance declaration for ‘IsString LocatedException’
-   |
-75 | instance (HasCallStack) => IsString LocatedException where
-   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
--- | @'LocatedException' 'callStack' \''throwM' _@
-instance (HasCallStack) => IsString LocatedException where
-  fromString = LocatedException callStack 'throwM
-
-
-  --   , map go (_LocatedException_location & getCallStack)
-  --   ]
-  -- where
-  -- go (x, y) = concat
-  --   [ "  "
-  --   , x
-  --   , " ("
-  --   , prettySrcLoc y
-  --   , ")\n"
-  --   ]
-
-
--}
-
---------------------------------------------------
-
 formatCustomExceptionWithCaller
   :: String -> String 
 formatCustomExceptionWithCaller caller =
@@ -737,35 +690,6 @@ throwN_
   => Name -> m a
 throwN_ name = throwN name ""
 
-{- | @L@ for @Location@ or 'CallStack' (@caLLstack@, lol). 
-
-'throwM's a 'LocatedException' with the given call-stack and message.
-
-e.g.
-
-@
-> caller = 'throwL' "this is an example"
-
-> caller
-*** Exception: 
-
-[safe-exceptions-0.1.6.0-HpnSY2upHz4DtQ1B03RoNw:Control.Exception.Safe.throwM] was called with:
-
-this is an example
-
-... and called from:
-
-CallStack (from HasCallStack):
-  toLocatedException, called at sources/Prelude/Spiros/Exception.hs:385:20 in spiros-0.0.1-inplace:Prelude.Spiros.Exception
-  throwL, called at <interactive>:28:1 in interactive:Ghci1
-@
-
--}
-throwL
-  :: (MonadThrow m, HasCallStack)
-  => String -> m a
-throwL s = throwM (toLocatedException s)
-
 {-
 
 > import GHC.Stack.Types (HasCallStack)
@@ -834,15 +758,6 @@ guardN n = guardS s
   where
   s = displayQualifiedVariable n
 
--- | @L@ for @Location@ or 'CallStack' (@caLLstack@). 
---
-guardL 
-  :: (MonadThrow m, HasCallStack)
-  => Bool -> m ()
-guardL = \case
-  True  -> pure ()
-  False -> throwM someLocatedException_
-
 -- | @F@ for 'MonadFail', calls 'fail'. 
 guardF
   :: (MonadFail m)
@@ -888,11 +803,6 @@ someQuotedException_ :: E.SomeException
 someQuotedException_ = E.SomeException
  (def :: QuotedException)
 
--- | the 'def'ault 'LocatedException'. 
-someLocatedException_ :: HasCallStack => E.SomeException
-someLocatedException_ = E.SomeException
- (def :: LocatedException)
-
 --------------------------------------------------
 
 -- | 
@@ -910,6 +820,66 @@ someQuotedException
 someQuotedException n s = E.SomeException $
  (QuotedException (unsafeGUI n) s)
 
+--------------------------------------------------
+--------------------------------------------------
+
+#if HAS_GHC_HasCallStack
+
+--------------------------------------------------
+
+
+--------------------------------------------------
+
+{- | @L@ for @Location@ or 'CallStack' (@caLLstack@, lol). 
+
+'throwM's a 'LocatedException' with the given call-stack and message.
+
+e.g.
+
+@
+> caller = 'throwL' "this is an example"
+
+> caller
+*** Exception: 
+
+[safe-exceptions-0.1.6.0-HpnSY2upHz4DtQ1B03RoNw:Control.Exception.Safe.throwM] was called with:
+
+this is an example
+
+... and called from:
+
+CallStack (from HasCallStack):
+  toLocatedException, called at sources/Prelude/Spiros/Exception.hs:385:20 in spiros-0.0.1-inplace:Prelude.Spiros.Exception
+  throwL, called at <interactive>:28:1 in interactive:Ghci1
+@
+
+-}
+
+throwL
+  :: (MonadThrow m, HasCallStack)
+  => String -> m a
+throwL s = throwM (toLocatedException s)
+
+--------------------------------------------------
+
+-- | @L@ for @Location@ or 'CallStack' (@caLLstack@). 
+--
+guardL 
+  :: (MonadThrow m, HasCallStack)
+  => Bool -> m ()
+guardL = \case
+  True  -> pure ()
+  False -> throwM someLocatedException_
+
+--------------------------------------------------
+
+-- | the 'def'ault 'LocatedException'. 
+someLocatedException_ :: HasCallStack => E.SomeException
+someLocatedException_ = E.SomeException
+ (def :: LocatedException)
+
+--------------------------------------------------
+
 -- | 
 someLocatedException
   :: HasCallStack
@@ -918,6 +888,100 @@ someLocatedException
 someLocatedException s = E.SomeException $
  (toLocatedException s)
 
+--------------------------------------------------
+
+data LocatedException = LocatedException
+
+ { _LocatedException_stack    :: !CallStack
+ , _LocatedException_message  :: !String
+
+ --} deriving (Eq,Ord,Generic,NFData,Hashable)
+ } deriving (Generic)
+
+--------------------------------------------------
+
+instance E.Exception LocatedException
+
+--------------------------------------------------
+
+{- | custom for @Exception@ (non-@Read@able).
+
+@= 'displayLocatedException'@
+
+-}
+
+instance Show LocatedException where
+  show = displayLocatedException
+
+--------------------------------------------------
+
+-- | @"" :: LocatedException@ (see the 'IsString' instance).
+instance Default LocatedException where
+  def = fromString ""
+
+--------------------------------------------------
+
+-- | Requires 'HasCallStack' around wherever the string literal is (i.e. at the "call-site" of @fromString@). 
+instance IsString LocatedException where
+  fromString = LocatedException callStack 
+
+--------------------------------------------------
+
+-- | @'LocatedException' 'callStack' _@
+toLocatedException :: (HasCallStack) => String -> LocatedException
+toLocatedException _LocatedException_message =
+  LocatedException{..}
+  where
+  _LocatedException_stack = callStack
+
+--------------------------------------------------
+
+-- | 'formatCustomExceptionWithCallStack'
+displayLocatedException :: LocatedException -> String
+displayLocatedException LocatedException{..}
+  = formatCustomExceptionWithCallStack
+      caller
+      _LocatedException_message
+      callstack
+  where
+  caller = 'throwM & displayQualifiedVariable 
+  callstack = prettyCallStack _LocatedException_stack 
+
+--------------------------------------------------
+
+{-
+
+    • Illegal implicit parameter ‘?callStack::CallStack’
+    • In the context: HasCallStack
+      While checking an instance declaration
+      In the instance declaration for ‘IsString LocatedException’
+   |
+75 | instance (HasCallStack) => IsString LocatedException where
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+-- | @'LocatedException' 'callStack' \''throwM' _@
+instance (HasCallStack) => IsString LocatedException where
+  fromString = LocatedException callStack 'throwM
+
+
+  --   , map go (_LocatedException_location & getCallStack)
+  --   ]
+  -- where
+  -- go (x, y) = concat
+  --   [ "  "
+  --   , x
+  --   , " ("
+  --   , prettySrcLoc y
+  --   , ")\n"
+  --   ]
+
+
+-}
+
+#endif
+
+--------------------------------------------------
 --------------------------------------------------
 
 -- -- | 

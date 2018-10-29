@@ -1,12 +1,9 @@
 {-# LANGUAGE CPP #-}
-#include <base-feature-macros.h>
+
+--------------------------------------------------
 
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports #-}
-
-#if !HAVE_MONAD_FAIL
-{-# LANGUAGE ConstraintKinds #-}
-#endif
 
 --------------------------------------------------
 --------------------------------------------------
@@ -48,16 +45,21 @@ Also see (these aren't dependencies, just influences):
 --------------------------------------------------
 
 module Prelude.Spiros.Reexports
-  
- ( module X -- re-eXports
+
+ ( module X                                       -- MNEMONIC: re-eXports
  , module Base
-#if !HAVE_MONAD_FAIL
- , module Prelude.Spiros.Reexports
-#endif
- )
-where
+ , module Prelude.Spiros.Compatibility
+ ) where
+
+#include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
+--------------------------------------------------
+
+import Prelude.Spiros.Compatibility
+
+--------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 import "generic-deriving" Generics.Deriving.Enum     as X
@@ -71,7 +73,9 @@ import "safe" Safe                                   as X
 
 --------------------------------------------------
 
-import           "exceptions" Control.Monad.Catch   as X (MonadThrow(..))
+import "exceptions" Control.Monad.Catch              as X
+ ( MonadThrow(..)
+ )
 
 --------------------------------------------------
 
@@ -84,7 +88,8 @@ import "hashable" Data.Hashable                      as X
 --------------------------------------------------
 
 import "data-default-class" Data.Default.Class       as X
- (Default(..))
+ ( Default(..)
+ )
 
 --------------------------------------------------
 
@@ -255,18 +260,6 @@ import "base" Text.Read                              as X
  ( readEither,readMaybe
  )
 
-import "base" Data.Semigroup                         as X (Semigroup(..))
- -- TODO when were they merged into base from semi groups?
-
-import "base" Data.List.NonEmpty                     as X
- ( NonEmpty(..)
-   -- unqualified smart constructor
- , nonEmpty
-   -- safe versions
- , head, tail, last, init
- , some1, scanl1, scanr1, group1, groupBy1
- )
-
 import "base" Data.Ix                                as X
  ( Ix
  ) 
@@ -301,18 +294,81 @@ import "base" Control.Monad                          as X
 import "base" Control.Category                       as X
   (Category,(>>>),(<<<))
 
-#ifdef HAVE_MONAD_FAIL
-import "base" Control.Monad.Fail                     as X (MonadFail(..))
-#endif
-
 import "base" Control.Monad.Fix                      as X (MonadFix(..))
-import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
 
 --import "base" Text.Printf                            as X (printf)
 
 import "base" Data.Proxy                             as X (Proxy(..))
 import "base" Data.Functor.Identity                  as X (Identity(..))   
 import "base" Data.Coerce                            as X (coerce, Coercible)
+
+import "base" Data.Typeable                          as X
+ ( Typeable
+ , typeRep
+ )
+import "base" Data.Data                              as X (Data)
+
+import "base" Control.Exception                      as X (assert)
+
+--------------------------------------------------
+-- Imports: CPP ----------------------------------
+--------------------------------------------------
+
+#if HAS_BASE_Semigroup
+import "base" Data.Semigroup                         as X (Semigroup(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_NonEmpty
+import "base" Data.List.NonEmpty                     as X
+ ( NonEmpty(..)
+   -- unqualified smart constructor
+ , nonEmpty
+   -- safe versions
+ , head, tail, last, init
+ , some1, scanl1, scanr1, group1, groupBy1
+ )
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Bifunctor
+import Data.Bifunctor as X 
+#else
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Bifoldable_Bitraversable
+import Data.Bifoldable    as X
+import Data.Bitraversable as X
+#else
+#endif
+
+--------------------------------------------------
+
+#if !HAS_PRELUDE_Monoid
+import Data.Functor as X ((<$>))
+import Data.Monoid  as X (Monoid(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Contravariant
+import "base" Data.Functor.Contravariant              as X
+ ( Contravariant(..)
+ , Predicate(..)
+ , Comparison(..)
+ , Equivalence(..)
+ , Op(..)
+ , defaultComparison
+ , defaultEquivalence
+ )
+#endif
+
+--------------------------------------------------
+#if IS_COMPILER_ghc
 
 import "base" GHC.Exts                               as X
   ( IsList(..)
@@ -324,40 +380,16 @@ import "base" GHC.Generics                           as X
  ( Generic
  , Generic1
  )
-import "base" Data.Typeable                          as X
- ( Typeable
- , typeRep
- )
-import "base" Data.Data                              as X (Data)
 
-import "base" Control.Exception                      as X (assert)
-
+#endif
 --------------------------------------------------
 
-#if MIN_VERSION_base(4,8,0)
-#else
-import Data.Functor as X ((<$>))
-import Data.Monoid  as X (Monoid(..))
-#endif
-
-#if MIN_VERSION_base(4,8,0)
-import Data.Bifunctor as X 
-#else
-#endif
-
-#if MIN_VERSION_base(4,10,0)
-import Data.Bifoldable    as X
-import Data.Bitraversable as X
-#else
-#endif
-
---TODO
--- #if !HAVE_FOLDABLE_TRAVERSABLE_IN_PRELUDE
+--TODO #if !HAS_BASE_Foldable_TRAVERSABLE
 -- import Data.Foldable (Foldable (..))
 -- import Prelude       hiding (foldr, foldr1)
 -- #endif
 --
--- #if !HAVE_MONOID_IN_PRELUDE
+--TODO #if !HAS_PRELUDE_Monoid
 -- import Data.Monoid as X hiding ((<>))
 -- #endif
 
@@ -392,13 +424,6 @@ import Prelude as Base hiding
  , read
  , toEnum
  )
-
---------------------------------------------------
--- backwards-compatibility
-
-#if !HAVE_MONAD_FAIL
-type MonadFail m = Monad m
-#endif
 
 --------------------------------------------------
 --------------------------------------------------

@@ -1,6 +1,12 @@
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards, PackageImports, LambdaCase, PatternSynonyms, BangPatterns #-}
 {-# LANGUAGE Rank2Types, ScopedTypeVariables #-}
+
+{-# LANGUAGE TemplateHaskell #-} -- TODO rm this, create two modules Prelude.Spiros.Exception.Quoted.{GHC7,GHC8}. why? to use only TemplateHaskellQuotes.
+
+--------------------------------------------------
 
 {- |
 
@@ -12,14 +18,22 @@ See 'validate'.
 -}
 module Prelude.Spiros.Validator where
 
+--------------------------------------------------
+
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities
 --import Prelude.Spiros.GUI
 import Prelude.Spiros.Exception
 
---
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
-----------------------------------------
+
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
 
 {-| Represents a validator as something that injects a type into another type, with the possibility of failure. 
 

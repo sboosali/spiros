@@ -1,6 +1,12 @@
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
+
+--------------------------------------------------
 
 {-|
 
@@ -13,15 +19,19 @@ module Prelude.Spiros.System
   -- , module System.Info
   ) where
 
+#include <sboo-base-feature-macros.h>
+
+----------------------------------------
+
+import         Prelude.Spiros.Compatibility
+
+import         Prelude.Spiros.Reexports
+import         Prelude.Spiros.Utilities
+
 ----------------------------------------
 ----------------------------------------
 
 import qualified "cpuinfo" System.CPU as CPU
-
-----------------------------------------
-
-import         Prelude.Spiros.Reexports
-import         Prelude.Spiros.Utilities
 
 ----------------------------------------
 
@@ -157,7 +167,16 @@ data CPUsSummary = CPUsSummary
   , logicalCores     :: Natural
   } 
 
-  deriving (Show,Read,Eq,Ord,Lift,Generic,NFData,Hashable)
+  deriving ( Show,Read,Eq,Ord,Generic --TODO CPP for Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+----------------------------------------
 
 instance Default CPUsSummary where
   def = CPUsSummary{..}
@@ -177,7 +196,14 @@ data IsHyperthreading
   = HyperthreadingIsDisabled
   | HyperthreadingIsEnabled
 
-  deriving (Enum,Bounded,Ix,Show,Read,Eq,Ord,Lift,Generic,NFData,Hashable)
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic --TODO CPP for Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
 
   -- deriving stock    (Enum,Bounded,Ix)
   -- deriving stock    (Show,Read,Eq,Ord,Lift,Generic)

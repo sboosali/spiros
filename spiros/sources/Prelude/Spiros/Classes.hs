@@ -1,4 +1,7 @@
-{-# LANGUAGE CPP               #-}
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports    #-}
 
@@ -374,6 +377,8 @@ module Prelude.Spiros.Classes
   , module Prelude.Spiros.Classes
   ) where
 
+#include <sboo-base-feature-macros.h>
+
 --------------------------------------------------
 -- `deepseq`
 --------------------------------------------------
@@ -483,7 +488,6 @@ import "base" Data.Bits                              as X (Bits(..))
 import "base" Data.Bits                              as X (FiniteBits(..))
 
 import "base" Data.Monoid                            as X (Monoid(..))
-import "base" Data.Semigroup                         as X (Semigroup(..))
 
 import "base" Data.Functor                           as X (Functor(..))
 import "base" Data.Foldable                          as X (Foldable(elem,foldl,foldl',foldl1,foldr,foldr1,length,maximum,minimum,null,product,sum)) -- `Foldable(toList)` conflicts with `IsList(toList)`
@@ -495,10 +499,6 @@ import "base" Control.Applicative                    as X (Alternative(..))
 import "base" Control.Monad                          as X
  (Monad((>>=),return,(>>))) -- hide `fail`
 import "base" Control.Monad                          as X (MonadPlus(..))
-
-#ifdef HAVE_MONAD_FAIL
-import "base" Control.Monad.Fail                     as X (MonadFail(..))
-#endif
 
 import "base" Control.Monad.Fix                      as X (MonadFix(..))
 
@@ -512,46 +512,15 @@ import "base" Control.Arrow                          as X (ArrowLoop)
 import "base" Control.Category                       as X
  (Category) -- can't export `(.)` and `id`, which conflict with their specializations TODO?
 
-#if MIN_VERSION_base(4,8,0)
-import "base" Data.Bifunctor                         as X (Bifunctor(..))
-#else
-#endif
-
-#if MIN_VERSION_base(4,10,0)
-import "base" Data.Bifoldable                        as X (Bifoldable(..))
-import "base" Data.Bitraversable                     as X (Bitraversable(..))
-#else
-#endif
-
-import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
 import "base" Control.Exception                      as X (Exception(..))
 
 import "base" Text.ParserCombinators.ReadP           as X
- (ReadP,ReadS,readP_to_S,readS_to_P)
+ ( ReadP,ReadS
+ , readP_to_S,readS_to_P
+ )
  -- for writing `Read` instances
 
 import "base" Foreign.Storable                       as X (Storable(..))
-
-import "base" GHC.Generics                           as X (Generic, Rep)
-import "base" GHC.Generics                           as X (Generic1, Rep1)
-import "base" Data.Data                              as X (Data)
---import "base" Data.Typeable                          as X (Typeable)
-
-import "base" GHC.Exts                               as X (IsList(Item,fromList))
- -- hide `toList`
-import "base" GHC.Exts                               as X (IsString(..))
-
--- unary lifted
-import Data.Functor.Classes                          as X (Eq1(..),eq1)
-import Data.Functor.Classes                          as X (Ord1(..),compare1)
-import Data.Functor.Classes                          as X (Show1(..),showsPrec1)
-import Data.Functor.Classes                          as X (Read1(..),readsPrec1)
-
--- binary lifted
-import Data.Functor.Classes                          as X (Eq2(..),eq2)
-import Data.Functor.Classes                          as X (Ord2(..),compare2)
-import Data.Functor.Classes                          as X (Show2(..),showsPrec2)
-import Data.Functor.Classes                          as X (Read2(..),readsPrec2)
 
 {-
 
@@ -571,10 +540,85 @@ import "base" Control.Arrow                          as X (ArrowLoop(..))
 -}
 
 --------------------------------------------------
+-- Imports: CPP ----------------------------------
+--------------------------------------------------
+
+#if HAS_MONAD_FAIL
+import "base" Control.Monad.Fail                     as X (MonadFail(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Semigroup
+import "base" Data.Semigroup                         as X (Semigroup(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Bifunctor
+import "base" Data.Bifunctor                         as X (Bifunctor(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Bifoldable_Bitraversable
+import "base" Data.Bifoldable                        as X (Bifoldable(..))
+import "base" Data.Bitraversable                     as X (Bitraversable(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_MonadIO
+import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_UNARY_LIFTED_CLASSES
+-- unary lifted classes
+import "base" Data.Functor.Classes                          as X (Eq1(..),eq1)
+import "base" Data.Functor.Classes                          as X (Ord1(..),compare1)
+import "base" Data.Functor.Classes                          as X (Show1(..),showsPrec1)
+import "base" Data.Functor.Classes                          as X (Read1(..),readsPrec1)
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_BINARY_LIFTED_CLASSES
+-- binary lifted classes
+import "base" Data.Functor.Classes                          as X (Eq2(..),eq2)
+import "base" Data.Functor.Classes                          as X (Ord2(..),compare2)
+import "base" Data.Functor.Classes                          as X (Show2(..),showsPrec2)
+import "base" Data.Functor.Classes                          as X (Read2(..),readsPrec2)
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Contravariant
+import "base" Data.Functor.Contravariant                    as X
+ ( Contravariant(..)
+ )
+#endif
+
+--------------------------------------------------
+
+#if IS_COMPILER_ghc
+import "base" GHC.Generics                           as X (Generic, Rep)
+import "base" GHC.Generics                           as X (Generic1, Rep1)
+import "base" Data.Data                              as X (Data)
+--import "base" Data.Typeable                          as X (Typeable)
+import "base" GHC.Exts                               as X (IsList(Item,fromList))
+ -- hide `toList`
+import "base" GHC.Exts                               as X (IsString(..))
+#endif
+
+--------------------------------------------------
 -- Non-Export Imports ----------------------------
 --------------------------------------------------
 
+#if IS_COMPILER_ghc
 import qualified "base" GHC.Generics                 as Generic
+#endif
 
 --------------------------------------------------
 -- Definitions -----------------------------------
@@ -592,6 +636,7 @@ rwhnf = (`seq` ())
 --------------------------------------------------
 -- generics
 
+#if defined(__GLASGOW_HASKELL__)
 -- | A generic representation, "specialized" to no additional metadata. 
 --
 -- (it still has the normal metadata about arity, constructor source location, field properties, etc). 
@@ -637,13 +682,14 @@ fromGeneric1 = Generic.from1
 -- 
 toGeneric1 :: (Generic1 f) => Rep1 f a -> f a
 toGeneric1 = Generic.to1
-
---warning: [-Wdodgy-exports]
---    The export item `module Prelude.Spiros.Classes' exports nothing
+#endif
 
 --------------------------------------------------
 -- Notes / Old Code / Other Comments -------------
 --------------------------------------------------
+
+--warning: [-Wdodgy-exports]
+--    The export item `module Prelude.Spiros.Classes' exports nothing
 
 {-TODO
 

@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 
 {-# LANGUAGE
@@ -20,6 +22,9 @@
     AutoDeriveTypeable
  #-}
 
+--------------------------------------------------
+--------------------------------------------------
+
 {-| the 'WarningValidation' @Applicative@:
 
 * accumulate any warnings (non-fatal errors),
@@ -32,16 +37,28 @@ Examples:
 
 * "Example.WarningValidation": see the @Example.WarningValidation@ module for a @doctest@ed example. Also see the source of the "Example.WarningValidation.validateNaturalRatio" function for an simple demonstration about how to write a validator that accumulates all errors, and warnings, that both: validates the two inputs individually; and validates a property of the two inputs jointly, a.k.a. output, which is cleaner in a @Monad@, but still possible and useful under an @Applicative@.
 
-
-
 -}
+
 module Spiros.WarningValidation where
+
+#include <sboo-base-feature-macros.h>
+
+--------------------------------------------------
 
 import Prelude.Spiros.Reexports 
 import Prelude.Spiros.Classes 
+
 import Prelude.Spiros.Utilities
 
-----------------------------------------
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
 -- aliases
 
 -- | "V" for "Validation". 
@@ -64,7 +81,7 @@ type V0 = WarningValidation Warnings Errors
 -- | 
 type V0_ = WarningValidation Warnings Errors ()
 
-----------------------------------------
+--------------------------------------------------
 
 {- |
 
@@ -135,14 +152,19 @@ data WarningValidation w e a
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 800)
            , Lift
 #endif
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 802)
            , NFData, Hashable
+#endif
            )
+
+------------------------------------------------------------
 
 {-
  = WarningFailure !w !e
  | WarningSuccess !w !a
 -}
 
+#if HAS_BASE_UNARY_LIFTED_CLASSES
 instance (Eq w, Eq e) => Eq1 (WarningValidation w e) where
   liftEq eq = \x y -> case (x,y) of 
     (WarningFailure w1 e1, WarningFailure w2 e2) ->
@@ -152,8 +174,14 @@ instance (Eq w, Eq e) => Eq1 (WarningValidation w e) where
     (_,_) -> False
   {-# INLINE liftEq #-}
 
-{-
+-- instance (Ord1 f, Ord a) => Ord1 (WarningValidation w e) where
+--   liftCompare = 
+#endif
 
+--------------------------------------------------
+
+{-
+#if HAS_BASE_UNARY_LIFTED_CLASSES
 instance (Eq1 f) => Eq2 (Validated f) where
   liftEq2 eqA eqB = \x y -> case (x,y) of 
     (WarningFailure w1 e1, WarningFailure w2 e2) ->
@@ -163,13 +191,10 @@ instance (Eq1 f) => Eq2 (Validated f) where
     (_,_) ->
       False
   {-# INLINE liftEq2 #-}
-
-
-instance (Ord1 f, Ord a) => Ord1 (WarningValidation w e) where
-  liftCompare = 
+#endif
 -}
     
-----------------------------------------
+--------------------------------------------------
 
 {-| The partition @Validated f a b@ is the result of validating a collection @f@ of the "raw" input type @a@ into the "valid" output typ
 e @b@ (or attempting to do so).
@@ -202,6 +227,9 @@ data Validated f a b = Validated
   , _errors    :: !(f a)
   }
 
+--------------------------------------------------
+#if HAS_BASE_BINARY_LIFTED_CLASSES
+
 instance (Eq1 f) => Eq2 (Validated f) where
   liftEq2 eqA eqB = \case
     Validated{_successes=s1, _warnings=w1, _errors=e1} -> \case
@@ -216,6 +244,9 @@ instance (Eq1 f) => Eq2 (Validated f) where
     eqFA = liftEq eqA
     eqFB = liftEq eqB
   {-# INLINE liftEq2 #-}
+
+#endif
+--------------------------------------------------
 
 {-
 
@@ -237,6 +268,8 @@ instance (Show1 f, Show a, Show b) => Show (Validated f a b) where
   showsPrec = showsPrec1
 -}
 
+--------------------------------------------------
+
 -- | @'fromList' becomes '_successes'@
 instance
   ( IsList (f b)
@@ -257,7 +290,10 @@ instance
      _warnings  = fromList []
      _errors    = fromList []
   {-# INLINE fromList #-}
-  
+
+--------------------------------------------------
+#if HAS_BASE_Semigroup
+
 {-|
 
 @
@@ -270,6 +306,9 @@ instance ( Semigroup (f a), Semigroup (f b)
   where
   (<>) = mergeValidated (<>) (<>) 
   {-# INLINE (<>) #-}
+
+#endif
+--------------------------------------------------
 
 {-|
 
@@ -286,6 +325,8 @@ instance ( Monoid (f a), Monoid (f b)
   {-# INLINE mempty #-}
   mappend = mergeValidated mappend mappend 
   {-# INLINE mappend #-}
+
+--------------------------------------------------
 
 mergeValidated
  :: ()
@@ -306,7 +347,7 @@ mergeValidated fa fb = go
 
 {-# INLINE mergeValidated #-}
 
-----------------------------------------
+--------------------------------------------------
 
 {-| A convenient specialization, with a list of strings as warnings, and a (non-empty) list of strings as errors. Strings, being the most open simple datatype, are a common defaultfor messages. 
 
@@ -314,10 +355,12 @@ i.e. @SimpleWarningValidation a@
 
 -}
 type SimpleWarningValidation = WarningValidation Warnings Errors
+--------------------------------------------------
+
 
 type WarningValidation_ w e = WarningValidation w e () 
   
-----------------------------------------
+--------------------------------------------------
 --
 
 {-|
@@ -333,6 +376,8 @@ newtype Warnings = Warnings [String]
   , Semigroup, Monoid
   )
 
+--------------------------------------------------
+
 instance IsString Warnings where
   fromString = (:[]) > Warnings
 
@@ -341,10 +386,12 @@ instance IsList Warnings where
   fromList = Warnings
   toList = getWarnings
 
+--------------------------------------------------
+
 getWarnings :: Warnings -> [String]
 getWarnings (Warnings ws) = ws
 
-----------------------------------------
+--------------------------------------------------
 --
 
 {-|
@@ -360,6 +407,8 @@ newtype Errors = Errors (NonEmpty String)
   , Semigroup
   )
 
+--------------------------------------------------
+
 instance IsString Errors where
   fromString = (:|[]) > Errors
 
@@ -372,7 +421,7 @@ instance IsList Errors where
 getErrors :: Errors -> NonEmpty String
 getErrors (Errors es) = es
 
-----------------------------------------
+--------------------------------------------------
 -- instances
 
 {-|
@@ -395,6 +444,8 @@ instance (Monoid w, Semigroup e)
   WarningSuccess w1 f  <*> WarningSuccess w2 a  = WarningSuccess (w1 `mappend` w2) (f a)
   {-# INLINE (<*>) #-}
   
+--------------------------------------------------
+
 {-|
 
 @empty = 'WarningFailure' 'mempty' 'mempty'@
@@ -413,6 +464,9 @@ instance (Monoid w, Monoid e, Semigroup e)
   (<|>) = validateAny
   {-# INLINE (<|>) #-}
 
+--------------------------------------------------
+#if HAS_BASE_Semigroup
+
 {-|
 
 @
@@ -426,6 +480,8 @@ instance (Semigroup w, Semigroup e, Semigroup a)
   (<>) = mergeWarningValidation (<>) (<>) (<>)
   {-# INLINE (<>) #-}
 
+#endif
+--------------------------------------------------
 
 {-|
 
@@ -459,7 +515,12 @@ instance ( Monoid w, Monoid a
   mappend = validateBoth
   {-# INLINE mappend #-}
 
-----------------------------------------
+
+--------------------------------------------------
+-- Values ----------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
 -- instance helpers
 
 validateAny
@@ -472,7 +533,7 @@ validateAny    WarningFailure{} v2 = v2
 
 {-# INLINE validateAny #-}
 
-----------------------------------------
+--------------------------------------------------
 -- instance helpers
 
 validateBoth
@@ -506,7 +567,7 @@ mergeWarningValidation mW mE mA = go
 
 {-# INLINE mergeWarningValidation #-}
 
-----------------------------------------
+--------------------------------------------------
 -- public helpers
 
 {-| Succeed without warnings. 
@@ -560,7 +621,7 @@ warning w = WarningSuccess w ()
 
 {-# INLINE warning #-}
   
-----------------------------------------
+--------------------------------------------------
 -- 
 
 {-| Succeed trivially, without any warnings. 
@@ -593,7 +654,7 @@ failure_ = failure ()
 
 {-# INLINE failure_ #-}
 
-----------------------------------------
+--------------------------------------------------
 
 {-| Fail via @[]@, without warnings. 
 
@@ -646,7 +707,7 @@ warning0 w = warning [w]
 
 {-# INLINE warning0 #-}
 
-----------------------------------------
+--------------------------------------------------
 
 {-| Succeed, but with warnings. 
 
@@ -744,7 +805,7 @@ failureAnd1 w e = WarningFailure [w] (e:|[])
 {-# INLINE failureAnd1 #-}
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 failureIf
   :: ( Monoid w
@@ -792,7 +853,7 @@ failureUnless_ predicate render
   = failureUnless predicate render
   > void 
 
-----------------------------------------
+--------------------------------------------------
 
 warningIf
   :: ( Monoid w
@@ -829,7 +890,7 @@ warningUnless
 warningUnless predicate =
   warningIf (predicate > not)
 
-----------------------------------------
+--------------------------------------------------
 
 validate
   :: ( 
@@ -889,7 +950,7 @@ validateOnlyWarning' softCheck =
   validate softCheck Right
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 {-|
 
@@ -940,11 +1001,11 @@ validate1 softCheck hardCheck =
   -> WarningValidation [w] (NonEmpty e) b
   #-}
 
-----------------------------------------
+--------------------------------------------------
 
 
 
-----------------------------------------
+--------------------------------------------------
 
 {-NOTES
 
@@ -953,7 +1014,7 @@ instance Applicative NonEmpty where
 
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 
 {-|
@@ -1012,7 +1073,7 @@ runErrorValidation = runWarningValidation > \case
   (w,  Left  e) -> Left (w,e)
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 {- | Convert a simple @Bool@-based validator into the more informative and flexible @WarningValidation@-based one.
 
@@ -1350,7 +1411,7 @@ certifyEither check = go
     Right b -> success b
 {-# INLINE certifyEither #-}
 
-----------------------------------------
+--------------------------------------------------
 
 {-| The generic representation of an algebraic datatype is some sum-of-products (i.e. "cases with fields", i.e. @Either@'s of @(,)@'s). 
 
@@ -1404,7 +1465,7 @@ certifyPartition
   -> (WarningValidation a a a)
 certifyPartition = certifyGeneric
 
-----------------------------------------
+--------------------------------------------------
 
 {- | Validates an @a@ from the given @Either@, failing with @e@ on @Left e@, and succeeding with @a@ on @Right a@. 
 
@@ -1498,7 +1559,7 @@ boolean2validation message condition
 
 {-# INLINE boolean2validation #-}
 
-----------------------------------------
+--------------------------------------------------
 
 {- | Asserts that given @condition@ holds @True@,
 failing with the @message@ otherwise.
@@ -1547,7 +1608,7 @@ softAssertion message condition = WarningSuccess w ()
 
 {-# INLINE softAssertion #-}  
 
-----------------------------------------
+--------------------------------------------------
 
 {-| A single "partition" is when the type getting validated is returned, and collected into: [1] disjoint successes\/failures; and [2] possibly overlapping warnings.
 
@@ -1660,7 +1721,7 @@ validation2validated = \case
           _warnings  = pure w
           _errors    = pure a
 
-----------------------------------------
+--------------------------------------------------
 
 {-| Like 'partitionViaValidator', but on a binary (not unary) function, and specialized to lists. 
   
@@ -1762,7 +1823,7 @@ partitionViaValidator5 check5 = go
   -> (f a -> f b -> Validated f (a,b) c)
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 {-
 
@@ -1854,7 +1915,7 @@ type (:!:) = Pair
 
 
 
-----------------------------------------
+--------------------------------------------------
   
 {-
 
@@ -2234,3 +2295,6 @@ revalidate = _Validation . from _Validation
 
 
 -}
+
+--------------------------------------------------
+--------------------------------------------------

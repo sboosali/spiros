@@ -1,16 +1,31 @@
+{-# LANGUAGE CPP #-}
+
+{-# LANGUAGE StandaloneDeriving #-}
+
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE CPP, PackageImports, LambdaCase, RecordWildCards #-}
+{-# LANGUAGE PackageImports, LambdaCase, RecordWildCards #-}
 {-# LANGUAGE DeriveAnyClass, AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric #-}
 {-# LANGUAGE RankNTypes, PolyKinds #-}
 
 {-|
 
 -}
+
 module Prelude.Spiros.GUI where
+
+----------------------------------------
+
+#include <sboo-base-feature-macros.h>
+
+----------------------------------------
 
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities
 import Prelude.Spiros.Classes
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import Prelude hiding
  ( (<), (>)
@@ -19,7 +34,7 @@ import Prelude hiding
    -- deprecated
  )
 
---
+----------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax
   ( Name(..)
@@ -30,14 +45,17 @@ import "template-haskell" Language.Haskell.TH.Syntax
   , PkgName(..)
   )
 
---
+----------------------------------------
 
 import "base" GHC.Generics (Generic)
 import "base" Data.Data    (Data)
 import "base" Data.Typeable
- (Typeable, tyConModule, tyConName, tyConPackage, typeRep, typeRepTyCon)
+ ( tyConModule, tyConName, tyConPackage, typeRepTyCon
+ )
 
-----------------------------------------
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
 
 {- | A globally unique haskell identifier,
 for either a value or type,
@@ -46,13 +64,69 @@ fully-qualified with its module and package.
 TODO new field: @Version@.
 
 -}
+
 data GUI = GUI
  { _guiPackage    :: !PkgName
  , _guiModule     :: !ModName
  , _guiIdentifier :: !OccName
  , _guiNamespace  :: !NameSpace
  -- , _guiVersion    :: !(Maybe Version)
- } deriving (Show,Eq,Ord,Data,Generic)
+
+ } deriving ( Generic, Data
+            , Eq, Ord
+#if MIN_VERSION_GLASGOW_HASKELL(8,0,0,0)
+            , Show
+            -- « GHC 8 » introduced « instance Show NameSpace ».
+#endif
+            )
+
+--------------------------------------------------
+
+#if !MIN_VERSION_GLASGOW_HASKELL(8,0,0,0)
+
+showsPrec_NameSpace :: Int -> NameSpace -> ShowS
+showsPrec_NameSpace _ = showString . go
+  where
+  go VarName = "VarName"
+  go DataName = "DataName"
+  go TcClsName = "TcClsName"
+
+--------------------------------------------------
+
+instance Show GUI where
+  showsPrec
+    precedence
+    (GUI p m i n)
+    = showParen
+        (precedence >= 11)
+        ((.)
+           (showString "GUI {")
+           ((.)
+              (showString "_guiPackage = ")
+              ((.)
+                 (showsPrec 0 p)
+                 ((.)
+                    (showString ", ")
+                    ((.)
+                       (showString "_guiModule = ")
+                       ((.)
+                          (showsPrec 0 m)
+                          ((.)
+                             (showString ", ")
+                             ((.)
+                                (showString "_guiIdentifier = ")
+                                ((.)
+                                   (showsPrec 0 i)
+                                   ((.)
+                                      (showString ", ")
+                                      ((.)
+                                         (showString "_guiNamespace = ")
+                                         ((.)
+                                            (showsPrec_NameSpace 0 n)
+                                            (showString "}")))))))))))))
+
+#endif
+--------------------------------------------------
 
 instance NFData GUI where
   rnf GUI{..}
@@ -255,7 +329,7 @@ displayGUI (GUI (PkgName p) (ModName m) (OccName o) n) =
 {-NOTES
 
 data Name
-Name OccName NameFlavour	 
+Name OccName NameFlavour   
 
 the built-in syntax 'f and ''T can be used to construct names, The expression 'f gives a Name which refers to the value f currently in scope, and ''T gives a Name which refers to the type T currently in scope. These names can never be captured.
 

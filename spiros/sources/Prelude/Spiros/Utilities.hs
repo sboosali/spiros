@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 
 {-# LANGUAGE PackageImports, TypeOperators, LambdaCase, PatternSynonyms #-}
@@ -5,6 +9,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- {-# OPTIONS_HADDOCK not-home #-}
+
+--------------------------------------------------
+--------------------------------------------------
 
 {-|
 
@@ -20,52 +27,71 @@ These symbols are "hard" overrides, they are completely different from @Prelude@
 * '<': backward-composition (i.e. '(.)')
 
 -}
+
 module Prelude.Spiros.Utilities where
 
--- non-exports
+#include <sboo-base-feature-macros.h>
+
+--------------------------------------------------
+
+import Prelude.Spiros.Compatibility
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 --TODO import "clock" System.Clock
+
+--------------------------------------------------
+
 import "vinyl" Data.Vinyl.Functor
+
+--------------------------------------------------
+--------------------------------------------------
 
 import "mtl" Control.Monad.Reader
   (ReaderT,Reader,runReaderT,runReader)
+ 
 import "mtl" Control.Monad.State
   (StateT,State,runStateT,evalStateT,execStateT,runState,evalState,execState)
 
+--------------------------------------------------
+
 import "deepseq" Control.DeepSeq (NFData,force)
+
+--------------------------------------------------
 
 import qualified "text" Data.Text      as TS
 import qualified "text" Data.Text.Lazy as TL
 
+--------------------------------------------------
+
 import qualified "bytestring" Data.ByteString      as BS 
 import qualified "bytestring" Data.ByteString.Lazy as BL 
 
+--------------------------------------------------
+
 import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
 
---
+--------------------------------------------------
 
 import "base" Data.Function              ((&))
-import "base" Data.Functor.Product
 import "base" Control.Arrow              ((>>>),(<<<))
 import "base" Control.Exception          (SomeException,evaluate)
 import "base" Control.Concurrent         (threadDelay,forkIO,ThreadId)
 import "base" Control.Monad              (forever, void)
 import "base" Data.Proxy
 import "base" Data.String                (IsString)
-import "base" Control.Monad.IO.Class
-import "base" Data.Foldable              (sequenceA_,toList)
-import "base" Data.Traversable           (sequenceA)
-import "base" Data.List.NonEmpty         (NonEmpty)
---import qualified Data.List.NonEmpty as NonEmpty
 import "base" Numeric.Natural
 import "base" Data.Ratio                 (Ratio,(%))
+
+--------------------------------------------------
 
 import           "base" Control.Category (Category)
 import qualified "base" Control.Category as Category
 import           "base" Data.Typeable
-import           "base" GHC.Exts         (IsString(..))
 
---
+--------------------------------------------------
 
 import qualified "base" Prelude
 import           "base" Prelude hiding
@@ -74,7 +100,33 @@ import           "base" Prelude hiding
   , sequence, sequence_
   )
 
-----------------------------------------
+--------------------------------------------------
+-- Imports: CPP ----------------------------------
+--------------------------------------------------
+
+#if HAS_BASE_NonEmpty
+import "base" Data.List.NonEmpty         (NonEmpty)
+--import qualified Data.List.NonEmpty as NonEmpty
+#endif
+
+--------------------------------------------------
+
+#if MIN_VERSION_GLASGOW_HASKELL(8,0,0,0)
+import "base" Data.Foldable              (sequenceA_,toList)
+import "base" Data.Traversable           (sequenceA)
+#else
+import "base" Data.Foldable              (sequenceA_)
+#endif
+
+--------------------------------------------------
+
+#if IS_COMPILER_ghc
+import "base" GHC.Exts                   (IsString(..))
+#endif
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
 
 -- | alphanumeric alias
 type List a = [a]
@@ -152,6 +204,12 @@ pattern P = Proxy
 
 pattern (:*:) :: f a -> g a -> Product f g a
 pattern f :*: g = (Pair f g)
+
+--TODO use base's functors, not vinyl's.
+
+--------------------------------------------------
+-- Values ----------------------------------------
+--------------------------------------------------
 
 ----------------------------------------
 -- soft overrides
@@ -288,8 +346,14 @@ list2maybe = \case
  [] -> Nothing
  (x:_) -> Just x
 
+------------------------------
+#if HAS_BASE_NonEmpty
+
 nonempty2list :: NonEmpty a -> [a]
 nonempty2list = toList
+
+#endif
+------------------------------
 
 list
   :: r -> (a -> [a] -> r)

@@ -1,8 +1,8 @@
 -- {-# LANGUAGE CPP #-}
+-- #include <sboo-base-feature-macros.h>
+
 {-# LANGUAGE NoImplicitPrelude #-}
-
 {-# LANGUAGE PackageImports #-}
-
 {-# LANGUAGE FlexibleContexts, ScopedTypeVariables #-}
 
 {- | Generically derive semigroup-monoid instances for product types, via pointwise appending. 

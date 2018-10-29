@@ -1,6 +1,11 @@
--- {-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports #-}
+
+--------------------------------------------------
 
 {- |
 
@@ -123,18 +128,33 @@ data Extension
 @
 
 -}
+
 module Prelude.Spiros.TemplateHaskell where
 
-import Prelude.Spiros.Types
+#include <sboo-base-feature-macros.h>
 
 ----------------------------------------
 
-import qualified "template-haskell" Language.Haskell.TH.LanguageExtensions as GHC
+import Prelude.Spiros.Types
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import "base" Control.Arrow ((>>>))
 import "base" Prelude
 
-----------------------------------------
+--------------------------------------------------
+-- Imports: CPP ----------------------------------
+--------------------------------------------------
+
+#if MIN_VERSION_template_haskell(2,11,0)
+-- template-haskell-2.11.0.0
+import qualified "template-haskell" Language.Haskell.TH.LanguageExtensions as GHC
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
 
 {-|
 
@@ -143,7 +163,10 @@ The aliased type are language extensions known to be supported by the GHC versio
 -}
 type GHC80LanguageExtension = GHC.Extension
 
-----------------------------------------
+
+--------------------------------------------------
+-- Values ----------------------------------------
+--------------------------------------------------
 
 {-| 
 
@@ -203,6 +226,7 @@ Most are benign.
 @
 
 -}
+
 myDefaultLanguageExtensions:: [Enablement GHC80LanguageExtension]
 myDefaultLanguageExtensions =
   [ disabled GHC.ImplicitPrelude
@@ -244,6 +268,7 @@ The language extensions included among the @other-extensions@ of many of my paca
 These have more drawbacks than those in 'myDefaultLanguageExtensions': worse type inference, increased build times, more strained portability, etc. 
 
 -}
+
 myOtherLanguageExtensions:: [Enablement GHC80LanguageExtension]
 myOtherLanguageExtensions =
   [ enabled GHC.Cpp
@@ -266,4 +291,7 @@ myOtherLanguageExtensions =
   
   ]
 
-----------------------------------------
+#endif
+
+--------------------------------------------------
+--------------------------------------------------

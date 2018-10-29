@@ -1,4 +1,10 @@
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE OverloadedStrings #-}
+
+{-# LANGUAGE NamedFieldPuns        #-}
 
 {-# LANGUAGE DeriveFunctor
            , DeriveFoldable
@@ -6,8 +12,6 @@
            , DeriveGeneric
            , DeriveAnyClass
  #-}
-
-{-# LANGUAGE NamedFieldPuns        #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -22,6 +26,8 @@ In particular:
 -}
 
 module Prelude.Spiros.Enriched where
+
+#include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
 --------------------------------------------------
@@ -54,11 +60,17 @@ data Replace a = Replace
   { old :: !a
   , new :: !a
   }
-  
-  deriving (Show,Read,Eq,Ord
-           ,Lift,Generic
-           ,NFData,Hashable
-           ,Functor,Foldable,Traversable
+
+  deriving ( Show,Read,Eq,Ord,Generic --TODO CPP for Generic
+#if HAS_EXTENSION_DeriveFunctor
+           , Functor,Foldable,Traversable
+#endif
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
            )
   
   -- deriving stock    (Show,Read,Eq,Ord,Lift,Generic)

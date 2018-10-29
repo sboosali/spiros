@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -103,11 +107,11 @@ to print out a constructor, the default 'toPrinter' function does the following:
 
 NOTE In this package, the word "print" means "convert to a human-friendly string", not "write to stdout".
 
-
-
 -}
 
 module Prelude.Spiros.Pretty where
+
+#include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
 --------------------------------------------------
@@ -117,6 +121,7 @@ import Prelude.Spiros.Reexports
 import Prelude.Spiros.Exception
 import Prelude.Spiros.Utilities
 
+--------------------------------------------------
 --------------------------------------------------
 
 ---import qualified        Prelude.Spiros.Enriched as T        (replace)
@@ -324,8 +329,10 @@ data TokenStyle = TokenStyle
   , casing    :: WordCasing
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -337,9 +344,11 @@ newtype WordSeparator = WordSeparator
 
   (Maybe Char)
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Lift,Generic)
   deriving newtype  (Eq,Ord)
   deriving newtype  (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -353,8 +362,10 @@ data WordCasing = WordCasing -- TODO acronyms/abbreviations
   , laterWords :: SubwordCasing
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 {-
 
@@ -377,10 +388,12 @@ data SubwordCasing
   | TitleCased                  -- ^ e.g. @"Title"@
   | UpperCased                  -- ^ e.g. @"UPPER"@
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Enum,Bounded,Ix)
   deriving anyclass (GEnum)
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 --------------------------------------------------
@@ -402,10 +415,12 @@ data KnownTokenStyle
   | SlashCase                   -- ^ e.g. @"slash/case"@
   | DotCase                     -- ^ e.g. @"dot.case"@
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Enum,Bounded,Ix)
   deriving anyclass (GEnum)
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -474,8 +489,10 @@ data PrintConfig t a = PrintConfig
 --, values :: [a]                -- 
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Generic)
   deriving anyclass (NFData)
+#endif
 
 --------------------------------------------------
 
@@ -511,8 +528,10 @@ data ParseConfig t a = ParseConfig
   , readHaskell :: (t -> Maybe a)  -- ^ How to read a value as a Haskell identifier\/constructor (often 'readMay').
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Generic)
   deriving anyclass (NFData)
+#endif
 
 --------------------------------------------------
 
@@ -619,9 +638,11 @@ newtype Tokens = Tokens
 
   (NonEmpty Token)
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Generic)
   deriving newtype  (Eq,Ord,Semigroup)
   deriving newtype  (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -679,8 +700,10 @@ data Token
   | AcronymToken [Char]
   | EmptyToken
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Eq,Ord,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -749,9 +772,11 @@ newtype Subword = Subword
 
   String
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Lift,Generic)
   deriving newtype  (Eq,Ord,Semigroup)
   deriving newtype  (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -813,10 +838,12 @@ data AcronymStyle
   = UpperCasedAcronym
   | TitleCasedAcronym
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Enum,Bounded,Ix)
   deriving anyclass (GEnum)
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -842,8 +869,10 @@ data TokenizationConfig = TokenizationConfig
   , outputStyle  :: TokenStyle
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -857,8 +886,10 @@ data PrintTokenConfig = PrintTokenConfig
   , tokenStyle   :: TokenStyle
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 
@@ -872,8 +903,10 @@ data ParseTokenConfig = ParseTokenConfig
   , tokenStyle   :: TokenStyle
   }
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#endif
 
 --------------------------------------------------
 --------------------------------------------------
