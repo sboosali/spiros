@@ -133,9 +133,7 @@ module Prelude.Spiros.TemplateHaskell where
 
 #include <sboo-base-feature-macros.h>
 
-----------------------------------------
-
-import Prelude.Spiros.Types
+--------------------------------------------------
 
 --------------------------------------------------
 -- Imports ---------------------------------------

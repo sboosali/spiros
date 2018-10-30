@@ -4,9 +4,10 @@
 the @newtype@s distinguish them with more meaningful names (of constructors, accessors, transformers, etc), but still support the convenience of automatically deriving as many instances as correct. 
 
 -}
-module Prelude.Spiros.Types ( module X ) where
 
-import Spiros.Enable as X
+module Prelude.Spiros.Types where
+
+--module Prelude.Spiros.Types ( module X ) where
 
 ----------------------------------------
 

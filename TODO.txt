@@ -1,0 +1,42 @@
+--------------------------------------------------
+
+------------------------------
+
+flag examples
+  default:     True
+  description: Build the examples in @examples/@. They are exposed library modules, for better haddocks and for guaranteeing that they typecheck. 
+
+------------------------------
+
+ if impl(ghc >= 8.0)
+    exposed-modules:
+                 Spiros.Enable
+
+ ------------------------------
+
+ if impl(ghc >= 8.0)
+    exposed-modules:
+                 Spiros.WarningValidation
+                 Spiros.WarningValidation.Simple
+                 Spiros.WarningValidation.Bifunctor
+                 Spiros.WarningValidation.ErrorValidation
+
+ ------------------------------
+
+    if impl(ghc >= 8.0)
+       exposed-modules:
+                       Example.WarningValidation
+
+ ------------------------------
+
+ if flag(examples)
+    hs-source-dirs: examples
+
+    exposed-modules:
+                    Examples_spiros
+
+ ------------------------------
+
+
+
+

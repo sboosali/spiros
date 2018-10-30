@@ -11,7 +11,11 @@ version:             0.2
 --------------------------------------------------
 
 synopsis:            Custom Prelude (sboo / sboosali)
-description:         My (@sboosali's) custom prelude. diverges from base's; adding, removing, and shadowing.
+
+description:         My (@sboosali's) custom prelude.
+                     .
+                     Diverges slightly from base's: adding, removing, and shadowing.
+                     
 homepage:            http://github.com/sboosali/spiros#readme
 license:             BSD3
 license-file:        LICENSE
@@ -24,7 +28,9 @@ tested-with: GHC == 8.6.1
            , GHC == 8.4.3
            , GHC == 8.2.2
            , GHC == 8.0.2
---           , GHC == 7.10.3
+           , GHC == 7.10.3
+
+--------------------------------------------------
 
 extra-source-files:
   README.md
@@ -33,28 +39,14 @@ extra-source-files:
 --data-files:
 --  data/
 
+--------------------------------------------------
+
 source-repository head
   type:     git
   location: https://github.com/sboosali/spiros
 
 --------------------------------------------------
-
--- custom-setup
---   setup-depends:
---     base, Cabal
---   -- [^ NOTE] https://github.com/haskell/cabal/issues/3394
--- [^ NOTE] didn't work.
-
---------------------------------------------------
-
---------------------------------------------------
 -- Flags -----------------------------------------
---------------------------------------------------
-
-flag examples
-  default:     True
-  description: Build the examples in @examples/@. They are exposed library modules, for better haddocks and for guaranteeing that they typecheck. 
-
 --------------------------------------------------
 
 -- You can disable the doctests test suite with -f-test-doctests.
@@ -91,7 +83,7 @@ library
  hs-source-dirs: sources
                  -- for `sboo-base-feature-macros`
  exposed-modules:
-                 Spiros
+                 --Spiros
 
                  Prelude.Spiros
 
@@ -102,40 +94,17 @@ library
 
                  Prelude.Spiros.Generics
                  Prelude.Spiros.Exception
-                 Prelude.Spiros.TemplateHaskell
                  Prelude.Spiros.System
                  Prelude.Spiros.Validator
                  Prelude.Spiros.GUI
                  Prelude.Spiros.Enriched
                  Prelude.Spiros.Compatibility
 
- ------------------------------
+------------------------------
 
  if impl(ghc >= 8.0)
     exposed-modules:
-                 Spiros.Enable
                  Prelude.Spiros.Pretty
-
- ------------------------------
-
- if impl(ghc >= 8.0)
-    exposed-modules:
-                 Spiros.WarningValidation
-                 Spiros.WarningValidation.Simple
-                 Spiros.WarningValidation.Bifunctor
-                 Spiros.WarningValidation.ErrorValidation
-
- ------------------------------
-
- if flag(examples)
-    hs-source-dirs: examples
-
-    exposed-modules:
-                    Examples_spiros
-
-    if impl(ghc >= 8.0)
-       exposed-modules:
-                       Example.WarningValidation
 
  ------------------------------
 
