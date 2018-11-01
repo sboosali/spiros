@@ -377,6 +377,8 @@ module Prelude.Spiros.Classes
   , module Prelude.Spiros.Classes
   ) where
 
+--------------------------------------------------
+
 #include <sboo-base-feature-macros.h>
 
 --------------------------------------------------

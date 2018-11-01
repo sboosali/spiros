@@ -51,6 +51,8 @@ module Prelude.Spiros.Reexports
  , module Prelude.Spiros.Compatibility
  ) where
 
+--------------------------------------------------
+
 #include <sboo-base-feature-macros.h>
 
 --------------------------------------------------

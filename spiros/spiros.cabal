@@ -1,4 +1,4 @@
-cabal-version:       >=1.10
+cabal-version:       2.2
 build-type:          Simple
 
 --------------------------------------------------
@@ -15,20 +15,30 @@ synopsis:            Custom Prelude (sboo / sboosali)
 description:         My (@sboosali's) custom prelude.
                      .
                      Diverges slightly from base's: adding, removing, and shadowing.
+
+category:            Prelude
+
+--------------------------------------------------
                      
-homepage:            http://github.com/sboosali/spiros#readme
-license:             BSD3
-license-file:        LICENSE
 author:              Spiros Boosalis
 maintainer:          samboosalis@gmail.com
-copyright:           2018 Spiros Boosalis
-category:            Prelude
+homepage:            http://github.com/sboosali/spiros#readme
+
+--------------------------------------------------
 
 tested-with: GHC == 8.6.1
            , GHC == 8.4.3
            , GHC == 8.2.2
            , GHC == 8.0.2
            , GHC == 7.10.3
+
+           , GHCJS == 8.4.0.1
+
+--------------------------------------------------
+
+license:             BSD-4-Clause
+copyright:           2018 Sam Boosalis
+license-file:        LICENSE
 
 --------------------------------------------------
 
@@ -81,7 +91,7 @@ library
  ------------------------------
 
  hs-source-dirs: sources
-                 -- for `sboo-base-feature-macros`
+
  exposed-modules:
                  --Spiros
 
@@ -239,71 +249,71 @@ library
 -- Tests -----------------------------------------
 --------------------------------------------------
 
-test-suite doctest
+-- test-suite doctest
 
- if flag(test-doctest) && impl(ghc)
-    buildable: True
- else
-    buildable: False   
+--  if flag(test-doctest) && impl(ghc)
+--     buildable: True
+--  else
+--     buildable: False   
 
- hs-source-dirs:      test
- main-is:             DocTests.hs
+--  hs-source-dirs:      test
+--  main-is:             DocTests.hs
 
- type:                exitcode-stdio-1.0
- default-language:    Haskell2010
+--  type:                exitcode-stdio-1.0
+--  default-language:    Haskell2010
 
- ghc-options:         -Wall 
+--  ghc-options:         -Wall 
 
- build-depends:
-    base
-  , spiros
-  , doctest
+--  build-depends:
+--     base
+--   , spiros
+--   , doctest
 
---------------------------------------------------
+-- --------------------------------------------------
 
-test-suite unit
+-- test-suite unit
 
- if impl(ghc >= 8.0)
-    buildable: True
- else
-    buildable: False   
+--  if impl(ghc >= 8.0)
+--     buildable: True
+--  else
+--     buildable: False   
 
- hs-source-dirs:      test
- main-is:             UnitTests.hs
- other-modules:
-  UnitTests.WarningValidation
+--  hs-source-dirs:      test
+--  main-is:             UnitTests.hs
+--  other-modules:
+--   UnitTests.WarningValidation
 
- type:                exitcode-stdio-1.0
- default-language:    Haskell2010
+--  type:                exitcode-stdio-1.0
+--  default-language:    Haskell2010
 
- ghc-options:         -Wall 
+--  ghc-options:         -Wall 
 
- build-depends:
-    base
-  , spiros
-  , tasty
-  , tasty-hunit
+--  build-depends:
+--     base
+--   , spiros
+--   , tasty
+--   , tasty-hunit
 
---------------------------------------------------
+-- --------------------------------------------------
 
-test-suite static
+-- test-suite static
            
- if flag(test-static)
-    buildable: True
- else
-    buildable: False
+--  if flag(test-static)
+--     buildable: True
+--  else
+--     buildable: False
 
- hs-source-dirs:      test
- main-is:             StaticTests.hs
- other-modules:
-  StaticTests.Generics
+--  hs-source-dirs:      test
+--  main-is:             StaticTests.hs
+--  other-modules:
+--   StaticTests.Generics
 
- type:                exitcode-stdio-1.0
- default-language:    Haskell2010
- ghc-options:         -Wall 
+--  type:                exitcode-stdio-1.0
+--  default-language:    Haskell2010
+--  ghc-options:         -Wall 
 
- build-depends:
-    base
-  , spiros
+--  build-depends:
+--     base
+--   , spiros
 
---------------------------------------------------
+-- --------------------------------------------------

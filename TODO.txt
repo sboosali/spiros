@@ -1,3 +1,28 @@
+sources/Prelude/Spiros/GUI.hs:213:41: error:
+    • Couldn't match type ‘Integer’ with ‘Int’
+      Expected type: Int
+        Actual type: Language.Haskell.TH.Syntax.Uniq
+    • In the second argument of ‘localFakeGUI’, namely ‘i’
+      In the expression: localFakeGUI nIdentifier i
+      In a case alternative: NameL i -> localFakeGUI nIdentifier i
+    |
+213 |     NameL i -> localFakeGUI nIdentifier i
+    |             
+
+
+
+
+
+
+sboo-program.cabal
+
+optparse-applicative >= 0.14.3.0
+formatting           >= 6.3.6
+
+
+
+
+
 --------------------------------------------------
 
 ------------------------------
@@ -36,6 +61,38 @@ flag examples
                     Examples_spiros
 
  ------------------------------
+
+
+
+
+
+
+
+
+--------------------------------------------------
+-- Imports: (Internal) Project Libraries ---------
+--------------------------------------------------
+
+import Enumerate.Types
+
+--------------------------------------------------
+
+import Enumerate.Function.Extra
+import Enumerate.Function.Types
+import Enumerate.Function.Reify
+import Enumerate.Function.Invert
+
+--------------------------------------------------
+-- Imports: (External) Dependency Libraries ------
+--------------------------------------------------
+
+import "exceptions" Control.Monad.Catch (MonadThrow(..))
+
+--------------------------------------------------
+-- Imports: Standard Library ---------------------
+--------------------------------------------------
+
+
 
 
 

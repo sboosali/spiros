@@ -84,6 +84,7 @@ import "base" Data.Proxy
 import "base" Data.String                (IsString)
 import "base" Numeric.Natural
 import "base" Data.Ratio                 (Ratio,(%))
+import "base" Data.Foldable              (Foldable(..))
 
 --------------------------------------------------
 

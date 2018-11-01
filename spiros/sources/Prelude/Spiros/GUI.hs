@@ -202,6 +202,7 @@ Local name bound outside of the TH AST
 Global name bound outside of the TH AST: An original name (occurrences only, not binders) Need the namespace too to be sure which thing we are naming
 
 -}
+
 unsafeGUI :: Name -> GUI
 unsafeGUI name = go name
   where
@@ -213,11 +214,11 @@ unsafeGUI name = go name
     NameL i -> localFakeGUI nIdentifier i
     _       -> defaultFakeGUI nIdentifier
 
-  localFakeGUI :: OccName -> Int -> GUI
+  localFakeGUI :: (Integral i) => OccName -> i -> GUI
   localFakeGUI (OccName n) i =
     GUI fakePkgName fakeModName qualifiedLocalOccName defaultNameSpace
         where
-        qualifiedLocalOccName = OccName $ n ++ "$" ++ show i
+        qualifiedLocalOccName = OccName $ n ++ "$" ++ show (toInteger i)
 
   defaultFakeGUI :: OccName -> GUI
   defaultFakeGUI realOccName
