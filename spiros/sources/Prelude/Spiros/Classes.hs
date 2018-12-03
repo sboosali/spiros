@@ -470,9 +470,6 @@ import "base" Prelude                                as X (Eq(..))
 import "base" Prelude                                as X
  (Ord((<=),(>=))) -- hide `>` / `<`
 
-import "base" Prelude                                as X (Enum(..))
-import "base" Prelude                                as X (Bounded(..))
-
 import "base" Prelude                                as X (Num(..))
 import "base" Prelude                                as X (Real(..))
 import "base" Prelude                                as X (Integral(..))
@@ -485,9 +482,10 @@ import "base" Prelude                                as X (RealFloat(..))
 -- `base`
 --------------------------------------------------
 
+import "base" Prelude                                as X (Enum(..))
+import "base" Prelude                                as X (Bounded(..))
 import "base" Data.Ix                                as X (Ix(..))
-import "base" Data.Bits                              as X (Bits(..))
-import "base" Data.Bits                              as X (FiniteBits(..))
+import "base" Data.Bits                              as X (Bits(..), FiniteBits(..))
 
 import "base" Data.Monoid                            as X (Monoid(..))
 

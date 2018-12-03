@@ -81,14 +81,6 @@ import "exceptions" Control.Monad.Catch              as X
 
 --------------------------------------------------
 
-import "hashable" Data.Hashable                      as X
- ( Hashable(..)
- , hashUsing
-   -- for defining instances manually 
- )
-
---------------------------------------------------
-
 import "data-default-class" Data.Default.Class       as X
  ( Default(..)
  )
@@ -122,7 +114,13 @@ import "string-conv" Data.String.Conv                as X
  )
 
 --------------------------------------------------
--- the standard library (i.e. the libraries GHC bootstraps with, and thus are always available)
+-- imports from the "standard library"...
+-- (i.e. the libraries GHC bootstraps with, and thus are always available)
+--------------------------------------------------
+
+--------------------------------------------------
+-- `deepseq`
+--------------------------------------------------
 
 import "deepseq" Control.DeepSeq                     as X
  ( NFData(..)
@@ -130,17 +128,32 @@ import "deepseq" Control.DeepSeq                     as X
  )
 
 --------------------------------------------------
+-- `hashable`
+--------------------------------------------------
+
+import "hashable" Data.Hashable                      as X (Hashable(..))
+import "hashable" Data.Hashable                      as X (hashUsing)
+
+--------------------------------------------------
+-- `text`
+--------------------------------------------------
 
 import "text" Data.Text.Lazy                         as X (Text)         -- lazy -- TODO strict
 
+--------------------------------------------------
+-- `bytestring`
 --------------------------------------------------
 
 import "bytestring" Data.ByteString.Lazy             as X (ByteString)   -- lazy -- TODO strict
 
 --------------------------------------------------
+-- `transformers`
+--------------------------------------------------
 
 import "transformers" Control.Monad.Trans.Class      as X (MonadTrans(..))
 
+--------------------------------------------------
+-- `mtl`
 --------------------------------------------------
 
 --import "mtl" Control.Monad.Trans                   as X (MonadTrans(..))
@@ -195,6 +208,8 @@ import "mtl" Control.Monad.Except                    as X
 -- import "mtl" Control.Monad.Writer.Strict          as X
 
 --------------------------------------------------
+-- `containers`
+--------------------------------------------------
 
 import "containers" Data.Set                         as X (Set)
 import "containers" Data.Map                         as X (Map)
@@ -205,11 +220,15 @@ import "containers" Data.Graph                       as X (Graph)
 import "containers" Data.Tree                        as X (Tree)
 
 --------------------------------------------------
+-- `template-haskell`
+--------------------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax as X (Lift)
 
 -- import "template-haskell" Language.Haskell.TH.Syntax as X
 
+--------------------------------------------------
+-- `base`
 --------------------------------------------------
 
 --import "base" Control.Exception                    as X (evaluate)

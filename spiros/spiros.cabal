@@ -42,9 +42,7 @@ license-file:        LICENSE
 
 --------------------------------------------------
 
-extra-source-files:
-  README.md
-  HLint.hs
+extra-source-files: README.md
 
 --data-files:
 --  data/
@@ -58,29 +56,6 @@ source-repository head
 --------------------------------------------------
 -- Flags -----------------------------------------
 --------------------------------------------------
-
--- You can disable the doctests test suite with -f-test-doctests.
-flag test-doctest
-  default:     True
-  description: Run the doctests (with the eponymous `doctest`), called the `test doctest` unit (in this cabal file), to verify the documentation's examples. 
-  manual:      True
-
---------------------------------------------------
-
-flag test-unit
-  default:     True 
-  -- False
-           -- TODO  
-  description: Run the unit tests. 
-  manual:      True
-
---------------------------------------------------
-
-flag test-static
-  default: False
-           -- TODO  
-  description: Whether to build the `static` test modules; i.e. the fact that they type check correctly is the test, there's nothing (necessarily) "dynamic" that is tested by running. 
-  manual: True
 
 --------------------------------------------------
 -- Library ---------------------------------------
