@@ -119,7 +119,9 @@
 
 /************************************************/
 
-/* #define HAS_EXTENSION_          MIN_VERSION_GLASGOW_HASKELL(7,8,0,0) */
+#define HAS_HASHABLE_Hashable1  defined(MIN_VERSION_hashable) && MIN_VERSION_hashable(1,2,5)
+#define HAS_HASHABLE_Hashable2  defined(MIN_VERSION_hashable) && MIN_VERSION_hashable(1,2,5)
+/* module Data.Hashable.Lifted */
 
 /************************************************/
 

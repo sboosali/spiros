@@ -1,10 +1,11 @@
 cabal-version:       2.2
+                     -- ^ « v2.2 » provides « common » stanzas.
 build-type:          Simple
 
 --------------------------------------------------
 
 name:                spiros
-version:             0.3
+version:             0.3.1
 
 --------------------------------------------------
 -- Information -----------------------------------
@@ -153,7 +154,7 @@ library
   -- , optparse-generic     >= 1.1.0 && <1.2
 
              , exceptions
-             , hashable
+             , hashable   >= 1.2.5.0
 
              , semigroups >= 0.16.2
     -- 0.16.2 introduces Data.Semigroup.Generic

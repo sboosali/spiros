@@ -389,6 +389,22 @@ import "base" Data.Functor.Contravariant              as X
 #endif
 
 --------------------------------------------------
+-- `hashable` package...
+
+import "hashable" Data.Hashable                      as X (Hashable(..))
+import "hashable" Data.Hashable                      as X (hashUsing)
+
+#if HAS_HASHABLE_Hashable1
+import "hashable" Data.Hashable.Lifted               as X (Hashable1(..))
+#endif
+
+#if HAS_HASHABLE_Hashable2
+import "hashable" Data.Hashable.Lifted               as X (Hashable2(..))
+#endif
+
+--------------------------------------------------
+-- `ghc` compiler...
+
 #if IS_COMPILER_ghc
 
 import "base" GHC.Exts                               as X
