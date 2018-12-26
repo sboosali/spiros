@@ -403,6 +403,22 @@ import "hashable" Data.Hashable.Lifted               as X (Hashable2(..))
 #endif
 
 --------------------------------------------------
+-- `deepseq` package...
+
+import "deepseq" Control.DeepSeq                     as X (NFData(..))
+import "deepseq" Control.DeepSeq                     as X (rnf)
+
+#if HAS_DEEPSEQ_NFData1
+import "deepseq" Control.DeepSeq                     as X (NFData1(..))
+import "deepseq" Control.DeepSeq                     as X (rnf1)
+#endif
+
+#if HAS_DEEPSEQ_NFData2
+import "deepseq" Control.DeepSeq                     as X (NFData2(..))
+import "deepseq" Control.DeepSeq                     as X (rnf2)
+#endif
+
+--------------------------------------------------
 -- `ghc` compiler...
 
 #if IS_COMPILER_ghc

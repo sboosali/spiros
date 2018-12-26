@@ -388,10 +388,14 @@ module Prelude.Spiros.Classes
 import "deepseq" Control.DeepSeq                     as X (NFData(..))
 import "base"    Prelude                             as X (seq)
 
-#if MIN_VERSION_deepseq(1,4,3)
+#if HAS_DEEPSEQ_NFData1
 import "deepseq" Control.DeepSeq                     as X (NFData1(..))
+import "deepseq" Control.DeepSeq                     as X (rnf1)
+#endif
+
+#if HAS_DEEPSEQ_NFData2
 import "deepseq" Control.DeepSeq                     as X (NFData2(..))
-import "deepseq" Control.DeepSeq                     as X (rnf1,rnf2)
+import "deepseq" Control.DeepSeq                     as X (rnf2)
 #endif
 
 #if MIN_VERSION_deepseq(1,4,3)
@@ -406,6 +410,16 @@ import "deepseq" Control.DeepSeq                     as X (rwhnf)
 
 import "hashable" Data.Hashable                      as X (Hashable(..))
 import "hashable" Data.Hashable                      as X (hashUsing)
+
+#if HAS_HASHABLE_Hashable1
+import "hashable" Data.Hashable.Lifted               as X (Hashable1(..))
+import "hashable" Data.Hashable.Lifted               as X (hashWithSalt1)
+#endif
+
+#if HAS_HASHABLE_Hashable2
+import "hashable" Data.Hashable.Lifted               as X (Hashable2(..))
+import "hashable" Data.Hashable.Lifted               as X (hashWithSalt2)
+#endif
 
 --------------------------------------------------
 -- `data-default-class`

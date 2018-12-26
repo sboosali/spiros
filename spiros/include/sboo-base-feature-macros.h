@@ -125,6 +125,12 @@
 
 /************************************************/
 
+#define HAS_DEEPSEQ_NFData1  defined(MIN_VERSION_deepseq) && MIN_VERSION_deepseq(1,4,3)
+#define HAS_DEEPSEQ_NFData2  defined(MIN_VERSION_deepseq) && MIN_VERSION_deepseq(1,4,3)
+/* module Control.DeepSeq */
+
+/************************************************/
+
 #define HAS_EXTENSION_DeriveAnyClass              MIN_VERSION_GLASGOW_HASKELL(7,10,1,0)
 
 #define HAS_EXTENSION_DeriveFunctor               MIN_VERSION_GLASGOW_HASKELL(7,10,1,0)
