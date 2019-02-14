@@ -58,6 +58,7 @@ module Prelude.Spiros.Reexports
 --------------------------------------------------
 --------------------------------------------------
 
+import Prelude.Spiros.Types
 import Prelude.Spiros.Compatibility
 
 --------------------------------------------------
@@ -406,7 +407,6 @@ import "hashable" Data.Hashable.Lifted               as X (Hashable2(..))
 -- `deepseq` package...
 
 import "deepseq" Control.DeepSeq                     as X (NFData(..))
-import "deepseq" Control.DeepSeq                     as X (rnf)
 
 #if HAS_DEEPSEQ_NFData1
 import "deepseq" Control.DeepSeq                     as X (NFData1(..))

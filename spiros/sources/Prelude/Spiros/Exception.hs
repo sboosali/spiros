@@ -32,6 +32,7 @@ module Prelude.Spiros.Exception where
 
 --------------------------------------------------
 
+import Prelude.Spiros.Types
 import Prelude.Spiros.Compatibility
 
 import Prelude.Spiros.Utilities

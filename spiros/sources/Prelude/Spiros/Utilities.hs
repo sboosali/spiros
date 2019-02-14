@@ -34,6 +34,7 @@ module Prelude.Spiros.Utilities where
 
 --------------------------------------------------
 
+import Prelude.Spiros.Types
 import Prelude.Spiros.Compatibility
 
 --------------------------------------------------
@@ -41,10 +42,6 @@ import Prelude.Spiros.Compatibility
 --------------------------------------------------
 
 --TODO import "clock" System.Clock
-
---------------------------------------------------
-
-import "vinyl" Data.Vinyl.Functor
 
 --------------------------------------------------
 --------------------------------------------------
@@ -126,93 +123,10 @@ import "base" GHC.Exts                   (IsString(..))
 #endif
 
 --------------------------------------------------
--- Types -----------------------------------------
---------------------------------------------------
-
--- | alphanumeric alias
-type List a = [a]
-
-type StrictText = TS.Text
-type LazyText   = TL.Text 
-
-type StrictBytes = BS.ByteString
-type LazyBytes   = BL.ByteString
-
-{-| a haskell identifier, via @TemplateHaskellQuotes@.
-
-@
-> :set -XTemplateHaskellQuotes
-> \'fmap :: 'HaskellName'
-@
-
--}
-type HaskellName = TemplateHaskell.Name
-
-{-| a finite type,
-whose values may be enumerated into a finite list.
-
--}
-type BoundedEnum a = (Enum a, Bounded a)
-
-{-| for `interpolatedstring-perl6`
-i.e. the type supports string literals (via 'IsString') and can be appended (via 'Monoid').
-
-uses @ConstraintKinds@.
-
-e.g.
-
-@
--- -XQuasiQuotes
-import Text.InterpolatedString.Perl6 (qq)
-
-hello :: (CanInterpolate t) => t -> t
-hello t = [qc| "hello" ++ $t |]
-
-helloworld = hello "world" :: String
-@
-
--}
-type CanInterpolate t = (IsString t, Monoid t)
-  
--- | (from vinyl)
-type I = Identity
-
--- | (from vinyl)
-type C = Const
-
-type P = Proxy
-
--- | a natural transformation
-type (:~>) f g = forall x. f x -> g x
-
--- |
-type (:*:) = Product
-
--- |
-type (f :. g) x = f (g x)
-
--- | (from vinyl)
-type (:.:) = Compose
-
-pattern I :: a -> Identity a
-pattern I x = Identity x
-
-pattern C :: forall a (b :: k). a -> Const a b
-pattern C x = Const x
-
-pattern P :: forall (a :: k). Proxy a
-pattern P = Proxy
-
-pattern (:*:) :: f a -> g a -> Product f g a
-pattern f :*: g = (Pair f g)
-
---TODO use base's functors, not vinyl's.
-
---------------------------------------------------
 -- Values ----------------------------------------
 --------------------------------------------------
 
-----------------------------------------
+--------------------------------------------------
 -- soft overrides
 
 -- | (generalization)
@@ -220,17 +134,23 @@ pattern f :*: g = (Pair f g)
 map :: Functor f => (a -> b) -> f a -> f b
 map = fmap
 
+{-# INLINEABLE map #-}
+
 -- | (generalization)
 -- @= 'sequenceA'@
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 sequence = sequenceA
+
+{-# INLINEABLE sequence #-}
 
 -- | (generalization)
 -- @ = 'sequenceA_'@
 sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequence_ = sequenceA_
 
-----------------------------------------
+{-# INLINEABLE sequence_ #-}
+
+--------------------------------------------------
 -- hard overrides
 
 {- | forwards composition
@@ -252,6 +172,8 @@ same precedence/associativity as '.'
 (>) = (>>>)
 infixr 9 >
 
+{-# INLINEABLE (>) #-}
+
 {- | backwards composition
 
 e.g. "h, after g, after f"
@@ -271,7 +193,9 @@ same precedence/associativity as '.'
 (<) = (<<<)
 infixr 9 <
 
-----------------------------------------
+{-# INLINEABLE (<) #-}
+
+---------------------------------------
 
 -- NOTE
 -- infixr 1 <<<
@@ -285,12 +209,16 @@ lessThan :: Ord a => a -> a -> Bool
 lessThan = (Prelude.<)
 infix 4 `lessThan`
 
+{-# INLINEABLE lessThan #-}
+
 -- | same precedence/associativity as "Prelude.>"
 greaterThan :: Ord a => a -> a -> Bool
 greaterThan = (Prelude.>)
 infix 4 `greaterThan`
 
-----------------------------------------
+{-# INLINEABLE greaterThan #-}
+
+--------------------------------------------------
 
 {- | @(-:) = (,)@
 
@@ -307,6 +235,8 @@ fake dictionary literal syntax:
 (-:) :: a -> b -> (a,b)
 (-:) = (,)
 infix 1 -:
+
+{-# INLINEABLE (-:) #-}
 
 todo :: a --TODO call stack
 todo = error "TODO"
@@ -325,27 +255,39 @@ nothing = pure ()
 -- nothing :: (Monad m) => m ()
 -- nothing = return ()
 
-----------------------------------------
+--------------------------------------------------
 
 maybe2bool :: Maybe a -> Bool
 maybe2bool = maybe False (const True)
 
+{-# INLINEABLE maybe2bool #-}
+
 maybe2either :: e -> Maybe a -> Either e a 
 maybe2either e = maybe (Left e) Right
+
+{-# INLINEABLE maybe2either #-}
 
 either2maybe :: Either e a -> Maybe a
 either2maybe = either (const Nothing) Just
 
+{-# INLINEABLE either2maybe #-}
+
 either2bool :: Either e a -> Bool
 either2bool = either (const False) (const True)
 
+{-# INLINEABLE either2bool #-}
+
 maybe2list :: Maybe a -> [a]
 maybe2list = maybe [] (:[])
+
+{-# INLINEABLE maybe2list #-}
 
 list2maybe :: [a] -> Maybe a
 list2maybe = \case
  [] -> Nothing
  (x:_) -> Just x
+
+{-# INLINEABLE list2maybe #-}
 
 ------------------------------
 #if HAS_BASE_NonEmpty
@@ -363,7 +305,7 @@ list y f = \case
   []     -> y
   (x:xs) -> f x xs
 
-----------------------------------------
+--------------------------------------------------
 -- numbers
 
 -- | 
@@ -375,13 +317,17 @@ list y f = \case
 unsafeNatural :: Integral i => i -> Natural
 unsafeNatural = fromIntegral
 
+{-# INLINEABLE unsafeNatural #-}
+
 -- | an alias, since @(%)@ is prime symbolic real estate. 
 ratio :: Integral a => a -> a -> Ratio a
 ratio = (%)
 
 infixl 7 `ratio` -- same as (%)
 
-----------------------------------------
+{-# INLINEABLE ratio #-}
+
+--------------------------------------------------
 -- etc
 
 --pure1 :: (Applicative f) => f a ->
@@ -403,9 +349,13 @@ returning
   -> (a -> m b)
 returning f = f > return
 
+{-# INLINEABLE returning #-}
+
 -- | @($>) = flip ('<$')@
 ($>) :: (Functor f) => f a -> b -> f b
 ($>) = flip (<$)
+
+{-# INLINEABLE ($>) #-}
 
 -- | Infix flipped 'fmap'.
 --
@@ -416,7 +366,6 @@ returning f = f > return
 -- NOTE: conflicts with the lens package 
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
-{-# INLINE (<&>) #-}
 
 infixl 5 <&>
 {-NOTE
@@ -424,9 +373,13 @@ infixl 5 <&>
   infixl 4 <*>
 -}
 
+{-# INLINEABLE (<&>) #-}
+
 -- | reverse @cons@
 snoc :: [a] -> a -> [a]
 snoc xs x = xs ++ [x]
+
+{-# INLINEABLE snoc #-}
 
 {-|
 
@@ -436,6 +389,8 @@ snoc xs x = xs ++ [x]
 toInt :: (Integral a) => a -> Int
 toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 
+{-# INLINEABLE toInt #-}
+
 -- | safely-partial @(!)@
 index :: (Integral n) => [a] -> n -> Maybe a
 index [] _ = Nothing
@@ -444,14 +399,22 @@ index (x:xs) n
  | n `lessThan` 0 = Nothing
  | otherwise      = index xs (n-1)
 
+{-# INLINEABLE index #-}
+
 strip :: String -> String
 strip = rstrip . lstrip
+
+{-# INLINEABLE strip #-}
 
 lstrip :: String -> String
 lstrip = dropWhile (`elem` (" \t\n\r"::String))
 
+{-# INLINEABLE lstrip #-}
+
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
+
+{-# INLINEABLE rstrip #-}
 
 shown :: forall a t.
     ( Show a
@@ -460,6 +423,8 @@ shown :: forall a t.
   => a
   -> t  
 shown = fromString . show
+
+{-# INLINEABLE shown #-}
 
 {-|
 
@@ -470,6 +435,8 @@ shown = fromString . show
 -}
 constructors :: (BoundedEnum a) => proxy a -> [a]
 constructors _ = [minBound..maxBound]
+
+{-# INLINEABLE constructors #-}
 
 {-| like 'constructors', but with an implicit type parameter.
 
@@ -486,8 +453,12 @@ constructors' = constructors proxy
   where
   proxy = Proxy :: Proxy a
 
+{-# INLINEABLE constructors' #-}
+
 identity :: (Category cat) => (a `cat` a)
 identity = Category.id
+
+{-# INLINEABLE identity #-}
 
 -- compose :: (Category (==>)) => (b ==> c) -> (a ==> b) -> (a ==> c)
 compose
@@ -496,6 +467,8 @@ compose
   -> (a `cat` b)
   -> (a `cat` c)  
 compose = (Category.<<<)
+
+{-# INLINEABLE compose #-}
 
 typeName
   :: forall proxy a t.
@@ -506,7 +479,9 @@ typeName
   -> t
 typeName proxy = typeRep proxy & show & fromString 
 
-----------------------------------------
+{-# INLINEABLE typeName #-}
+
+--------------------------------------------------
 
 -- | @= 'flip' 'runReaderT'@
 runReaderT' :: r -> (ReaderT r) m a -> m a
@@ -540,7 +515,7 @@ evalState' = flip evalState
 execState' :: s -> State s a -> s
 execState' = flip execState
 
-----------------------------------------
+--------------------------------------------------
 -- Time
 
 {-| A number of microseconds (there are one million microseconds per second). An integral number because it's the smallest resolution for most GHC functions. @Int@ because GHC frequently represents integrals as @Int@s (for efficiency). 
@@ -564,6 +539,12 @@ seconds      :: Int -> Time
 minutes      :: Int -> Time
 hours        :: Int -> Time
 
+{-# INLINEABLE microseconds #-}
+{-# INLINEABLE milliseconds #-}
+{-# INLINEABLE seconds #-}
+{-# INLINEABLE minutes #-}
+{-# INLINEABLE hours #-}
+
 microseconds = Time
 milliseconds = Time . (\t -> t*1000)
 seconds      = Time . (\t -> t*1000*1000)
@@ -573,14 +554,22 @@ hours        = Time . (\t -> t*1000*1000*1000*1000)
 delayFor :: (MonadIO m) => Time -> m ()
 delayFor = toMicroseconds >>> threadDelay >>> liftIO 
 
+{-# INLINEABLE delayFor #-}
+
 delayMicroseconds :: (MonadIO m) => Int -> m ()
 delayMicroseconds i = delayFor (microseconds i)
+
+{-# INLINEABLE delayMicroseconds #-}
 
 delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds i = delayFor (milliseconds i)
 
+{-# INLINEABLE delayMilliseconds #-}
+
 delaySeconds :: (MonadIO m) => Int -> m ()
 delaySeconds i = delayFor (seconds i)
+
+{-# INLINEABLE delaySeconds #-}
 
 {-
 
@@ -621,14 +610,18 @@ delaySeconds i = delayFor (Seconds i)
 -- liftIO . threadDelay . (*1000) . (*1000)
 -}
 
-----------------------------------------
+--------------------------------------------------
 -- IO
 
 io :: MonadIO m => IO a -> m a
 io = liftIO
 
+{-# INLINEABLE io #-}
+
 forkever_ :: IO () -> IO ()
 forkever_ = void . forkever Nothing
+
+{-# INLINEABLE forkever_ #-}
 
 forkever ::Maybe Int -> IO () -> IO ThreadId
 forkever t m = forkIO $ forever $ do
@@ -636,6 +629,8 @@ forkever t m = forkIO $ forever $ do
     _delay
     where
     _delay = maybe nothing delayMilliseconds t
+
+{-# INLINEABLE forkever #-}
 
 --TODO -- | Call once to start, then call repeatedly to get the elapsed time since the first call.
 -- --   The time is guaranteed to be monotonic. This function is robust to system time changes.
@@ -655,8 +650,13 @@ forkever t m = forkIO $ forever $ do
 forceIO :: NFData a => a -> IO a
 forceIO = evaluate . force
 
+{-# INLINEABLE forceIO #-}
+
 -- | @~ 'forceIO'@
 forceIO_ :: NFData a => a -> IO ()
 forceIO_ = void . evaluate . force
 
-----------------------------------------
+{-# INLINEABLE forceIO_ #-}
+
+--------------------------------------------------
+--------------------------------------------------

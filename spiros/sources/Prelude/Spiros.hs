@@ -1,6 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
+--------------------------------------------------
+--------------------------------------------------
+
 module Prelude.Spiros
+
  ( -- * Re-exports
    -- $reexports
    module X -- re-eXports
@@ -13,9 +17,13 @@ module Prelude.Spiros
  
    -- * Notes
    -- $notes
- )
-where
+ ) where
 
+--------------------------------------------------
+-- Exports ---------------------------------------
+--------------------------------------------------
+
+import Prelude.Spiros.Types                          as X
 import Prelude.Spiros.Reexports                      as X
 import Prelude.Spiros.Utilities                      as X
 import Prelude.Spiros.System                         as X
@@ -24,6 +32,11 @@ import Prelude.Spiros.Validator                      as X
 import Prelude.Spiros.GUI                            as X
 import Prelude.Spiros.Generics                       as X
 import Prelude.Spiros.Enriched                       as X
+import Prelude.Spiros.Parse                          as X
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 {- $usage
 

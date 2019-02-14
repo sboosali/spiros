@@ -78,13 +78,16 @@ library
                  Prelude.Spiros.Classes
                  Prelude.Spiros.Types
 
-                 Prelude.Spiros.Generics
+ other-modules:
+
+                 Prelude.Spiros.Compatibility
+                 Prelude.Spiros.Enriched
                  Prelude.Spiros.Exception
+                 Prelude.Spiros.GUI
+                 Prelude.Spiros.Generics
+                 Prelude.Spiros.Parse
                  Prelude.Spiros.System
                  Prelude.Spiros.Validator
-                 Prelude.Spiros.GUI
-                 Prelude.Spiros.Enriched
-                 Prelude.Spiros.Compatibility
 
 ------------------------------
 

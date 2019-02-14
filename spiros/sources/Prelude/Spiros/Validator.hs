@@ -19,6 +19,10 @@ See 'validate'.
 module Prelude.Spiros.Validator where
 
 --------------------------------------------------
+-- Imports: Internal -----------------------------
+--------------------------------------------------
+
+import Prelude.Spiros.Types
 
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities

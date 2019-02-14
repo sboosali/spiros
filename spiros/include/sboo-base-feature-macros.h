@@ -157,4 +157,8 @@
 /* #define HAS_EXTENSION_          MIN_VERSION_GLASGOW_HASKELL(8,6,0,0) */
 
 /************************************************/
+
+#define HAS_PRAGMA_COMPLETE                   MIN_VERSION_GLASGOW_HASKELL(8,2,1,0) 
+
+/************************************************/
 #endif
