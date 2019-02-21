@@ -1,3 +1,44 @@
+{ nixpkgs  ? <nixpkgs>
+, overlays ? []
+, config   ? {}
+
+           # ^ (these options (above) affect only « pkgs » (below).)
+
+, musl     ? false
+           # ^ if true, « musl » as the C Library (via « nixpkgs.pkgsMusl »).
+           #   if false, « glibc » as the C Library (via « nixpkgs.pkgs »).
+
+, pkgs     ? ( let ps = (import nixpkgs { inherit overlays config; });
+               in if   musl
+                  then ps.pkgs
+                  else ps.pkgsMusl
+             )
+
+           # ^ 
+
+, compiler ? "ghc863"
+
+           # ^ the haskell compiler. GHC 8.6.3 (by default).
+
+, test     ? false
+, bench    ? false
+, docs     ? false
+
+           # ^ build the « test:_ » and/or « benchmark:_ » components,
+           #   and/or build Haddocks.
+
+, strip    ? true
+
+           # ^ enable "executable stripping".
+
+... }:
+
+
+
+
+
+
+
 /* #if !defined(HS_BASE_FEATURE_MACROS_H) */
 /* #define HS_BASE_FEATURE_MACROS_H       */
 
@@ -50,6 +91,27 @@ where
 #ifdef HAS_MONAD_FAIL
 import "base" Control.Monad.Fail                     as X (MonadFail(..))
 #endif
+
+
+
+
+
+
+
+static = import ./static {};
+
+
+
+
+
+
+ shell.nix
+ 
+arguments@{...}: 
+
+(import ./nix/shell.nix) arguments
+
+
 
 
 
