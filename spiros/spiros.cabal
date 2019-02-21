@@ -1,5 +1,6 @@
 cabal-version:       2.2
                      -- ^ « v2.2 » provides « common » stanzas.
+
 build-type:          Simple
 
 --------------------------------------------------
@@ -37,7 +38,7 @@ tested-with: GHC == 8.6.1
 
 --------------------------------------------------
 
-license:             BSD-4-Clause
+license:             BSD-3-Clause
 copyright:           2018 Sam Boosalis
 license-file:        LICENSE
 

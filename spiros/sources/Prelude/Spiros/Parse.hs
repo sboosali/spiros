@@ -120,8 +120,10 @@ mkShowParserWith
   => [a]
   -> String -> m a
 
-mkShowParserWith values = mkParserWith title (map go values)
+mkShowParserWith values = mkParserFromList title aliases
   where
+
+  aliases = (go <$> values)
 
   go x = (x, [show x])
 
@@ -133,9 +135,42 @@ mkShowParserWith values = mkParserWith title (map go values)
 
 --------------------------------------------------
 
+{-| Create a simple parser from a "printing" function.
+
+
+>>> printINIBool = (fmap Data.Char.toLower . show)
+>>> parseINIBool = mkParserFromPrinterWith "INI Bool" printINIBool [False,True]
+>>> parseINIBool "true" :: Maybe Bool
+Just True
+>>> parseINIBool "2" :: Maybe Bool
+Nothing
+
+in @(mkParserFromPrinterWith _ p)@, the printing function @p@ should be injective
+(otherwise, some values will be ignored).
+
+-}
+
+mkParserFromPrinterWith
+  :: (MonadThrow m)
+  => String -> (a -> String) -> [a]
+  -> String -> m a
+
+mkParserFromPrinterWith title printer values = mkParserFromList title aliases
+  where
+
+  aliases = (go <$> values)
+
+  go x = (x, [printer x])
+
+--aliases = zip (values) (printer <$> values)
+
+{-# INLINEABLE mkParserFromPrinterWith #-}
+
+--------------------------------------------------
+
 {-| Create a simple parser from a list.
 
->>> parseINIBool = mkParserWith "INI Bool" [ False -: ["false","no","0"], True -: ["true","yes","1"] ] 
+>>> parseINIBool = mkParserFromList "INI Bool" [ False -: ["false","no","0"], True -: ["true","yes","1"] ] 
 >>> parseINIBool "true"
 True
 >>> parseINIBool "2"
@@ -150,12 +185,12 @@ Internally, builds a @Map@.
 
 -}
 
-mkParserWith
+mkParserFromList
   :: (MonadThrow m)
   => String -> [(a, [String])]
   -> String -> m a
 
-mkParserWith title aliases = lookupM
+mkParserFromList title aliases = lookupM
   where
 
   lookupM s
@@ -173,7 +208,7 @@ mkParserWith title aliases = lookupM
 
   mkEntry (x, ts) = ts & fmap (\t -> (t, x))
 
-{-# INLINEABLE mkParserWith #-}
+{-# INLINEABLE mkParserFromList #-}
 
 --------------------------------------------------
 --------------------------------------------------

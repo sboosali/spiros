@@ -294,6 +294,7 @@ import "base" Data.Foldable                          as X
  ( traverse_
  , for_
  , sequenceA_
+ , asum
  )
 import "base" Data.Traversable                       as X
  ( sequenceA
@@ -302,7 +303,11 @@ import "base" Data.Traversable                       as X
 import "base" Control.Applicative                    as X  
 
 import "base" Control.Arrow                          as X
-  ((&&&),(***),(+++),(|||))
+  ( (&&&)
+  , (***)
+  , (+++)
+  , (|||)
+  )
 
 import "base" Control.Monad                          as X
  ( MonadPlus(..)

@@ -236,6 +236,9 @@ fake dictionary literal syntax:
 (-:) = (,)
 infix 1 -:
 
+--------------------------------------------------
+--------------------------------------------------
+
 {-# INLINEABLE (-:) #-}
 
 todo :: a --TODO call stack
@@ -248,13 +251,43 @@ __BUG__ = error . show
 __ERROR__ :: String -> a --TODO callstack
 __ERROR__ = error 
 
--- | @= pure ()@
+--------------------------------------------------
+--------------------------------------------------
+
+-- | @= 'pure' ()@
+
 nothing :: (Applicative m) => m ()
 nothing = pure ()
 
--- nothing :: (Monad m) => m ()
--- nothing = return ()
+{-# INLINEABLE nothing #-}
 
+{- | Raise a Function Arrow into a Kleisli Arrow.
+
+a convenience function for composing pure functions between "kleislis" in monadic sequences.
+
+Definition:
+
+@= ('pure' .)@
+
+@
+returning f ≡ f >>> return
+
+returning f ≡ \x -> return (f x)
+@
+
+Usage:
+
+@readFile "example.txt" >>= returning show >>= forceIO
+@
+
+-}
+
+returning :: (Applicative m) => (a -> b) -> (a -> m b)
+returning f = f > pure
+
+{-# INLINEABLE returning #-}
+
+--------------------------------------------------
 --------------------------------------------------
 
 maybe2bool :: Maybe a -> Bool
@@ -331,25 +364,6 @@ infixl 7 `ratio` -- same as (%)
 -- etc
 
 --pure1 :: (Applicative f) => f a ->
-
-{- | trivial convenience function for composing pure functions between "kleislis" in monadic sequences. 
-
-e.g. @readFile "example.txt" >>= returning show >>= forceIO@
-
-@
-returning f = f >>> return
-
-returning f = \x -> return (f x)
-@
-
--}
-returning
-  :: (Monad m)
-  => (a ->   b)
-  -> (a -> m b)
-returning f = f > return
-
-{-# INLINEABLE returning #-}
 
 -- | @($>) = flip ('<$')@
 ($>) :: (Functor f) => f a -> b -> f b
