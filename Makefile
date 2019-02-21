@@ -24,7 +24,7 @@ ProjectFile ?=./cabal.project
 
 #------------------------------------------------#
 
-NixTargets ?=*
+#NixTargets ?=
 NixTarget  ?=packages.spiros
 
 #------------------------------------------------#
@@ -76,7 +76,7 @@ default: build
 
 nix: # cabal2nix
 
-	$(NixBuild)  -A "$(NixTargets)"  "$(NixDirectory)"
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result
 
 .PHONY: nix
 
@@ -84,9 +84,63 @@ nix: # cabal2nix
 
 nix-spiros: cabal2nix-spiros
 
-	$(NixBuild)  -A "packages.spiros"  "$(NixDirectory)"
+	$(NixBuild)  -A "packages.spiros"  "$(NixDirectory)"  --out-link ./result-spiros
 
 .PHONY: nix-spiros
+
+#------------------------------------------------#
+
+nix-musl:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-musl  --arg musl true
+
+.PHONY: nix-musl
+
+#------------------------------------------------#
+
+nix-ghcjs:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghcjs  --argstr compiler ghcjs
+
+.PHONY: nix-ghcjs
+
+#------------------------------------------------#
+
+nix-ghc-integer-simple:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-integer-simple  --arg integer-simple true
+
+.PHONY: nix-ghc-integer-simple
+
+#------------------------------------------------#
+
+nix-ghc-8-6:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-6  --argstr compiler ghc863
+
+.PHONY: nix-ghc-8-6
+
+#------------------------------------------------#
+
+nix-ghc-8-4:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-4  --argstr compiler ghc844
+
+.PHONY: nix-ghc-8-4
+
+#------------------------------------------------#
+
+nix-ghc-8-2:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-2  --argstr compiler ghc822
+
+.PHONY: nix-ghc-8-2
+
+#------------------------------------------------#
+
+# nix-ghc-8-0:
+# 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-0  --argstr compiler ghc802
+# .PHONY: nix-ghc-8-0
 
 #------------------------------------------------#
 

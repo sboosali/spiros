@@ -1,13 +1,7 @@
 ##################################################
-arguments@
+{ pkgs
 
-{ nixpkgs  ? <nixpkgs>
-, overlays ? []
-, config   ? {}
-
-           # ^ (these options (above) affect only « pkgs » (below).)
-
-, compiler ? "ghc863"
+, compiler ? null
 
            # ^ the haskell compiler. GHC 8.6.3 (by default).
 
@@ -38,62 +32,74 @@ arguments@
 
 assert (integer-simple -> (compiler != "ghcjs"));
 
+#------------------------------------------------#
+
 ##################################################
 let
 #------------------------------------------------#
 
-pkgs =
+haskellPackages =
 
   let
-  nixpkgs' = import nixpkgs { inherit overlays config; };
+
+  cabalAttributes =
+
+    {
+      doCheck     = test;
+      doBenchmark = bench;
+    };
+
+  hpkgs1 =
+
+    if   null == compiler
+    then pkgs.haskellPackages
+    else
+
+    if   integer-simple && (compiler != "ghcjs")
+    then pkgs.haskell.packages.integer-simple.${compiler}
+
+    else pkgs.haskell.packages.${compiler};
+
+  hpkgs2 =
+
+    hpkgs1.override {
+
+        overrides = self: super: {
+
+            mkDerivation = args:
+
+                (super.mkDerivation (args // cabalAttributes));
+        };
+    };
+
+  hpkgs3 = hpkgs2;
+
+  # hpkgs3 =
+  #   if   test
+  #   then hpkgs2.override {
+  #          overrides = self: super: {
+  #            mkDerivation = args: super.mkDerivation (args // { enableLibraryProfiling = true; });
+  #          };
+  #        }
+  #   else hpkgs2;
+
   in
 
-  if   musl
-  then nixpkgs'.pkgs
-  else nixpkgs'.pkgsMusl
-  ;
+  hpkgs3;
 
 #------------------------------------------------#
 
-inherit (pkgs) lib;
+haskellUtilities =
 
-#------------------------------------------------#
-
-systemPackages = pkgs;
-
-#------------------------------------------------#
-
-haskell = import ./haskell
-  {
-    inherit pkgs;
-    inherit compiler integer-simple;
-    inherit test bench docs strip;
-  };
-
-inherit (haskell)
-  haskellPackages
-  haskellUtilities
-  ;
-
-#------------------------------------------------#
-in
-##################################################
-let
-
-packages = import ./packages {
-
-  inherit systemPackages haskellPackages haskellUtilities;
-
-  inherit strip;
-
-};
+    pkgs.haskell.lib;
 
 #------------------------------------------------#
 in
 ##################################################
 {
 
- inherit packages;
+ inherit haskellPackages;
+ inherit haskellUtilities;
 
 }
 ##################################################

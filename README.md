@@ -6,7 +6,7 @@ Custom Prelude for my projects:
 * the `workflow-*` packages.
 * the `dication-*` packages.
 
-(I'm `sboo` on Hackage, see <http://hackage.haskell.org/user/sboo>.)
+(I'm `sboo` on Hackage, see <https://hackage.haskell.org/user/sboo>.)
 
 
 ## Features
@@ -14,7 +14,10 @@ Custom Prelude for my projects:
 Features include:
 
 * — .
-* Portability — works on GHC 7.10 to GHC 8.6, and on GHCJS. works with `musl` (and `glibc`).
+* Portability — works from GHC 7.10 (`ghc-7.10.3`) to GHC 8.6 (`ghc-8.6.3`). works on GHCJS (`ghcjs-8.4._`). works with `musl` for Static Linking (and with `glibc`, obviously).
+* — .
+* — .
+* — .
 
 
 ## 
