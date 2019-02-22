@@ -1,14 +1,16 @@
 ##################################################
 { pkgs
+, lib
 
 , compiler ? null
 
            # ^ the haskell compiler. GHC 8.6.3 (by default).
 
-, musl     ? false
+, static ? null #TODO#
 
-           # ^ if true, « musl » as the C Library (via « nixpkgs.pkgsMusl »).
-           #   if false, « glibc » as the C Library (via « nixpkgs.pkgs »).
+           # ^ if true, create statically-linkable libraries
+           #   (i.e. « .a » files on Linux, « .dylib » files on OSX).
+           #   if null, use the default behavior of « cabal ».
 
 , integer-simple ? false
 
@@ -17,10 +19,17 @@
 
 , test     ? false
 , bench    ? false
-, docs     ? false
 
-           # ^ build the « test:_ » and/or « benchmark:_ » components,
-           #   and/or build documentation (i.e. Haddock).
+           # ^ build the « test:_ » and/or « benchmark:_ » components.
+
+, docs     ? false
+, cover    ? false
+
+           # ^ generate documentation (i.e. Haddocks) and/or a coverage report.
+
+, dce      ? false
+
+           # ^ « dce » abbreviates "Dead Code Elimination".
 
 , strip    ? true
 
@@ -28,11 +37,31 @@
 
 , ... }:
 
+# For more information about the GHC (/ Cabal) options, see
+# « https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/haskell-modules/lib.nix ».
+
 ##################################################
 
 assert (integer-simple -> (compiler != "ghcjs"));
 
 #------------------------------------------------#
+
+#TODO# enableRelocatedStaticLibs = true;
+
+/*TODO sbooOverrides = sel: sup: 
+  {
+
+    mkDerivation
+      = drv: sup.mkDerivation (drv //
+         {
+           jailbreak   = true; 
+           doHaddock   = true;
+           doCheck     = false;
+           doBenchmark = false;
+         });
+
+  };
+*/
 
 ##################################################
 let
@@ -45,9 +74,25 @@ haskellPackages =
   cabalAttributes =
 
     {
+
       doCheck     = test;
       doBenchmark = bench;
-    };
+
+      doHaddock   = docs;
+      doCoverage  = cover;
+      hyperlinkSource = true;
+
+      dontStrip                 =  (! strip);
+      enableDeadCodeElimination = dce;
+
+   } // (lib.optionalAttrs (static != null)
+          {
+            enableStaticLibraries = static;
+            
+            enableSharedExecutables = (! static);
+            enableLibraryProfiling  = (! static);
+          }
+   ) ;
 
   hpkgs1 =
 

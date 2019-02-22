@@ -8,14 +8,25 @@
 
 ##################################################
 let
+#------------------------------------------------#
 
-in
-##################################################
-let
+haskellPackages' = haskellPackages;
+
+# haskellPackages' = haskellPackages.override {
+
+#   overrides = self: super:
+
+#     packages;
+
+# };
+
+#------------------------------------------------#
 
 overrides = import ./overrides {
 
-  inherit systemPackages haskellPackages haskellUtilities;
+  inherit systemPackages haskellUtilities;
+
+  haskellPackages = haskellPackages';
 
 };
 
@@ -23,7 +34,21 @@ overrides = import ./overrides {
 
 cabal2nix = import ./cabal2nix {
 
-  inherit haskellPackages;
+  haskellPackages = haskellPackages';
+
+};
+
+#------------------------------------------------#
+#------------------------------------------------#
+
+#TODO# overriden « haskellPackages' » such that (project-)local packages depend on each other.
+
+packages = {
+
+  inherit spiros;
+  inherit spiros-base;
+
+  inherit example-spiros;
 
 };
 
@@ -35,11 +60,20 @@ spiros =
 
 #------------------------------------------------#
 
+spiros-base =
+
+  null; #TODO#
+
+#------------------------------------------------#
+
+example-spiros =
+
+  haskellUtilities.justStaticExecutables spiros;
+
+#------------------------------------------------#
 in
 ##################################################
-{
 
-  inherit spiros;
+packages
 
-}
 ##################################################
