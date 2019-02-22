@@ -1,5 +1,7 @@
 # Notes
 
+
+
 ## `error`
 
 ```haskell
@@ -11,11 +13,67 @@ error :: forall (r :: RuntimeRep).
 -- error stops execution and displays an error message.
 ```
 
+
+
 ## `GHC.Stack`
 
 
 
+
 ## `CPP`
+
+
+
+
+
+
+
+
+## Static-Linking
+
+## 
+
+
+the syntax of `lxxx` is `"lib" + <LibName> + ".so"`.
+
+i.e. give this linker error:
+
+    /usr/bin/ld: cannot find -lc
+    /usr/bin/ld: cannot find -lltdl
+    /usr/bin/ld: cannot find -lXtst
+    /usr/bin/ld: cannot find -lzlib
+
+these Dynamic Libraries are translated as:
+
+* `-lc`    — means `libc.so`
+* `-lltdl` — means `libltdl.so`
+* `-lXtst` — means `libXts.so`
+* `-lzlib` — means (?) `libzlib.so`
+
+and these Static Libraries are translated as:
+
+* TODO
+
+
+
+## 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -203,9 +261,134 @@ these derivations will be built:
 ```
 
 
+dynamically linked: 
 
+```sh
+$ make example 
 
+cabal new-install --project-file ./cabal.project --overwrite-policy=always "exe:example-sprios"
+
+Wrote tarball sdist to
+/home/sboo/haskell/spiros/dist-newstyle/sdist/spiros-0.3.1.tar.gz
+Resolving dependencies...
+Build profile: -w ghc-8.6.3 -O1
+In order, the following will be built (use -v for more details):
+ - spiros-0.3.1 (lib) (requires build)
+ - spiros-0.3.1 (exe:example-sprios) (requires build)
+
+Starting     spiros-0.3.1 (lib)
+Building     spiros-0.3.1 (lib)
+Haddock      spiros-0.3.1 (lib)
+Installing   spiros-0.3.1 (lib)
+Completed    spiros-0.3.1 (lib)
+Starting     spiros-0.3.1 (exe:example-sprios)
+Building     spiros-0.3.1 (exe:example-sprios)
+Haddock      spiros-0.3.1 (exe:example-sprios)
+Installing   spiros-0.3.1 (exe:example-sprios)
+Completed    spiros-0.3.1 (exe:example-sprios)
+Symlinking 'example-sprios'
+
+ldd `which example-sprios`
+
+	/nix/store/*-glibc-2.27/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2                 (0x00007f13cf025000)
+	libc.so.6                                        => /nix/store/*-glibc-2.27/lib/libc.so.6       (0x00007f13ce2cd000)
+	libdl.so.2                                       => /nix/store/*-glibc-2.27/lib/libdl.so.2      (0x00007f13ce681000)
+	libm.so.6                                        => /nix/store/*-glibc-2.27/lib/libm.so.6       (0x00007f13cec90000)
+	libpthread.so.0                                  => /nix/store/*-glibc-2.27/lib/libpthread.so.0 (0x00007f13ce0ae000)
+	librt.so.1                                       => /nix/store/*-glibc-2.27/lib/librt.so.1      (0x00007f13cea88000)
+	libutil.so.1                                     => /nix/store/*-glibc-2.27/lib/libutil.so.1    (0x00007f13ce885000)
+	linux-vdso.so.1                                  =>                                             (0x00007fff67bbd000)
+```
+
+statically linked: 
+
+```sh
+$ make nix-static
+
+$ ldd result-static/bin/example-sprios
+
+	/nix/store/*-glibc-2.27/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2                 (0x00007f13cf025000)
+	libc.so.6                                        => /nix/store/*-glibc-2.27/lib/libc.so.6       (0x00007f13ce2cd000)
+	libdl.so.2                                       => /nix/store/*-glibc-2.27/lib/libdl.so.2      (0x00007f13ce681000)
+	libm.so.6                                        => /nix/store/*-glibc-2.27/lib/libm.so.6       (0x00007f13cec90000)
+	libpthread.so.0                                  => /nix/store/*-glibc-2.27/lib/libpthread.so.0 (0x00007f13ce0ae000)
+	librt.so.1                                       => /nix/store/*-glibc-2.27/lib/librt.so.1      (0x00007f13cea88000)
+	libutil.so.1                                     => /nix/store/*-glibc-2.27/lib/libutil.so.1    (0x00007f13ce885000)
+	linux-vdso.so.1                                  =>                                             (0x00007fff67bbd000)
+```
+
+:
+
+```sh
+$ make nix-cabal-static
+
+...
+/nix/store/*-binutils-2.30/bin/ld:
+    /nix/store/*-gcc-7.3.0/lib/gcc/x86_64-unknown-linux-gnu/7.3.0/crtbeginT.o:
+        relocation R_X86_64_32 against hidden symbol `__TMC_END__' can not be used when making a shared object
+
+/nix/store/*-binutils-2.30/bin/ld:
+    final link failed: Nonrepresentable section on output
+```
+
+i.e. Linker Errors:
+
+* `relocation R_X86_64_32 against hidden symbol ``__TMC_END__'' can not be used when making a shared object`
+* `final link failed: Nonrepresentable section on output`
 
 
 ## 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Cross-Compilation
+
+## "Beginner’s guide to cross compilation in Nixpkgs"
+
+<https://matthewbauer.us/blog/beginners-guide-to-cross.html>
+
+> a short list of cross package sets, with their corresponding attribute names:
+
+* x86_64 Musl  — `pkgsCross.musl64`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 
+
+
+
+
+
+
+
+
+
+
+
+
+
 

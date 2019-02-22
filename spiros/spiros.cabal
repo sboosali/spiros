@@ -59,6 +59,14 @@ source-repository head
 -- Flags -----------------------------------------
 --------------------------------------------------
 
+flag static
+
+  default:     False
+
+  description: Build a statically-linked executable (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
+
+  manual:      True
+
 --------------------------------------------------
 -- Library ---------------------------------------
 --------------------------------------------------
@@ -90,7 +98,15 @@ library
                  Prelude.Spiros.System
                  Prelude.Spiros.Validator
 
-------------------------------
+ ------------------------------
+
+ if flag(static)
+
+    cc-options: -static
+    ld-options: -static
+                -pthread
+
+ ------------------------------
 
  if impl(ghc >= 8.0)
     exposed-modules:
@@ -224,6 +240,53 @@ library
 
  if impl(ghc >= 8.2)
     ghc-options: -Wcpp-undef
+
+--------------------------------------------------
+-- Executables -----------------------------------
+--------------------------------------------------
+
+executable example-sprios
+
+ ------------------------------
+
+ default-language: Haskell2010
+ 
+ ------------------------------
+
+ main-is:             Main.hs
+
+ hs-source-dirs:      executables
+
+ ------------------------------
+
+ other-modules: Example.Spiros
+
+ ------------------------------
+
+ build-depends: spiros
+              , base >=4.10 && <5
+              , text
+              , optparse-applicative
+
+ ------------------------------
+
+ if flag(static)
+
+    cc-options: -static
+    ld-options: -static
+                -pthread
+
+ ------------------------------
+
+ ghc-options: -O2
+
+              -threaded
+              -rtsopts -with-rtsopts=-N             
+ 
+              -Wno-missing-signatures
+              -fno-warn-type-defaults
+
+ ------------------------------
 
 --------------------------------------------------
 -- Tests -----------------------------------------

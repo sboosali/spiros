@@ -74,7 +74,7 @@ default: build
 # `nix` wrapper targets
 ##################################################
 
-nix: # cabal2nix
+nix: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result
 
@@ -90,7 +90,41 @@ nix-spiros: cabal2nix-spiros
 
 #------------------------------------------------#
 
-nix-musl:
+nix-cabal-static:
+
+	$(NixBuild)  -A "cabal.static"  "$(NixDirectory)"  --out-link "./result-cabal"
+
+	@echo -e "\n========================================\n"
+
+	tree "./result-cabal"
+
+	@echo -e "\n========================================\n"
+
+	cat "./result-cabal/*.project"
+
+	@echo -e "\n========================================\n"
+
+.PHONY: nix-cabal-static
+
+#------------------------------------------------#
+
+nix-static: cabal2nix-static
+
+	@echo -e "\n========================================\n"
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link "./result-static"  --arg static true
+
+	@echo -e "\n========================================\n"
+
+	ldd "./result-static/bin/example-sprios"
+
+	@echo -e "\n========================================\n"
+
+.PHONY: nix-static
+
+#------------------------------------------------#
+
+nix-musl: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-musl  --arg musl true
 
@@ -98,7 +132,7 @@ nix-musl:
 
 #------------------------------------------------#
 
-nix-ghcjs:
+nix-ghcjs: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghcjs  --argstr compiler ghcjs
 
@@ -106,47 +140,83 @@ nix-ghcjs:
 
 #------------------------------------------------#
 
-nix-ghc-integer-simple:
+nix-ghc-integer-simple: cabal2nix
 
-	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-integer-simple  --arg integer-simple true
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-integer-simple  --arg integer-simple true
 
 .PHONY: nix-ghc-integer-simple
 
 #------------------------------------------------#
 
-nix-ghc-8-6:
+nix-ghc-8.6: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-6  --argstr compiler ghc863
 
-.PHONY: nix-ghc-8-6
+.PHONY: nix-ghc-8.6
 
 #------------------------------------------------#
 
-nix-ghc-8-4:
+nix-ghc-8.4: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-4  --argstr compiler ghc844
 
-.PHONY: nix-ghc-8-4
+.PHONY: nix-ghc-8.4
 
 #------------------------------------------------#
 
-nix-ghc-8-2:
+nix-ghc-8.2: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-2  --argstr compiler ghc822
 
-.PHONY: nix-ghc-8-2
+.PHONY: nix-ghc-8.2
 
 #------------------------------------------------#
 
-# nix-ghc-8-0:
+# nix-ghc-8.0: cabal2nix
 # 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-8-0  --argstr compiler ghc802
-# .PHONY: nix-ghc-8-0
+# .PHONY: nix-ghc-8.0
+
+#------------------------------------------------#
+
+# nix-ghc-7.10: cabal2nix
+# 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-ghc-7-10  --argstr compiler ghc7103
+# .PHONY: nix-ghc-7.10
+
+#------------------------------------------------#
+
+nix-static-integer-simple: cabal2nix
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-static-integer-simple  --arg static true  --arg integer-simple true
+
+	ldd "./result-static-integer-simple/bin/example-sprios"
+
+.PHONY: nix-static-integer-simple
 
 #------------------------------------------------#
 
 cabal2nix: cabal2nix-spiros
 
 .PHONY: cabal2nix
+
+#------------------------------------------------#
+
+cabal2nix-static:
+
+	@echo "========================================"
+
+	mkdir -p "$(Cabal2nixDirectory)"
+
+	@echo "#  -*- mode: nix; buffer-read-only: t; -*-  " > "$(Cabal2nixDirectory)/spiros.nix"
+
+	(cd "$(Cabal2nixDirectory)"  &&  $(Cabal2nix) "-fstatic" "file://$(BaseDirectory)/spiros" >> "./spiros.nix")
+
+        # ^ Nix PathLiterals are relative to their source file (not the directory of an invoked command).
+
+	@echo "========================================"
+
+	@cat "$(Cabal2nixDirectory)/spiros.nix"
+
+.PHONY: cabal2nix-static
 
 #------------------------------------------------#
 
@@ -168,13 +238,53 @@ cabal2nix-spiros:
 
 .PHONY: cabal2nix-spiros
 
+#------------------------------------------------#
+
+nix-static-example:
+
+.PHONY: nix-static-example
+
+#------------------------------------------------#
+
+##################################################
+# Executables ####################################
+##################################################
+
+#------------------------------------------------#
+
+example:
+
+	$(CabalBuild) $(CabalOptions) "exe:example-sprios"
+
+	$(Cabal) new-exec $(CabalOptions) -- example-sprios --version
+
+	$(Cabal) new-install $(CabalOptions) --overwrite-policy=always "exe:example-sprios"
+
+	ldd `which example-sprios`
+
+#	cabal new-exec --project-file ./cabal.project -- ldd `which example-sprios`
+
+.PHONY: example
+
+#------------------------------------------------#
+
+static-example:
+
+	$(Cabal) new-run $(CabalOptions) -fstatic "exe:example-sprios" -- "--help"
+
+	ldd `which example-sprios`
+
+.PHONY: static-example
+
 ##################################################
 # `cabal` wrapper targets
 ##################################################
 
+#------------------------------------------------#
+
 build:
 
-	$(CabalBuild) $(CabalOptions) $(CabalTargets)
+	$(CabalBuild) $(CabalTargets)
 
 .PHONY: build
 
@@ -186,12 +296,11 @@ check:
 
 .PHONY: check
 
+##################################################
+
 #------------------------------------------------#
 
-build-default:
-	cabal new-build $(DefaultTarget)
-
-.PHONY: build-default
+##################################################
 
 #------------------------------------------------#
 
@@ -232,30 +341,49 @@ stack-compile:
 
 #------------------------------------------------#
 
-sdist: build
-	cabal sdist
+# configure: configure-sboo
 
-.PHONY: sdist
+# .PHONY: configure
 
 #------------------------------------------------#
 
-configure: configure-8-4
+configure-ghcjs:
+
+	cabal new-configure --project-file="./cabal-ghcjs.project"
+
+.PHONY: configure-ghcjs
+
+#------------------------------------------------#
+
+unconfigure:
+
+	cabal new-configure
+
+.PHONY: unconfigure
+
+#------------------------------------------------#
+
+configure:
+
+	cabal --enable-nix new-configure --project-file="./cabal.project"
 
 .PHONY: configure
 
 #------------------------------------------------#
 
-configure-8-4:
-	cabal new-configure --enable-nix -w ghc-8.4.3
+configure-ghc-8.4:
 
-.PHONY: configure-8-4
+	cabal --enable-nix new-configure -w ghc-8.4.4
+
+.PHONY: configure-ghc-8.4
 
 #------------------------------------------------#
 
-configure-8-6:
-	cabal new-configure --enable-nix -w ghc-8.6.1
+configure-ghc-8.6:
 
-.PHONY: configure-8-6
+	cabal --enable-nix new-configure -w ghc-8.6.3
+
+.PHONY: configure-ghc-8.6
 
 #------------------------------------------------#
 
@@ -267,5 +395,38 @@ tags:
         # * the « ... < ... » is a Redirection.
 
 .PHONY: tags
+
+##################################################
+# Building #######################################
+##################################################
+
+#------------------------------------------------#
+
+build-ghcjs:
+
+	cabal new-build --project-file="./cabal-ghcjs.project" all
+
+.PHONY: build-ghcjs
+
+#------------------------------------------------#
+
+
+
+#------------------------------------------------#
+
+##################################################
+# Release ########################################
+##################################################
+
+#------------------------------------------------#
+
+sdist:
+
+	cabal new-build all
+	cabal new-sdist all
+
+#	(cd ./spiros  &&  cabal sdist)
+
+.PHONY: sdist
 
 ##################################################
