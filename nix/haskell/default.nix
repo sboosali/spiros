@@ -2,36 +2,36 @@
 { pkgs
 , lib
 
-, compiler ? null
+, compiler
 
            # ^ the haskell compiler. GHC 8.6.3 (by default).
 
-, static ? null #TODO#
+, static
 
            # ^ if true, create statically-linkable libraries
            #   (i.e. « .a » files on Linux, « .dylib » files on OSX).
            #   if null, use the default behavior of « cabal ».
 
-, integer-simple ? false
+, integer-simple
 
            # ^ if true, « integer-simple » as GHC's numeric library.
            #   if false, « gmp » as GHC's numeric library (the default).
 
-, test     ? false
-, bench    ? false
+, test
+, bench
 
            # ^ build the « test:_ » and/or « benchmark:_ » components.
 
-, docs     ? false
-, cover    ? false
+, docs 
+, cover
 
            # ^ generate documentation (i.e. Haddocks) and/or a coverage report.
 
-, dce      ? false
+, dce  
 
            # ^ « dce » abbreviates "Dead Code Elimination".
 
-, strip    ? true
+, strip
 
            # ^ enable "executable stripping".
 
@@ -82,17 +82,10 @@ haskellPackages =
       doCoverage  = cover;
       hyperlinkSource = true;
 
-      dontStrip                 =  (! strip);
+      dontStrip                 = (! strip);
       enableDeadCodeElimination = dce;
 
-   } // (lib.optionalAttrs (static != null)
-          {
-            enableStaticLibraries = static;
-            
-            enableSharedExecutables = (! static);
-            enableLibraryProfiling  = (! static);
-          }
-   ) ;
+   };
 
   hpkgs1 =
 
@@ -111,9 +104,9 @@ haskellPackages =
 
         overrides = self: super: {
 
-            mkDerivation = args:
+            mkDerivation = attrs:
 
-                (super.mkDerivation (args // cabalAttributes));
+                (super.mkDerivation (attrs // cabalAttributes));
         };
     };
 

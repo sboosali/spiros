@@ -3,6 +3,7 @@
 , haskellPackages
 , haskellUtilities
 
+, static
 , strip
 }:
 
@@ -27,6 +28,8 @@ overrides = import ./overrides {
   inherit systemPackages haskellUtilities;
 
   haskellPackages = haskellPackages';
+
+  inherit static strip;
 
 };
 

@@ -39,7 +39,7 @@ tested-with: GHC == 8.6.1
 --------------------------------------------------
 
 license:             BSD-3-Clause
-copyright:           2018 Sam Boosalis
+copyright:           2019 Sam Boosalis
 license-file:        LICENSE
 
 --------------------------------------------------
@@ -77,32 +77,33 @@ library
 
  hs-source-dirs: sources
 
- exposed-modules:
+ exposed-modules: 
                  --Spiros
 
-                 Prelude.Spiros
+                  Prelude.Spiros
 
-                 Prelude.Spiros.Reexports
-                 Prelude.Spiros.Utilities
-                 Prelude.Spiros.Classes
-                 Prelude.Spiros.Types
+                  Prelude.Spiros.Reexports
+                  Prelude.Spiros.Utilities
+                  Prelude.Spiros.Classes
+                  Prelude.Spiros.Types
+
+                  Prelude.Spiros.Print
+                  Prelude.Spiros.Parse
 
  other-modules:
 
-                 Prelude.Spiros.Compatibility
-                 Prelude.Spiros.Enriched
-                 Prelude.Spiros.Exception
-                 Prelude.Spiros.GUI
-                 Prelude.Spiros.Generics
-                 Prelude.Spiros.Parse
-                 Prelude.Spiros.System
-                 Prelude.Spiros.Validator
+                  Prelude.Spiros.Compatibility
+                  Prelude.Spiros.Enriched
+                  Prelude.Spiros.Exception
+                  Prelude.Spiros.GUI
+                  Prelude.Spiros.Generics
+                  Prelude.Spiros.System
+                  Prelude.Spiros.Validator
 
  ------------------------------
 
  if flag(static)
 
-    cc-options: -static
     ld-options: -static
                 -pthread
 
@@ -272,9 +273,18 @@ executable example-sprios
 
  if flag(static)
 
-    cc-options: -static
     ld-options: -static
                 -pthread
+
+   -- cc-options: -static
+
+   -- ghc-options: -pgml g++
+   --              "-optl-Wl,--allow-multiple-definition"
+   --              "-optl-Wl,--whole-archive"
+   --              "-optl-Wl,-Bstatic"
+   --           -- "-optl-Wl,-lfltkc"
+   --              "-optl-Wl,-Bdynamic"
+   --              "-optl-Wl,--no-whole-archive"
 
  ------------------------------
 

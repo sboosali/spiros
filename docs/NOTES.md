@@ -29,10 +29,25 @@ error :: forall (r :: RuntimeRep).
 
 
 
-## Static-Linking
 
-## 
 
+
+
+
+
+
+## Debugging
+
+### 
+
+#### Problem
+
+#### Solution
+
+
+### 
+
+#### Problem
 
 the syntax of `lxxx` is `"lib" + <LibName> + ".so"`.
 
@@ -54,9 +69,54 @@ and these Static Libraries are translated as:
 
 * TODO
 
+#### Solution(?)
+
+add StaticLibraries as BuildInputs.
+
+e.g. add `glibc.static` to the `buildInputs` to get a static `-lc`.
 
 
-## 
+
+### 
+
+#### Problem
+
+#### Solution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Static-Linking
+
+### Statically-Linked FLTK(HS)
+
+```nix
+Executable fltkhs-buttons
+
+  if os(windows)
+    ghc-Options: -optl-mwindows
+    ghc-Options: -pgml g++ "-optl-Wl,--allow-multiple-definition" "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lfltkc" "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
+
+  if os(darwin)
+    ghc-Options: "-optl-Wl,-lfltkc"
+
+  if !os(darwin) && !os(windows)
+   ghc-Options: -pgml g++ "-optl-Wl,--allow-multiple-definition" "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lfltkc" "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
+```
 
 
 
@@ -79,7 +139,23 @@ and these Static Libraries are translated as:
 
 ## Nix
 
-### 
+
+### `nix-build` Errors
+
+the Configure Errors include:
+
+* `configure: error: Cannot find system libffi`
+
+the Linker Errors include:
+
+* `relocation R_X86_64_32 against hidden symbol ``__TMC_END__'' can not be used when making a shared object`
+* `final link failed: Nonrepresentable section on output`
+* `relocation R_X86_64_PC32 against undefined symbol ``__pthread_unwind'' can not be used when making a shared object; recompile with -fPIC`
+* `warning: Using 'dlopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking`
+
+
+
+### stdout/stderr
 
 ```nix
 ##################################################
@@ -331,13 +407,39 @@ $ make nix-cabal-static
     final link failed: Nonrepresentable section on output
 ```
 
-i.e. Linker Errors:
+```nix
 
-* `relocation R_X86_64_32 against hidden symbol ``__TMC_END__'' can not be used when making a shared object`
-* `final link failed: Nonrepresentable section on output`
+ld: .../ghc-8.6.3/rts/libHSrts_thr.a(Linker.thr_o):
+    in function `internal_dlopen':
+        Linker.c:(.text.internal_dlopen+0x27): 
+            warning: Using 'dlopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+
+ld: .../ghc-8.6.3/rts/libHSrts_thr.a(Task.thr_o):
+    undefined reference to symbol '__tls_get_addr@@GLIBC_2.3'
+    ld: .../glibc-2.27/lib/ld-linux-x86-64.so.2:
+        error adding symbols: DSO missing from command line
+            collect2: error: ld returned 1 exit status
+```
+
+building `ghc` via `musl` (i.e. `pkgsCross.musl64.haskell.packages.ghc863`):
+
+```nix
+configure: error: Cannot find system libffi
+```
+
+
+```nix
+```
 
 
 ## 
+
+
+
+
+
+
+
 
 
 

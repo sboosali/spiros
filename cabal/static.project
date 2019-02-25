@@ -2,7 +2,11 @@
 -- Projects --------------------------------------
 --------------------------------------------------
 
-packages: /home/sboo/haskell/spiros/spiros
+packages: ./spiros
+
+--------------------------------------------------
+
+flags: +static
 
 --------------------------------------------------
 -- Statically-Linked Executables
@@ -12,6 +16,8 @@ static: True
 
 -- « static »
 -- "Roll this and all dependent libraries into a combined .a archive. This uses GHCs -staticlib flag, which is avaiable for iOS and with GHC 8.4 and later for other platforms as well."
+
+--------------------------------------------------
 
 shared: False
 
@@ -24,19 +30,6 @@ executable-dynamic: False
 
 -- « executable-dynamic »
 -- "Link executables dynamically. The executable’s library dependencies should be built as shared objects. This implies shared: True unless shared: False is explicitly specified."
-
-executable-stripping: True
-
--- « executable-stripping »
--- "Use the GHC -split-objs feature when building the library. This reduces the final size of the executables that use the library by allowing them to link with only the bits that they use rather than the entire library. The downside is that building the library takes longer and uses considerably more memory."
-
-split-objs: True
-
-profiling: False
-
---------------------------------------------------
-
-flags: +static
 
 --------------------------------------------------
 
@@ -63,9 +56,25 @@ package *
 
   ----------------------------
 
+  cpp-options:
+
+    -fPIC
+
+    -fvisibility=hidden
+
+    -- ^ « -fvisibility=hidden » may help with this linker error: « final link failed: Nonrepresentable section on output ».
+
+  ----------------------------
+
   ghc-options:
 
     -fPIC
+
+  ----------------------------
+
+  extra-lib-dirs: /nix/store/03rrsz3svcl89m04hzcvqbbjrbszsb36-gmp-6.1.2-x86_64-unknown-linux-musl/lib
+                  /nix/store/azfycl51sidsd1qm9pr46zi4dwbkj9l7-glibc-2.27-x86_64-unknown-linux-musl-static/lib
+                  /nix/store/bp7gyx43lsp7yxdwf5ghikzhd9dq6m72-zlib-1.2.11-x86_64-unknown-linux-musl-static/lib
 
   ----------------------------
 
@@ -77,28 +86,12 @@ package *
 -- Settings --------------------------------------
 --------------------------------------------------
 
--- nix: False
-
-verbose: 2
-         -- « 1 » by default.
-
-jobs: 4
-      -- « $ncpus » by default.
-
---------------------------------------------------
-
-deterministic: True
-relocatable:   True
-
---------------------------------------------------
-
-tests: False
-
 --------------------------------------------------
 -- Compiler --------------------------------------
 --------------------------------------------------
 
-with-compiler: /home/sboo/.nix-profile/bin/ghc-8.6.3
+with-compiler: ghc-8.6.3
+-- TODO -- GHC with PIC for PIE
 
 --------------------------------------------------
 -- Repositories ----------------------------------

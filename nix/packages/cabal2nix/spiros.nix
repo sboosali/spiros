@@ -10,7 +10,6 @@ mkDerivation {
   pname = "spiros";
   version = "0.3.1";
   src = /home/sboo/haskell/spiros/spiros;
-  configureFlags = [ "-fstatic" ];
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [

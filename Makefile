@@ -124,6 +124,22 @@ nix-static: cabal2nix-static
 
 #------------------------------------------------#
 
+nix-dynamic: cabal2nix
+
+	@echo -e "\n========================================\n"
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link "./result-dynamic"  --arg static false
+
+	@echo -e "\n========================================\n"
+
+	ldd "./result-dynamic/bin/example-sprios"
+
+	@echo -e "\n========================================\n"
+
+.PHONY: nix-dynamic
+
+#------------------------------------------------#
+
 nix-musl: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-musl  --arg musl true
@@ -191,6 +207,18 @@ nix-static-integer-simple: cabal2nix
 	ldd "./result-static-integer-simple/bin/example-sprios"
 
 .PHONY: nix-static-integer-simple
+
+#------------------------------------------------#
+
+nix-local:
+
+	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-local  --arg nixpkgs "~/nixpkgs"
+
+.PHONY: nix-local
+
+##################################################
+# « cabal2nix »...
+##################################################
 
 #------------------------------------------------#
 
@@ -287,6 +315,28 @@ build:
 	$(CabalBuild) $(CabalTargets)
 
 .PHONY: build
+
+#------------------------------------------------#
+
+build-static:
+
+	@echo -e "\n========================================\n"
+
+#	$(CabalBuild)  --disable-shared  --enable-static  $(CabalTargets)
+
+	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-sprios"   #   "lib:spiros"
+
+	@echo -e "\n========================================\n"
+
+	tree "./dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.1/"
+
+	@echo -e "\n========================================\n"
+
+	ldd "./dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.1/x/example-sprios/build/example-sprios/example-sprios"
+
+	@echo -e "\n========================================\n"
+
+.PHONY: build-static
 
 #------------------------------------------------#
 

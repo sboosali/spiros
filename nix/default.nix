@@ -14,7 +14,7 @@ arguments@
            #   (or try to have as few dynamic library dependencies as possible).
            #   « static = true » implies « musl = true » (among other things).
 
-, compiler ? "ghc863"
+, compiler ? "ghc844"  # "ghc863"
 
            # ^ the haskell compiler. GHC 8.6.3 (by default).
 
@@ -86,9 +86,9 @@ pkgs =
   in
 
   if   musl
-  then nixpkgs'.pkgs
-  else nixpkgs'.pkgsCross.musl64
-# else nixpkgs'.pkgsMusl
+ #then nixpkgs'.pkgsCross.musl64
+  then nixpkgs'.pkgsMusl
+  else nixpkgs'.pkgs
   ;
 
 #------------------------------------------------#
@@ -123,7 +123,7 @@ packages = import ./packages {
 
   inherit systemPackages haskellPackages haskellUtilities;
 
-  inherit strip;
+  inherit static strip;
 
 };
 

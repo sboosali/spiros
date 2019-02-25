@@ -8,6 +8,7 @@
 
 --------------------------------------------------
 
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric #-}
 
@@ -50,7 +51,153 @@ import           "base" Control.Exception (Exception(..))
 import qualified "base" Prelude
 
 --------------------------------------------------
+-- Types -----------------------------------------
 --------------------------------------------------
+
+{-| Simple parser.
+
+a Type Alias for parsing values from strings:
+
+@
+(readThrow) :: (Read a) => 'SimpleParse' a
+@
+
+Expansions.
+
+@
+                  'SimpleParse' a
+
+≡
+
+('MonadThrow' m) => 'ParseM' m a
+
+≡
+
+('MonadThrow' m) => (String -> m a)
+@
+
+
+Specializations.
+
+Specializations include:
+
+@
+'SimpleParse' a  ≡  (String -> 'Maybe'                a)
+'SimpleParse' a  ≡  (String ->                      [a])
+'SimpleParse' a  ≡  (String -> 'Either' 'SomeException' a)
+'SimpleParse' a  ≡  (String -> 'IO'                   a)
+@
+
+Usage:
+
+@
+-- an example printer:
+
+parseVerbosity :: 'SimpleParse' Verbosity
+parseVerbosity s = go s
+
+  where
+  go = \case
+  
+    \"concise\" -> return Concise
+    \"verbose\" -> return Verbose
+  
+    \"Concise\" -> return Concise
+    \"Verbose\" -> return Verbose
+  
+    \"default\" -> return def
+  
+    _         -> throwString s
+
+-- for this type:
+
+data Verbosity = Concise | Verbose
+
+instance Default Verbosity where def = Concise
+@
+
+Also see 'SimpleParseM'.
+
+-}
+
+type SimpleParse a =
+
+  (forall m. (MonadThrow m) => SimpleParseM m a)
+
+---(forall m. (MonadThrow m) => String -> m a)
+
+--------------------------------------------------
+
+{-| Simple (monadic) parser.
+
+Usage:
+
+@
+-- an example printer:
+
+parseVerbosity :: ('MonadThrow' m) => 'SimpleParseM' m Verbosity
+parseVerbosity s = go s
+
+  where
+  go = \case
+  
+    \"concise\" -> return Concise
+    \"verbose\" -> return Verbose
+  
+    \"Concise\" -> return Concise
+    \"Verbose\" -> return Verbose
+  
+    \"default\" -> return def
+  
+    _         -> throwString s
+
+-- for this type:
+
+data Verbosity = Concise | Verbose
+
+instance Default Verbosity where def = Concise
+
+-- which can be instantiated as:
+
+parseVerbosity_Maybe :: 'SimpleParseM' 'Maybe' Verbosity
+parseVerbosity_Maybe = parseVerbosity
+
+parseVerbosity_Either :: 'SimpleParseM' 'Either' Verbosity
+parseVerbosity_Either = parseVerbosity
+
+parseVerbosity_List :: 'SimpleParseM' [] Verbosity
+parseVerbosity_List = parseVerbosity
+
+parseVerbosity_IO :: 'SimpleParseM' 'IO' Verbosity
+parseVerbosity_IO = parseVerbosity
+@
+
+-}
+
+type SimpleParseM m a =
+
+  (String -> m a)
+
+--------------------------------------------------
+--------------------------------------------------
+
+-- {-|
+
+-- -}
+
+-- newtype SimpleParserM (m :: * -> *) (a :: *) = SimpleParserM
+
+--   { getSimpleParserM ::
+
+--       (String -> m a)
+--   }
+
+--   deriving (Functor,Generic)
+
+-- --TODO Cpp for DerivingStrategies
+--   -- deriving newtype  (Functor,Foldable,Traversable)
+--   -- deriving stock    (Generic)
+--   -- deriving newtype  (NFData)
 
 data ParseError = ParseError
 
@@ -80,6 +227,7 @@ instance IsString ParseError where
     } 
 
 --------------------------------------------------
+-- Definitions -----------------------------------
 --------------------------------------------------
 
 {-| Create a simple parser for a type.
@@ -96,7 +244,7 @@ Nothing
 
 -}
 
-mkBoundedEnumParser :: forall a. forall m. (MonadThrow m, BoundedEnum a, Show a, Typeable a) => String -> m a
+mkBoundedEnumParser :: forall a. forall m. (MonadThrow m, BoundedEnum a, Show a, Typeable a) => SimpleParseM m a
 mkBoundedEnumParser = mkShowParserWith (constructors proxy)
   where
   proxy = [] :: [a]
@@ -118,7 +266,7 @@ True
 mkShowParserWith
   :: forall a. forall m. (MonadThrow m, Show a, Typeable a)
   => [a]
-  -> String -> m a
+  -> SimpleParseM m a
 
 mkShowParserWith values = mkParserFromList title aliases
   where
@@ -148,12 +296,28 @@ Nothing
 in @(mkParserFromPrinterWith _ p)@, the printing function @p@ should be injective
 (otherwise, some values will be ignored).
 
+e.g. for a type @XYZ@:
+
+@
+data XYZ = ...
+  deriving (Show, Enum, Eq, Ord, ...)
+
+allXYZs :: [XYZ]
+allXYZs = 'constructors'
+
+printXYZ :: XYZ -> String
+printXYZ = show
+
+parseXYZ :: ('MonadThrow' m) => String -> m XYZ
+parseXYZ = 'mkParserFromPrinterWith' "XYZ" printXYZ allXYZs
+@
+
 -}
 
 mkParserFromPrinterWith
   :: (MonadThrow m)
   => String -> (a -> String) -> [a]
-  -> String -> m a
+  -> SimpleParseM m a
 
 mkParserFromPrinterWith title printer values = mkParserFromList title aliases
   where
@@ -188,7 +352,7 @@ Internally, builds a @Map@.
 mkParserFromList
   :: (MonadThrow m)
   => String -> [(a, [String])]
-  -> String -> m a
+  -> SimpleParseM m a
 
 mkParserFromList title aliases = lookupM
   where

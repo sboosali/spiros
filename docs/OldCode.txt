@@ -319,6 +319,102 @@ repository stackage-lts-13.7
 
 
 
+##################################################
+{ systemPackages
+, haskellPackages
+, haskellUtilities
+
+, static
+}:
+
+##################################################
+let
+#------------------------------------------------#
+
+staticLibraries = {
+
+  gmp   = systemPackages.gmp6.override { withStatic = true; };
+
+  glibc = systemPackages.glibc.static;
+
+  zlib  = systemPackages.zlib.static;
+
+};
+
+#------------------------------------------------#
+
+newAttributes =
+
+ // (lib.optionalAttrs (static != null)
+          {
+            enableStaticLibraries = static;
+            
+            enableSharedExecutables = (! static);
+            enableSharedLibraries   = (! static);
+          }
+   ) ;
+
+#------------------------------------------------#
+
+configureFlags =
+
+    -optl=-L${staticLibraries.gmp}/lib
+    -optl=-L${staticLibraries.glibc}/lib
+    -optl=-L${staticLibraries.zlib}/lib
+
+#------------------------------------------------#
+in
+##################################################
+oldAttributes: {
+
+  # extraLibraries = oldDerivation.extraLibraries ++ (with static; [ gmp zlib ]);
+
+  # extraLibraries = oldDerivation.extraLibraries ++ (with systemPackages; [ fltk ]);
+
+}
+##################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
