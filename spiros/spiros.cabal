@@ -6,66 +6,172 @@ build-type:          Simple
 --------------------------------------------------
 
 name:                spiros
-version:             0.3.1
+version:             0.3.2
+
+--x-revision:          1
 
 --------------------------------------------------
--- Information -----------------------------------
+
+author:              Spiros Boosalis
+maintainer:          samboosalis@gmail.com
+
+--------------------------------------------------
+-- Description -----------------------------------
 --------------------------------------------------
 
 synopsis:            Custom Prelude (sboo / sboosali)
 
-description:         My (@sboosali's) custom prelude.
-                     .
-                     Diverges slightly from base's: adding, removing, and shadowing.
-
 category:            Prelude
 
 --------------------------------------------------
+
+description:         My custom prelude (I'm @\@sboosali@ on GitHub and @user/sboo@ on Hackage.) 
+                     .
+                     Diverges slightly from base's: adding, removing, and shadowing.
+                     .
                      
-author:              Spiros Boosalis
-maintainer:          samboosalis@gmail.com
-homepage:            http://github.com/sboosali/spiros#readme
+                     .
+
+--------------------------------------------------
+-- Portability -----------------------------------
+--------------------------------------------------
+
+stability: provisional
 
 --------------------------------------------------
 
-tested-with: GHC == 8.6.1
-           , GHC == 8.4.3
-           , GHC == 8.2.2
-           , GHC == 8.0.2
-           , GHC == 7.10.3
-
+tested-with: GHC   == 8.6.3
+           , GHC   == 8.4.4
+           , GHC   == 8.2.2
+           , GHC   == 8.0.2
+--         , GHC   == 7.10.3
            , GHCJS == 8.4.0.1
 
 --------------------------------------------------
+-- Licensing -------------------------------------
+--------------------------------------------------
 
-license:             BSD-3-Clause
-copyright:           2019 Sam Boosalis
+license:             Apache-2.0
 license-file:        LICENSE
+copyright:           2019 Sam Boosalis
+
+--------------------------------------------------
+-- Files -----------------------------------------
+--------------------------------------------------
+
+data-dir: data
 
 --------------------------------------------------
 
 extra-source-files: README.md
 
---data-files:
---  data/
+--------------------------------------------------
+
+--TODO add images
+-- extra-doc-files: docs/
+
+--------------------------------------------------
+-- Repository ------------------------------------
+--------------------------------------------------
+
+homepage:    https://github.com/sboosali/spiros#readme
+bug-reports: https://github.com/sboosali/spiros#issues
 
 --------------------------------------------------
 
 source-repository head
   type:     git
   location: https://github.com/sboosali/spiros
+  subdir:   spiros
 
 --------------------------------------------------
 -- Flags -----------------------------------------
+--------------------------------------------------
+
+flag develop
+
+  default:     False
+
+  description: Exposed internals and/or dynamic typechecking (for development).
+
+  manual:      True
+
 --------------------------------------------------
 
 flag static
 
   default:     False
 
-  description: Build a statically-linked executable (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
+  description: Build a statically-linked dynamic-library (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
 
   manual:      True
+
+--------------------------------------------------
+-- Common Stanzas --------------------------------
+--------------------------------------------------
+
+common Haskell2020Library
+
+ -----------------------------
+
+ default-language: Haskell2010
+
+ -----------------------------
+ -- cross-platform (operating system)
+ -----------------------------
+
+ -- if   os(linux)
+ -- --   linux-only:
+ -- --   ...
+ -- elif os(windows)
+ -- --   windows-only:
+ -- --   ...
+ -- elif os(darwin)
+ -- --   mac-only:
+ -- --   ...
+
+ -- ^ See « System.Info.os ».
+
+ -- ^ NOTE « os(windows) » canonicalizes « os(mingw32) », « os(cygwin32) », etc.
+
+ -----------------------------
+ -- cross-platform (architecture)
+ -----------------------------
+
+ -- if   arch(x86_64)
+ -- --   64-bit-only:
+ -- --   ...
+ -- elif arch(i386)
+ -- --   32-bit-only:
+ -- --   ...
+
+ -- ^ See « System.Info.arch ».
+
+ -----------------------------
+ -- development settings -----
+ -----------------------------
+
+ if flag(develop)
+ 
+    cpp-options: -DDEVELOP
+
+                 -- ^ Define the « DEVELOP » symbol (for CPP).
+
+ -----------------------------
+
+ if flag(develop) && impl(ghc >= 8.0)
+
+    ghc-options: -fdefer-typed-holes
+
+                 -- ^ Use « typed-holes » (not « undefined ») during development.
+
+ -----------------------------
+ -- etc ----------------------
+ -----------------------------
+
+
+
+ -----------------------------
 
 --------------------------------------------------
 -- Library ---------------------------------------
@@ -75,7 +181,13 @@ library
 
  ------------------------------
 
- hs-source-dirs: sources
+ import: Haskell2020Library
+
+ ------------------------------
+
+ hs-source-dirs: library
+
+ ------------------------------
 
  exposed-modules: 
                  --Spiros
@@ -300,6 +412,43 @@ executable example-sprios
 
 --------------------------------------------------
 -- Tests -----------------------------------------
+--------------------------------------------------
+
+test-suite doc
+
+ ------------------------------
+
+ import: Haskell2020Library
+
+ -----------------------------
+
+ if impl(ghcjs)
+
+    buildable: False
+
+    -- ^ Because « GHCJSi » doesn't work (yet).
+
+ -----------------------------
+
+ hs-source-dirs: tests/doc
+
+ main-is:        DocTests.hs
+
+--other-modules:       
+
+ -----------------------------
+
+ build-depends: base
+              , spiros
+
+              ----------------
+
+              , doctest
+
+ -----------------------------
+
+ type: exitcode-stdio-1.0
+
 --------------------------------------------------
 
 -- test-suite doctest

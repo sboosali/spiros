@@ -2,10 +2,14 @@
 
 --------------------------------------------------
 
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
+--------------------------------------------------
+
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass, DeriveLift #-}
+
+--------------------------------------------------
 --------------------------------------------------
 
 {-|
@@ -21,19 +25,20 @@ module Prelude.Spiros.System
 
 #include <sboo-base-feature-macros.h>
 
-----------------------------------------
+--------------------------------------------------
+--------------------------------------------------
 
 import         Prelude.Spiros.Compatibility
 
 import         Prelude.Spiros.Reexports
 import         Prelude.Spiros.Utilities
 
-----------------------------------------
-----------------------------------------
+--------------------------------------------------
+--------------------------------------------------
 
 import qualified "cpuinfo" System.CPU as CPU
 
-----------------------------------------
+--------------------------------------------------
 
 import qualified "base" System.Info as Base
 import qualified "base" GHC.Conc as GHC
@@ -68,7 +73,7 @@ currentOperatingSystem = case Base.os of
     "freebsd"       -> Right BSD
     s               -> Left s
 
-----------------------------------------
+--------------------------------------------------
 
 -- | Enumeration of the known GHC supported architecture.
 --
@@ -103,7 +108,7 @@ currentArchitecture = case Base.arch of
     "aarch64"       -> Right ARM64
     s               -> Left s
 
-----------------------------------------
+--------------------------------------------------
 
 -- | Enumeration of the known GHC-based compilers. 
 --
@@ -122,13 +127,13 @@ currentCompiler = case Base.compilerName of
     "ghcjs"  -> Right GHCJS
     s        -> Left s
 
-----------------------------------------
+--------------------------------------------------
 
 -- | returns the number of CPUs the machine has
 currentNumberOfCPUs :: IO Natural
 currentNumberOfCPUs = unsafeNatural <$> GHC.getNumProcessors 
 
-----------------------------------------
+--------------------------------------------------
 
 getCPUsVerbose :: IO [CPU.CPU]
 
@@ -136,7 +141,7 @@ getCPUsVerbose = do
   allCpuInfo <- CPU.tryGetCPUs
   return $ (allCpuInfo & maybe [] id)
 
-----------------------------------------
+--------------------------------------------------
 
 getCPUsSummary :: IO CPUsSummary
 
@@ -158,7 +163,7 @@ getCPUsSummary = do
   
     return CPUsSummary{..}
   
-----------------------------------------
+--------------------------------------------------
 
 data CPUsSummary = CPUsSummary
 
@@ -176,7 +181,7 @@ data CPUsSummary = CPUsSummary
 #endif
            )
 
-----------------------------------------
+--------------------------------------------------
 
 instance Default CPUsSummary where
   def = CPUsSummary{..}
@@ -185,7 +190,7 @@ instance Default CPUsSummary where
     physicalCores    = 0
     logicalCores     = 0
 
-----------------------------------------
+--------------------------------------------------
 
 {-| Whether the system is currently using any Hyperthreading.
 

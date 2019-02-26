@@ -397,6 +397,72 @@ oldAttributes: {
 
 
 
+instance Show ParseError where
+
+  -- | @show \@'ParseError' ≡ 'displayParseError'@
+
+  showsPrec precedence = showParen (precedence >= 11) (displayed ++)
+    where
+
+    displayed = (displayParseErrorWith (def :: ParseErrorConfig))
+
+  -- | @show \@'ParseError' ≡ 'displayParseError'@
+
+  show = displayParseErrorWith (def :: ParseErrorConfig)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  ("Prelude.Spiros.Utilities Prelude.Spiros.Print Prelude.Spiros.Parse"
+   ++ ""
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

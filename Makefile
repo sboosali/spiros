@@ -355,14 +355,14 @@ check:
 #------------------------------------------------#
 
 repl:
-	cabal new-repl $(DefaultTarget)
+	cabal new-repl $(CabalTarget)
 
 .PHONY: repl
 
 #------------------------------------------------#
 
 test:
-	cabal new-test $(DefaultTarget)
+	cabal new-test $(CabalTargets)
 
 .PHONY: test
 

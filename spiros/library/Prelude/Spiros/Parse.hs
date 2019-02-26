@@ -3,14 +3,23 @@
 
 --------------------------------------------------
 
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PackageImports #-}
 
 --------------------------------------------------
 
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveFunctor
+           , DeriveFoldable
+           , DeriveTraversable
+           , DeriveGeneric
+           , DeriveAnyClass
+           , DeriveLift
+           #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -19,7 +28,23 @@
 
 -}
 
-module Prelude.Spiros.Parse where
+module Prelude.Spiros.Parse
+
+  ( SimpleParse
+  , SimpleParseM
+
+  , ParseError(..)
+  , ParseErrorConfig(..)
+
+  , mkBoundedEnumParser
+  , mkShowParserWith
+  , mkParserFromList
+  , mkParserFromPrinterWith
+
+  , displayParseError
+  , displayParseErrorWith
+
+  ) where
 
 --------------------------------------------------
 --------------------------------------------------
@@ -47,6 +72,9 @@ import qualified "containers" Data.Map as Map
 ------------------------------------------------
 
 import           "base" Control.Exception (Exception(..))
+import qualified "base" Text.Show as Show
+
+--------------------------------------------------
 
 import qualified "base" Prelude
 
@@ -201,30 +229,84 @@ type SimpleParseM m a =
 
 data ParseError = ParseError
 
-  { stringBeingParsed :: String
-  , thingToParseInto  :: String
+  { stringBeingParsed :: !String
+  , thingToParseInto  :: !String
   }
 
-  deriving (Show,Eq,Ord,Lift,Generic,NFData,Hashable)
+  deriving ({-Show,-}Eq,Ord
+           ,Lift,Generic
+           ,NFData,Hashable
+           )
 
 --------------------------------------------------
 
 instance Exception ParseError where
 
-  displayException ParseError{ stringBeingParsed, thingToParseInto } = (Prelude.concat . Prelude.concat)
-    [ [ "Can't parse " ]
-    , (if (Prelude.not (Prelude.null thingToParseInto)) then [ "« ", thingToParseInto ," » from " ] else [])
-    , [ "« ", (show stringBeingParsed), " »." ]
-    ]
+  -- | @'displayException' \@'ParseError' ≡ 'displayParseError'@
+
+  displayException = displayParseErrorWith (def :: ParseErrorConfig)
 
 --------------------------------------------------
+
+{-|
+
+@
+>>> Prelude.putStrLn (Prelude.show ("unparseable" :: ParseError))
+Can't parse <<< "unparseable" >>>.
+@
+
+-}
+
+instance Show ParseError where
+
+  -- | @show \@'ParseError' ≡ 'displayParseError'@
+
+  showsPrec precedence x = showParen (precedence >= maximumPrecedence) (displayed ++)
+    where
+
+    displayed :: String
+    displayed = displayParseErrorWith (def :: ParseErrorConfig) x
+
+    maximumPrecedence :: Int
+    maximumPrecedence = 11
+
+--------------------------------------------------
+
+-- | Inject into 'stringBeingParsed' ('thingToParseInto' stays empty).
 
 instance IsString ParseError where
 
   fromString s = ParseError
+
     { stringBeingParsed = s
     , thingToParseInto  = ""
     } 
+
+--------------------------------------------------
+--------------------------------------------------
+
+data ParseErrorConfig = ParseErrorConfig
+
+  { useUnicodeCharacters :: !Bool
+  , useANSIColorCodes    :: !Bool
+  }
+
+  deriving (Show,Eq,Ord
+           ,Lift,Generic
+           ,NFData,Hashable
+           )
+
+--------------------------------------------------
+
+-- | all @False@ (for portability).
+
+instance Default ParseErrorConfig where
+
+  def = ParseErrorConfig
+
+    { useUnicodeCharacters = False
+    , useANSIColorCodes    = False
+    }
 
 --------------------------------------------------
 -- Definitions -----------------------------------
@@ -236,11 +318,17 @@ instance IsString ParseError where
 ≡ 'mkShowParserWith' ('constructors' _)
 @
 
+== Examples (@doctest@ed)
+
 >>> parseBool = mkBoundedEnumParser :: String -> Maybe Bool
 >>> parseBool "True"
 Just True
 >>> parseBool "Abolish ICE"
 Nothing
+
+== Exceptions
+
+throws 'ParseError'.
 
 -}
 
@@ -255,11 +343,17 @@ mkBoundedEnumParser = mkShowParserWith (constructors proxy)
 
 {-| Create a simple parser from a list of ('Show'able) values.
 
+== Examples (@doctest@ed)
+
 >>> parseHaskellBool = mkShowParserWith [False, True] 
 >>> parseHaskellBool "True"
 True
 >>> parseHaskellBool "true"
 ***
+
+== Exceptions
+
+throws 'ParseError'.
 
 -}
 
@@ -285,6 +379,7 @@ mkShowParserWith values = mkParserFromList title aliases
 
 {-| Create a simple parser from a "printing" function.
 
+== Examples (@doctest@ed)
 
 >>> printINIBool = (fmap Data.Char.toLower . show)
 >>> parseINIBool = mkParserFromPrinterWith "INI Bool" printINIBool [False,True]
@@ -312,6 +407,10 @@ parseXYZ :: ('MonadThrow' m) => String -> m XYZ
 parseXYZ = 'mkParserFromPrinterWith' "XYZ" printXYZ allXYZs
 @
 
+== Exceptions
+
+throws 'ParseError'.
+
 -}
 
 mkParserFromPrinterWith
@@ -334,14 +433,24 @@ mkParserFromPrinterWith title printer values = mkParserFromList title aliases
 
 {-| Create a simple parser from a list.
 
+== Examples (@doctest@ed)
+
 >>> parseINIBool = mkParserFromList "INI Bool" [ False -: ["false","no","0"], True -: ["true","yes","1"] ] 
 >>> parseINIBool "true"
 True
 >>> parseINIBool "2"
-*** ParseError: Can't parse « INI Bool » from « "2" ».
+*** Exception: ParseError {stringBeingParsed = "2", thingToParseInto = "INI Bool"}
+
+@
+TODO *** ParseError: Can't parse « INI Bool » from « "2" ».
+@
 
 Strings should be distinct. Within a @[String]@, duplicates are ignored.
 Across each @[(a, [String])]@, all but one are ignored.
+
+== Exceptions
+
+throws 'ParseError'.
 
 == Implementation
 
@@ -358,9 +467,12 @@ mkParserFromList title aliases = lookupM
   where
 
   lookupM s
+
     = (Map.lookup s table)
     & (maybe (throwM e) return)
+
     where
+
     e = ParseError
       { stringBeingParsed = s
       , thingToParseInto  = title
@@ -373,6 +485,71 @@ mkParserFromList title aliases = lookupM
   mkEntry (x, ts) = ts & fmap (\t -> (t, x))
 
 {-# INLINEABLE mkParserFromList #-}
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+
+@
+'displayParseError' ≡ 'displayParseErrorWith' 'def'
+@
+
+-}
+
+displayParseError :: ParseError -> String
+displayParseError = displayParseErrorWith def
+
+--------------------------------------------------
+
+{-|
+
+== Examples (@doctest@ed)
+
+>>> :set -XOverloadedStrings
+>>> Prelude.putStrLn (Control.Exception.displayException ("unparseable" :: ParseError))
+Can't parse <<< "unparseable" >>>.
+
+>>> Prelude.putStrLn (displayParseErrorWith def{ useUnicodeCharacters = True } ParseError{ stringBeingParsed = "2", thingToParseInto = "INI Bool" })
+[ParseError] Can't parse « INI Bool » from « "2" ».
+
+>>> Prelude.putStrLn (displayParseErrorWith def{ useUnicodeCharacters = False } ParseError{ stringBeingParsed = "2", thingToParseInto = "INI Bool" })
+[ParseError] Can't parse <<< INI Bool >>> from <<< "2" >>>.
+
+-}
+
+displayParseErrorWith :: ParseErrorConfig -> ParseError -> String
+displayParseErrorWith ParseErrorConfig{ useUnicodeCharacters, useANSIColorCodes } ParseError{ stringBeingParsed, thingToParseInto } = concats
+
+    [ [ "[ParseError] ", "Can't parse " ]
+
+    , (if   (Prelude.not (Prelude.null thingToParseInto))
+       then [ bracketedString (thingToParseInto), " from " ]
+       else [])
+
+    , [ bracketedString (show stringBeingParsed), "." ]
+    ]
+
+    where
+
+    concats = (Prelude.concat . Prelude.concat)
+
+    bracketedString :: String -> String
+    bracketedString s = concat
+
+      [ (if useUnicodeCharacters then "«" else "<<<")
+      , " "
+      , s
+      , " "
+      , (if useUnicodeCharacters then "»" else ">>>")
+      ]
+
+--------------------------------------------------
+-- Utilities -------------------------------------
+--------------------------------------------------
+
+-- __useUnicode :: Bool
+-- __useUnicode = False
 
 --------------------------------------------------
 --------------------------------------------------

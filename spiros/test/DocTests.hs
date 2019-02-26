@@ -16,7 +16,7 @@ main = do
 ----------------------------------------
 
 sources =
- [ "sources/"
+ [ "library/"
  , "examples/"
  ] 
 
