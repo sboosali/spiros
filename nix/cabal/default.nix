@@ -1,12 +1,13 @@
 ##################################################
 { pkgs
+, ...
 }:
 
 ##################################################
 let
 #------------------------------------------------#
 
-default = import ./cabal-default.project.nix {
+lib = import ./lib.nix {
 
   inherit pkgs;
 
@@ -14,19 +15,19 @@ default = import ./cabal-default.project.nix {
 
 #------------------------------------------------#
 
-static = import ./cabal-static.project.nix {
+# options = import ./options.nix {
 
-  inherit pkgs;
+#   inherit pkgs;
 
-};
+# };
 
 #------------------------------------------------#
 in
 ##################################################
 {
 
-  inherit default;
-  inherit static;
+  inherit lib;
+# inherit options;
 
 }
 ##################################################

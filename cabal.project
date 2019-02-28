@@ -7,7 +7,7 @@ packages: ./spiros
 
 tests:         True
 benchmarks:    True
---documentation: True
+documentation: False
 
 --------------------------------------------------
 

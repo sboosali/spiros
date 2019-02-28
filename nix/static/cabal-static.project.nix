@@ -1,18 +1,40 @@
 ##################################################
-{ pkgs ? (import <nixpkgs> {}).pkgs
+{ pkgs
 }:
 
 ##################################################
 let
+#------------------------------------------------#
 
-cabal = import ./lib/cabal.nix {};
+cabal = rec {
+
+  bool = b:
+
+      if b then "True" else "False";
+
+  int  = builtins.toString;
+
+  path = builtins.toString;
+
+  list = xs:
+
+    (builtins.toString (builtins.map path xs));
+
+  # ^ space-separated items.
+
+};
 
 #------------------------------------------------#
 in
 ##################################################
 let
+#------------------------------------------------#
 
 config = {
+
+  packages = [
+    ../../spiros
+  ];
 
   verbose = 2;
   jobs    = 4;
@@ -63,20 +85,16 @@ static = {
 
 #         ];
 
-in
-##################################################
-''
+#------------------------------------------------#
+
+project-text = ''
 --  -*- mode: cabal; buffer-read-only: t -*-  vim:set ro: 
 
-----------------------------------------
--- Projects ----------------------------
-----------------------------------------
+--------------------------------------------------
+-- Projects --------------------------------------
+--------------------------------------------------
 
-packages: ./skeletor
-
-----------------------------------------
-
-optional-packages: ${cabal.path ~/haskell/spiros/spiros}
+packages: ${cabal.list config.packages}
 
 --------------------------------------------------
 -- Statically-Linked Executables
@@ -96,6 +114,8 @@ package *
   ----------------------------
 
   ghc-options:
+
+    -fPIC
 
     -optl=-static
     -optl=-pthread
@@ -169,7 +189,7 @@ with-compiler: ${cabal.path config.compiler}
 
 --------------------------------------------------
 -- Repositories ----------------------------------
---------------------------------------------------
+-------------------------------------------------
 
 repository stackage-lts-${config.lts}
   url: https://www.stackage.org/lts-${config.lts}
@@ -181,4 +201,25 @@ repository stackage-lts-${config.lts}
 -- 
 -- 
 --------------------------------------------------
-''
+'';
+
+#------------------------------------------------#
+
+project-file = pkgs.writeTextFile
+
+    {
+      name = "cabal-static.project";
+      text = project-text;
+    };
+
+    # , executable  ? false  # run chmod +x ?
+    # , destination ? ""     # relative path appended to $out eg "/bin/foo"
+    # , checkPhase  ? ""     #  syntax checks, e.g. for scripts
+
+#------------------------------------------------#
+in
+##################################################
+
+project-file
+
+##################################################

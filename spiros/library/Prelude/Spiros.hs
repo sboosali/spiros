@@ -33,6 +33,7 @@ import Prelude.Spiros.GUI                            as X
 import Prelude.Spiros.Generics                       as X
 import Prelude.Spiros.Enriched                       as X
 import Prelude.Spiros.Parse                          as X
+import Prelude.Spiros.Print                          as X
 
 --------------------------------------------------
 -- Imports ---------------------------------------

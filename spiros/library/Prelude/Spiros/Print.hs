@@ -22,7 +22,11 @@
 
 -}
 
-module Prelude.Spiros.Print where
+module Prelude.Spiros.Print
+
+  ( SimplePrint
+
+  ) where
 
 --------------------------------------------------
 --------------------------------------------------

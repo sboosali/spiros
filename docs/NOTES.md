@@ -75,13 +75,259 @@ add StaticLibraries as BuildInputs.
 
 e.g. add `glibc.static` to the `buildInputs` to get a static `-lc`.
 
+#### Solution(?)
+
+>The problem is the linker is looking for libmagic.so but you only have libmagic.so.1
+>A quick hack is to symlink libmagic.so.1 to libmagic.so
+
+#### Solution(?)
+
+```
+$ locate libpthread.a
+
+/nix/store/*-bootstrap-tools/lib/libpthread.a
+/nix/store/*-bootstrap-tools/lib/libpthread.a
+
+/nix/store/*-glibc-2.27-static/lib/libpthread.a
+/nix/store/*-glibc-2.27-static/lib/libpthread.a
+/nix/store/*-glibc-2.27-static/lib/libpthread.a
+/nix/store/*-glibc-2.27-static/lib/libpthread.a
+/nix/store/*-glibc-2.27-static/lib/libpthread.a
+/nix/store/*-glibc-2.27-static/lib/libpthread.a
+
+/nix/store/*-glibc-2.27-x86_64-unknown-linux-musl-static/lib/libpthread.a
+/nix/store/*-glibc-2.27-x86_64-unknown-linux-musl-static/lib/libpthread.a
+
+/nix/store/*-musl-1.1.19/lib/libpthread.a
+/nix/store/*-musl-1.1.19/lib/libpthread.a
+/nix/store/*-musl-1.1.20-x86_64-unknown-linux-musl/lib/libpthread.a
+/nix/store/*-musl-1.1.20/lib/libpthread.a
+/nix/store/*-musl-1.1.21-x86_64-unknown-linux-musl/lib/libpthread.a
+/nix/store/*-musl-1.1.21/lib/libpthread.a
+
+/usr/lib/x86_64-linux-gnu/libpthread.a
+```
+
+
+```
+$ (cd /usr/lib/x86_64-linux-gnu && find -L ./ -type f -name '*.a')
+
+./libBrokenLocale.a
+./libGLU.a
+./libICE.a
+./libSM.a
+./libX11-xcb.a
+./libX11.a
+./libXau.a
+./libXdamage.a
+./libXdmcp.a
+./libXext.a
+./libXfixes.a
+./libXft.a
+./libXinerama.a
+./libXrender.a
+./libXt.a
+./libXxf86vm.a
+./libanl.a
+./libasprintf.a
+./libbtrfs.a
+./libc.a
+./libc_nonshared.a
+./libcrypt.a
+./libdl.a
+./libdrm.a
+./libdrm_amdgpu.a
+./libdrm_intel.a
+./libdrm_nouveau.a
+./libdrm_radeon.a
+./libexpat.a
+./libexpatw.a
+./libfontconfig.a
+./libfreetype.a
+./libg.a
+./libgettextpo.a
+./libglut.a
+./libieee.a
+./libm.a
+./libmcheck.a
+./libmvec.a
+./libmvec_nonshared.a
+./libnsl.a
+./libpng.a
+./libpng12.a
+./libpthread.a
+./libpthread_nonshared.a
+./libresolv.a
+./librpcsvc.a
+./librt.a
+./libutil.a
+./libxcb-dri2.a
+./libxcb-dri3.a
+./libxcb-glx.a
+./libxcb-present.a
+./libxcb-randr.a
+./libxcb-render.a
+./libxcb-shape.a
+./libxcb-sync.a
+./libxcb-xfixes.a
+./libxcb.a
+./libxshmfence.a
+./libz.a
+```
+
+#### Solution(?)
+
+
 
 
 ### 
 
 #### Problem
 
-#### Solution
+Linker Errors like:
+
+```
+$ cabal new-build --enable-executable-static exe:example-sprios
+
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lm
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lrt
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lutil
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -ldl
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lpthread
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lgmp
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lm
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lrt
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -ldl
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lffi
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lpthread
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lpthread
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lc
+
+collect2: error: ld returned 1 exit status
+`cc' failed in phase `Linker'. (Exit code: 1)
+```
+
+#### Solution[1]
+
+add directories to Linker Path like `-L/usr/lib/x86_64-linux-gnu`:
+
+```
+$ cabal new-build --enable-executable-static --ghc-options="-L/usr/lib/x86_64-linux-gnu" exe:example-sprios
+
+Failed to build distributive-0.6. The failure occurred during the configure
+step.
+
+Build log (
+/home/sboo/.cabal/logs/ghc-8.6.3/distributive-0.6-a7e1e0b7eb13158de02581e2a9a2fc5a384b8ecd629d41d0dfd99ed7879023ae.log
+):
+
+    [1 of 1] Compiling Main             ( /home/sboo/haskell/spiros/dist-newstyle/tmp/src-27403/distributive-0.6/dist/setup/setup.hs, /home/sboo/haskell/spiros/dist-newstyle/tmp/src-27403/distributive-0.6/dist/setup/Main.o )
+    Linking /home/sboo/haskell/spiros/dist-newstyle/tmp/src-27403/distributive-0.6/dist/setup/setup ...
+    unrecognized 'configure' option `--disable-executable-static'
+
+cabal: Failed to build distributive-0.6 (which is required by
+exe:example-sprios from spiros-0.3.2). See the build log above for details.
+```
+
+
+#### Solution[2]
+
+run a `cabal new-clean` first:
+
+```
+$ cabal new-clean
+
+...
+```
+
+#### Solution[3]
+
+add `extra-lib-dirs`:
+
+```
+$ cabal new-build --enable-executable-static --extra-lib-dir=/usr/lib/x86_64-linux-gnu exe:example-sprios
+
+Linking /home/sboo/haskell/spiros/dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.2/x/example-sprios/build/example-sprios/example-sprios ...
+
+/nix/store/*-binutils-2.31.1/bin/ld: /nix/store/*-ghc-8.6.3/lib/ghc-8.6.3/rts/libHSrts_thr.a(Linker.thr_o): in function `internal_dlopen':
+
+    Linker.c:(.text.internal_dlopen+0x27): warning: Using 'dlopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lgmp
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lffi
+
+collect2: error: ld returned 1 exit status
+`cc' failed in phase `Linker'. (Exit code: 1)
+```
+
+
+before, these static libraries weren't found:
+
+* `-lc`
+* `-ldl`
+* `-lffi`
+* `-lgmp`
+* `-lm`
+* `-lpthread`
+* `-lrt`
+* `-lutil`
+
+after, only these static libraries weren't found:
+
+* `-lffi`
+* `-lgmp`
+
+#### Solution[4]
+
+`Makefile`:
+
+```make
+make apt-install:
+
+	sudo apt install -y "libgmp-dev"
+	sudo apt install -y "libffi-dev"
+```
+
+```sh
+$ make apt-install
+
+...
+
+$ ls /usr/lib/x86_64-linux-gnu/lib* | grep gmp
+
+/usr/lib/x86_64-linux-gnu/libgmp.a
+/usr/lib/x86_64-linux-gnu/libgmp.so
+/usr/lib/x86_64-linux-gnu/libgmp.so.10
+/usr/lib/x86_64-linux-gnu/libgmp.so.10.3.0
+/usr/lib/x86_64-linux-gnu/libgmpxx.a
+/usr/lib/x86_64-linux-gnu/libgmpxx.so
+/usr/lib/x86_64-linux-gnu/libgmpxx.so.4
+/usr/lib/x86_64-linux-gnu/libgmpxx.so.4.5.0
+
+$ ls /usr/lib/x86_64-linux-gnu/lib* | grep ffi
+
+/usr/lib/x86_64-linux-gnu/libffi.a
+/usr/lib/x86_64-linux-gnu/libffi_pic.a
+/usr/lib/x86_64-linux-gnu/libffi.so
+/usr/lib/x86_64-linux-gnu/libffi.so.6
+/usr/lib/x86_64-linux-gnu/libffi.so.6.0.4
+```
+
+
+
+#### Solution[5]
+
+#### Solution[6]
+
+#### Solution[7]
+
+#### Solution[8]
+
+#### Solution[9]
+
+
+
+
 
 
 
@@ -427,9 +673,36 @@ building `ghc` via `musl` (i.e. `pkgsCross.musl64.haskell.packages.ghc863`):
 configure: error: Cannot find system libffi
 ```
 
+building via `cabal --enable-executable-static`:
 
 ```nix
+$ make static
+
+cabal new-build --enable-executable-static exe:example-sprios
+
+Build profile: -w ghc-8.6.3 -O1
+Preprocessing executable 'example-sprios' for spiros-0.3.2..
+Building executable 'example-sprios' for spiros-0.3.2..
+Linking /home/sboo/haskell/spiros/dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.2/x/example-sprios/build/example-sprios/example-sprios ...
+
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lm
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lrt
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lutil
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -ldl
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lpthread
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lgmp
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lm
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lrt
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -ldl
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lffi
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lpthread
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lpthread
+/nix/store/*-binutils-2.31.1/bin/ld: cannot find -lc
+
+collect2: error: ld returned 1 exit status
+`cc' failed in phase `Linker'. (Exit code: 1)
 ```
+
 
 
 ## 
