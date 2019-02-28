@@ -12,8 +12,8 @@ packages: ./spiros
 
 --------------------------------------------------
 
-static: True
-shared: False
+-- static: True
+-- shared: False
 
 --------------------------------------------------
 
@@ -21,7 +21,11 @@ flags: +static
 
 --------------------------------------------------
 
-extra-lib-dirs:   /nix/store/blfgah5rv7h3qzl2gv6p6d8i2sxh0vgl-musl-1.1.21/lib
+package *
+
+  static: True
+
+  extra-lib-dirs: /nix/store/blfgah5rv7h3qzl2gv6p6d8i2sxh0vgl-musl-1.1.21/lib
                   /nix/store/pdyjwbhb77k17n6gl78a87a70gywr8dk-gmp-6.1.2/lib
                   /nix/store/vz8iz7ws35aww6i8521z4964xp5akalh-libffi-3.2.1/lib
 

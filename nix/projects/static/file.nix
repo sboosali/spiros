@@ -1,93 +1,14 @@
 ##################################################
-{ pkgs
+{ config
+
+, cabal
+, lib
+
+, ...
 }:
 
 ##################################################
-let
-#------------------------------------------------#
-
-cabal = rec {
-
-  bool = b:
-
-      if b then "True" else "False";
-
-  int  = builtins.toString;
-
-  path = builtins.toString;
-
-  list = xs:
-
-    (builtins.toString (builtins.map path xs));
-
-  # ^ space-separated items.
-
-};
-
-#------------------------------------------------#
-in
-##################################################
-let
-#------------------------------------------------#
-
-config = {
-
-  packages = [
-    ../../spiros
-  ];
-
-  verbose = 2;
-  jobs    = 4;
-
-  nix           = false;
-  deterministic = true;
-  relocatable   = true;
-  strip         = true;
-
-  test          = false;
-  benchmark     = false;
-  documentation = false;
-
-  lts      = "13.7";
-  # ^ Stackage LTS version.
-
-  compiler = ~/.nix-profile/bin/ghc-8.6.3;
-  # ^ GHC executable path.
-  # * should work with the stackage snapshot (i.e. « config.lts »).
-  # * must be built with « -fPIC » (i.e. the « ghc » itself).
-
-};
-
-#------------------------------------------------#
-
-static = {
-
-  gmp   = pkgs.gmp6.override { withStatic = true; };
-
-  glibc = pkgs.glibc.static;
-
-  zlib  = pkgs.zlib.static;
-
-};
-
-#------------------------------------------------#
-
-# configureFlags-forStaticLinking = [
-
-#           "--ghc-option=-optl=-static"
-
-#           "--extra-lib-dirs=${static.gmp}/lib"
-#           "--extra-lib-dirs=${static.zlib}/lib"
-
-#         ] ++ pkgs.lib.optionals (! config.strip) [
-
-#           "--disable-executable-stripping"
-
-#         ];
-
-#------------------------------------------------#
-
-project-text = ''
+''
 --  -*- mode: cabal; buffer-read-only: t -*-  vim:set ro: 
 
 --------------------------------------------------
@@ -95,6 +16,10 @@ project-text = ''
 --------------------------------------------------
 
 packages: ${cabal.list config.packages}
+
+--------------------------------------------------
+
+${lib.optionalString (config ? optional-packages) ''optional-packages: ${cabal.list config.optional-packages}''}
 
 --------------------------------------------------
 -- Statically-Linked Executables
@@ -106,6 +31,10 @@ shared: False
 --------------------------------------------------
 
 flags: +static
+
+--------------------------------------------------
+
+${cabal.extra-lib-dirs { inherit (config) libraries; stanza = true; }}
 
 --------------------------------------------------
 
@@ -201,25 +130,4 @@ repository stackage-lts-${config.lts}
 -- 
 -- 
 --------------------------------------------------
-'';
-
-#------------------------------------------------#
-
-project-file = pkgs.writeTextFile
-
-    {
-      name = "cabal-static.project";
-      text = project-text;
-    };
-
-    # , executable  ? false  # run chmod +x ?
-    # , destination ? ""     # relative path appended to $out eg "/bin/foo"
-    # , checkPhase  ? ""     #  syntax checks, e.g. for scripts
-
-#------------------------------------------------#
-in
-##################################################
-
-project-file
-
-##################################################
+''
