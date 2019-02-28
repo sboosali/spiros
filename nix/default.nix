@@ -79,17 +79,13 @@ inherit (config)
 
 #------------------------------------------------#
 
-pkgs =
+pkgs = import ./pkgs
 
-  let
-  nixpkgs' = import nixpkgs { inherit overlays config; };
-  in
+  {
+    inherit musl;
 
-  if   musl
- #then nixpkgs'.pkgsCross.musl64
-  then nixpkgs'.pkgsMusl
-  else nixpkgs'.pkgs
-  ;
+    nixpkgs = import nixpkgs { inherit overlays config; };
+  };
 
 #------------------------------------------------#
 
@@ -102,6 +98,7 @@ systemPackages = pkgs;
 #------------------------------------------------#
 
 haskell = import ./haskell
+
   {
     inherit pkgs lib;
     inherit static compiler integer-simple;
@@ -110,6 +107,7 @@ haskell = import ./haskell
 
 inherit (haskell)
   haskellPackages
+  haskellCompiler
   haskellUtilities
   ;
 
@@ -136,12 +134,28 @@ cabal = import ./cabal {
 };
 
 #------------------------------------------------#
+
+cabalProjects = import ./projects {
+
+  inherit pkgs lib;
+
+};
+
+#------------------------------------------------#
 in
 ##################################################
 {
 
+ inherit config;
+
  inherit packages;
- inherit cabal;
+ inherit cabalProjects;
+
+ inherit systemPackages;
+ inherit haskellPackages;
+ inherit haskellCompiler;
+
+#inherit cabal;
 
 }
 ##################################################

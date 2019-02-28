@@ -1,19 +1,27 @@
 ##################################################
-{}:
+{ pkgs
+, lib
+}:
 
 ##################################################
 let
 
-cabal = import ../../cabal/lib.nix {};
+cabal = import ../../cabal/lib.nix {
+
+  inherit pkgs lib;
+
+};
 
 in
 ##################################################
 
-cabal.mkCabalProject {
+cabal.mkCabalProjectFile {
+
+  name   = "static";
 
   file   = ./file.nix;
   config = ./config.nix;
 
-};
+}
 
 ##################################################

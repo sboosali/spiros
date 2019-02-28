@@ -30,8 +30,11 @@ ExecutableTarget ?=exe:example-sprios
 
 #------------------------------------------------#
 
+NixFile    ?=./nix/default.nix
+NixTarget  ?=cabalProjects
+
 #NixTargets ?=
-NixTarget  ?=packages.spiros
+#NixTarget  ?=packages.spiros
 
 #------------------------------------------------#
 
@@ -558,6 +561,46 @@ bench:
 	@echo "=================================================="
 
 .PHONY: bench
+
+#------------------------------------------------#
+
+
+
+#------------------------------------------------#
+
+##################################################
+# Nix ############################################
+##################################################
+
+#------------------------------------------------#
+
+nix-repl:
+
+	$(Nix) repl $(NixFile)
+
+.PHONY: nix-repl
+
+#------------------------------------------------#
+
+nix-build:
+
+	$(NixBuild) $(NixFile) -A $(NixTarget)
+
+.PHONY: nix-build
+
+#------------------------------------------------#
+
+cabal-static.project:
+
+	$(NixBuild) $(NixFile) -o "result-cabal-project-static" -A "cabalProjects.static"
+
+	find -L "./result-cabal-project-static"
+
+	cat "./result-cabal-project-static"
+
+	ln --symbolic --force ./cabal-static.project "./result-cabal-project-static"
+
+.PHONY: cabal-static.project
 
 #------------------------------------------------#
 

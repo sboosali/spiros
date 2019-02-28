@@ -1,12 +1,20 @@
 ##################################################
-{ ...
+{ pkgs
+
+, ...
 }:
 
 ##################################################
 rec {
 
+  packages = [
+
+    ../../../spiros
+
+  ];
+
   verbose = 2;
-  jobs    = 4;
+  jobs    = 1;
 
   nix           = false;
   deterministic = true;
@@ -17,15 +25,15 @@ rec {
   benchmark     = false;
   documentation = false;
 
-  lts      = "13.7";
+  lts      = "13.9";
   # ^ Stackage LTS version.
 
-  compiler = ~/.nix-profile/bin/ghc-8.6.3;
+  compiler = ~/.nix-profile/bin/ghc-8.6.3; #TODO#
   # ^ GHC executable path.
   # * should work with the stackage snapshot (i.e. « config.lts »).
   # * must be built with « -fPIC » (i.e. the « ghc » itself).
 
-  libraries = { pkgs }: with pkgs; [
+  libraries = with pkgs; [
 
   ];
 

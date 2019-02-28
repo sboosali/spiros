@@ -132,12 +132,43 @@ haskellUtilities =
     pkgs.haskell.lib;
 
 #------------------------------------------------#
+
+haskellCompiler =
+
+  let
+
+  ghc1 =
+
+    #TODO#
+    # if   null == compiler
+    # then haskellPackages.ghc.version
+    # else
+    #TODO#
+
+    if   null == compiler
+    then null
+
+    else
+
+    if   integer-simple && (compiler != "ghcjs")
+    then pkgs.haskell.compiler.integer-simple.${compiler}
+
+    else pkgs.haskell.compiler.${compiler};
+
+  ghc2 = ghc1;
+
+  in
+
+  ghc2;
+
+#------------------------------------------------#
 in
 ##################################################
 {
 
  inherit haskellPackages;
  inherit haskellUtilities;
+ inherit haskellCompiler;
 
 }
 ##################################################
