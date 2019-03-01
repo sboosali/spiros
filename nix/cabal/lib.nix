@@ -201,7 +201,7 @@ self = rec {
 
       let
 
-      xs = builtins.map mkExtraLibDirs libraries;
+      xs = builtins.map mkExtraLibDir libraries;
 
       x  = self.paths xs;
 

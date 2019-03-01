@@ -41,6 +41,8 @@ NixTarget  ?=cabalProjects
 Cabal      ?=cabal
 CabalBuild ?=cabal new-build
 
+CabalStatic ?=--enable-executable-static
+
 #------------------------------------------------#
 
 Nix      ?=nix
@@ -598,7 +600,7 @@ cabal-static.project:
 
 	cat "./result-cabal-project-static"
 
-	ln --symbolic --force ./cabal-static.project "./result-cabal-project-static"
+	ln --symbolic --force "./result-cabal-project-static" ./cabal-static.project
 
 .PHONY: cabal-static.project
 
@@ -649,9 +651,9 @@ sdist:
 
 #------------------------------------------------#
 
-static:
+static: cabal-static.project
 
-	$(Cabal) new-build -fstatic --enable-executable-static --project-file="./cabal-static.project" exe:example-sprios
+	$(Cabal) new-build -fstatic $(CabalStatic) --project-file="./cabal-static.project" exe:example-sprios
 
 # --enable-executable-static
 # -fstatic

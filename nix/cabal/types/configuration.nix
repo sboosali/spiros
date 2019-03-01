@@ -39,7 +39,7 @@ let
 
 options = {
 
-  ############################################
+  #----------------------------------------------#
 
   jobs = mCabalkOption {
     type = types.either types.ints.positive types.str;
@@ -50,16 +50,16 @@ options = {
 If <code>"$ncpus"</code> is specified, run the number of jobs equal to the number of CPUs.'';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   verbose = mCabalkOption {
     name = "verbose";
     type = types.ints.between 0 3;
 
-    description = ''The verbosity of <code>cabal</code> commands.'';
+    description = ''The verbosity of <code>cabal</code> and <code>ghc</code> commands.'';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   username = mkCabalOption {
     name = "username";
@@ -68,7 +68,7 @@ If <code>"$ncpus"</code> is specified, run the number of jobs equal to the numbe
     description = ''Hackage user name (used by <code>cabal new-upload</code>).'';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   password-command = mkCabalOption {
     name = "password-command";
@@ -78,7 +78,7 @@ If <code>"$ncpus"</code> is specified, run the number of jobs equal to the numbe
     description = ''Hackage password (for <code>username</code>).'';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   documentation = mkCabalOption {
     type    = types.bool;
@@ -90,7 +90,7 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
 '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   optional-packages = mkCabalOption {
     name    = "optional-packages";
@@ -102,7 +102,7 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
     description = ''Local packages to be vendored into projects (if present).'';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   extra-packages = mkCabalOption {
     name    = "extra-packages";
@@ -111,10 +111,10 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
     default = [];
 
     example = [];
-    description = ''Hackage package to be vendored into projects.'';
+    description = ''Hackage packages to be vendored into projects.'';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   extra-lib-dirs       = mkCabalOption {
     name    = "extra-lib-dirs";
@@ -126,7 +126,7 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
     description = '' '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   extra-include-dirs   = mkCabalOption {
     name    = "extra-include-dirs";
@@ -138,7 +138,7 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
     description = '' '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   extra-framework-dirs = mkCabalOption {
     name    = "extra-framework-dirs";
@@ -150,7 +150,7 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
     description = '' '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   extra-prog-path      = mkCabalOption {
     name    = "extra-prog-path";
@@ -162,7 +162,7 @@ NOTE <code>documentation: true</code> does not imply: <code>haddock-benchmarks, 
     description = '' '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   constraints = mkCabalOption {
     name    = "constraints";
@@ -208,7 +208,7 @@ constraints: foo >= 2.1, foo < 2.2, foo +bar -baz
 '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
   preferences = mkCabalOption {
     name    = "preferences";
@@ -234,16 +234,16 @@ TODO specify a Stackage <code>lts-X.Y</code> string.
 '';
   };
 
-  ############################################
+  #----------------------------------------------#
 
 .. cfg-field:: allow-newer: none, all or list of scoped package names (space or comma separated)
 .. cfg-field:: allow-older: none, all, list of scoped package names (space or comma separated)
 
-  ############################################
+  #----------------------------------------------#
 
 .. cfg-field:: index-state: HEAD, unix-timestamp, ISO8601 UTC timestamp.
 
-  ############################################
+  #----------------------------------------------#
 
   profiling-detail = mkCabalOption {
     name = "profiling-detail";
@@ -253,7 +253,7 @@ TODO specify a Stackage <code>lts-X.Y</code> string.
     description = ''TODO'';
   };
   
-  ############################################
+  #----------------------------------------------#
   
   library-profiling-detail = mkCabalOption {
     name = "library-profiling-detail";
@@ -263,12 +263,11 @@ TODO specify a Stackage <code>lts-X.Y</code> string.
     description = ''TODO'';
   };
   
-  ############################################
+  #----------------------------------------------#
 
   
   
-  ############################################
-  
+  #----------------------------------------------#
 };
 
 in

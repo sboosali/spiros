@@ -22,8 +22,10 @@ packages: ${cabal.list config.packages}
 ${lib.optionalString (config ? optional-packages) ''optional-packages: ${cabal.list config.optional-packages}''}
 
 --------------------------------------------------
--- Statically-Linked Executables
+-- Static Linking --------------------------------
 --------------------------------------------------
+
+-- executable-static: True
 
 static: True
 shared: False
@@ -57,7 +59,7 @@ package *
 
   ----------------------------
 
--- ^ the « package * » stanza applies to all packages,
+-- ^ the <<< package * >>> stanza applies to all packages,
 -- both local (internal / project) packages
 -- and rempte (external / dependency) packages
 
@@ -66,16 +68,16 @@ package *
 --------------------------------------------------
 
 verbose: ${cabal.int config.verbose}
-         -- « 1 » by default.
+         -- <<< 1 >>> by default.
 
 jobs: ${cabal.int config.jobs}
-      -- « $ncpus » by default.
+      -- <<< $ncpus >>> by default.
 
 --------------------------------------------------
 
 ${lib.optionalString (config ? nix) ''nix: ${cabal.bool config.nix}''}
 
-deterministic: ${cabal.bool config.deterministic}
+-- deterministic: {cabal.bool config.deterministic}
 relocatable:   ${cabal.bool config.relocatable}
 
 --------------------------------------------------
@@ -94,7 +96,7 @@ ${cabal.field { inherit config; cabalField = "documentation"; nixField = "docs";
 -- Compiler --------------------------------------
 --------------------------------------------------
 
-${lib.optionalString (config ? nix) ''with-compiler: ${cabal.path config.compiler}''}
+${lib.optionalString (config ? compiler) ''with-compiler: ${cabal.path config.compiler}''}
 
 --------------------------------------------------
 -- Repositories ----------------------------------

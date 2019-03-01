@@ -52,9 +52,6 @@ config = {
   # ^ Stackage LTS version.
 
   compiler = ~/.nix-profile/bin/ghc-8.6.3;
-  # ^ GHC executable path.
-  # * should work with the stackage snapshot (i.e. « config.lts »).
-  # * must be built with « -fPIC » (i.e. the « ghc » itself).
 
 };
 
