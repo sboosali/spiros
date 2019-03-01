@@ -3,11 +3,12 @@
 --------------------------------------------------
 
 {-# LANGUAGE PackageImports #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 
 --------------------------------------------------
 
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass, DeriveLift #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -28,7 +29,7 @@ module Prelude.Spiros.System
 --------------------------------------------------
 --------------------------------------------------
 
-import         Prelude.Spiros.Compatibility
+import         Prelude.Spiros.Compatibility()
 
 import         Prelude.Spiros.Reexports
 import         Prelude.Spiros.Utilities
@@ -43,18 +44,31 @@ import qualified "cpuinfo" System.CPU as CPU
 import qualified "base" System.Info as Base
 import qualified "base" GHC.Conc as GHC
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
 
 -- | Enumeration of the known GHC supported operating systems.
 --
+
 data KnownOperatingSystem
-  = Windows
+
+  = Linux
+  | Windows
   | OSX
-  | Linux
   | Android
   | BSD
-  deriving (Show, Eq, Ord, Enum, Bounded, Generic, Typeable)
+
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
 
 -- | get the operating system on which the program is running.
 --
@@ -62,41 +76,103 @@ data KnownOperatingSystem
 --
 -- This function uses the `base`'s `System.Info.os` function.
 --
+
 currentOperatingSystem :: Either String KnownOperatingSystem
 currentOperatingSystem = case Base.os of
-    "darwin"        -> Right OSX
+
+    "linux"         -> Right Linux --TODO-- more linux strings.
     "mingw32"       -> Right Windows
-    "linux"         -> Right Linux
+    "mingw64"       -> Right Windows
+    "darwin"        -> Right OSX
     "linux-android" -> Right Android
     "openbsd"       -> Right BSD
     "netbsd"        -> Right BSD
     "freebsd"       -> Right BSD
+
     s               -> Left s
 
+--------------------------------------------------
 --------------------------------------------------
 
 -- | Enumeration of the known GHC supported architecture.
 --
-data KnownArchitecture
-  = I386
-  | X86_64
-  | PowerPC
-  | PowerPC64
-  | Sparc
-  | Sparc64
-  | ARM
-  | ARM64
-  deriving (Show, Eq, Ord, Enum, Bounded, Generic, Typeable)
 
--- | get the machine architecture on which the program is running
+data KnownArchitecture = KnownArchitecture
+
+  { architectureManufacturer  :: KnownManufacturer
+  , architectureProcessorBits :: ProcessorBits -- vs « Maybe ProcessorBits »
+  } 
+
+  deriving ( Show,Read,Eq,Ord,Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
+
+-- | @'IntelManufacturer'@ and @'Processor64Bit'@.
+
+instance Default KnownArchitecture where
+
+  def = KnownArchitecture{..}
+    where
+
+    architectureManufacturer  = def
+    architectureProcessorBits = def
+
+--------------------------------------------------
+
+pattern I386      :: KnownArchitecture
+pattern I386      = KnownArchitecture { architectureManufacturer = Intel_Manufacturer, architectureProcessorBits = Processor32Bit }
+
+pattern X86_64    :: KnownArchitecture
+pattern X86_64    = KnownArchitecture { architectureManufacturer = Intel_Manufacturer, architectureProcessorBits = Processor64Bit }
+
+pattern PowerPC   :: KnownArchitecture
+pattern PowerPC   = KnownArchitecture { architectureManufacturer = PowerPC_Manufacturer, architectureProcessorBits = Processor32Bit }
+
+pattern PowerPC64 :: KnownArchitecture
+pattern PowerPC64 = KnownArchitecture { architectureManufacturer = PowerPC_Manufacturer, architectureProcessorBits = Processor64Bit }
+
+pattern Sparc     :: KnownArchitecture
+pattern Sparc     = KnownArchitecture { architectureManufacturer = Sparc_Manufacturer, architectureProcessorBits = Processor32Bit }
+
+pattern Sparc64   :: KnownArchitecture
+pattern Sparc64   = KnownArchitecture { architectureManufacturer = Sparc_Manufacturer, architectureProcessorBits = Processor64Bit }
+
+pattern ARM       :: KnownArchitecture
+pattern ARM       = KnownArchitecture { architectureManufacturer = ARM_Manufacturer, architectureProcessorBits = Processor32Bit }
+
+pattern ARM64     :: KnownArchitecture
+pattern ARM64     = KnownArchitecture { architectureManufacturer = ARM_Manufacturer, architectureProcessorBits = Processor64Bit }
+
+--------------------------------------------------
+
+allKnownArchitectures :: [KnownArchitecture]
+allKnownArchitectures = do
+
+  architectureManufacturer  <- constructors'
+  architectureProcessorBits <- constructors'
+
+  return KnownArchitecture{..}
+
+--------------------------------------------------
+
+-- | Get the machine architecture on which the program is running.
 --
 -- Either return the known architecture or a Strict `String` of the
 -- architecture name.
 --
 -- This function uses the `base`'s `System.Info.arch` function.
 --
+
 currentArchitecture :: Either String KnownArchitecture
 currentArchitecture = case Base.arch of
+
     "i386"          -> Right I386
     "x86_64"        -> Right X86_64
     "powerpc"       -> Right PowerPC
@@ -106,27 +182,263 @@ currentArchitecture = case Base.arch of
     "sparc64"       -> Right Sparc64
     "arm"           -> Right ARM
     "aarch64"       -> Right ARM64
+
     s               -> Left s
 
+--------------------------------------------------
+--------------------------------------------------
+
+data KnownManufacturer
+
+  = Intel_Manufacturer
+  | PowerPC_Manufacturer
+  | Sparc_Manufacturer
+  | ARM_Manufacturer
+
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
+
+-- | @≡ 'Intel_Manufacturer'@
+
+instance Default KnownManufacturer where
+
+  def = Intel_Manufacturer
+
+--------------------------------------------------
+
+-- | Get the manufacturer (if known) of the architecture on which the program is running.
+--
+-- Uses `base`'s `System.Info.arch` function.
+--
+
+currentManufacturer :: Maybe KnownManufacturer
+currentManufacturer = case currentArchitecture of
+
+  Left _ -> Nothing
+  Right KnownArchitecture{ architectureManufacturer } -> Just architectureManufacturer
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-| Whether the processor is little-endian or big-endian.
+
+<https://en.wikipedia.org/wiki/Endianness>: "Endianness is the sequential order in which bytes are arranged into larger numerical values when stored in memory or when transmitted over digital links."
+
+-}
+
+data Endianness
+
+  = LittleEndian
+  | BigEndian
+
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
+
+-- | @≡ 'LittleEndian'@
+
+instance Default Endianness where
+
+  def = LittleEndian
+
+--------------------------------------------------
+
+{- | The endianness of the current machine's architecture.
+
+@Nothing@ represents:
+
+* unknown endianness.
+
+These endiannesses aren't represented:
+
+* Bi-endianness. (the endianness, if swapped before the haskell program starts up, may differ).
+
+For example, PowerPC processors start in big-endian, but PowerPC itself is bi-endian.
+
+-}
+
+currentEndianness :: Maybe Endianness
+currentEndianness = case currentArchitecture of
+
+  Left  _ -> Nothing
+
+  Right KnownArchitecture{ architectureManufacturer } -> case architectureManufacturer of
+
+      Intel_Manufacturer   -> Just LittleEndian
+      PowerPC_Manufacturer -> Just BigEndian
+      Sparc_Manufacturer   -> Just BigEndian
+      ARM_Manufacturer     -> Just BigEndian
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Whether the processor is @64-bit@ or @32-bit@.
+
+<https://en.wikipedia.org/wiki/64-bit_computing>: "In computer architecture, 64-bit computing is the use of processors that have datapath widths, integer size, and memory address widths of 64 bits (eight octets)."
+
+-}
+
+data ProcessorBits
+
+  = Processor32Bit
+  | Processor64Bit
+
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
+
+-- | @≡ 'Processor64Bit'@
+
+instance Default ProcessorBits where
+
+  def = Processor64Bit
+
+--------------------------------------------------
+
+-- | Get the number of bits (if known) of the processor on which the program is running.
+--
+-- Uses `base`'s `System.Info.arch` function.
+--
+
+currentProcessorBits :: Maybe ProcessorBits
+currentProcessorBits = case currentArchitecture of
+
+  Left _ -> Nothing
+  Right KnownArchitecture{ architectureProcessorBits } -> Just architectureProcessorBits
+
+--------------------------------------------------
 --------------------------------------------------
 
 -- | Enumeration of the known GHC-based compilers. 
 --
+
 data KnownHaskellCompiler
-  = GHC
-  | GHCJS
-  deriving (Show, Eq, Ord, Enum, Bounded, Generic, Typeable)
+
+  = GHC     -- ^ C @FFI@.
+  | GHCJS   -- ^ Javascript  @FFI@.
+  | GHCETA  -- ^ Java @FFI@.
+
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
 
 -- | get the compiler name
 --
 -- This function uses the `base`'s `System.Info.compilerName` function.
 --
+
 currentCompiler :: Either String KnownHaskellCompiler
 currentCompiler = case Base.compilerName of
+
     "ghc"    -> Right GHC
     "ghcjs"  -> Right GHCJS
+    "eta"    -> Right GHCETA
+
     s        -> Left s
 
+--------------------------------------------------
+
+-- | @≡ 'GHC'@
+
+instance Default KnownHaskellCompiler where
+
+  def = GHC
+  
+--------------------------------------------------
+--------------------------------------------------
+
+data CPUsSummary = CPUsSummary
+
+  { isHyperthreading :: IsHyperthreading
+  , physicalCores    :: Natural
+  , logicalCores     :: Natural
+  } 
+
+  deriving ( Show,Read,Eq,Ord,Generic --TODO CPP for Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+--------------------------------------------------
+
+instance Default CPUsSummary where
+
+  def = CPUsSummary{..}
+    where
+
+    isHyperthreading = def
+    physicalCores    = 0
+    logicalCores     = 0
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-| Whether the system is currently using any Hyperthreading.
+
+-}
+
+data IsHyperthreading
+
+  = HyperthreadingIsDisabled
+  | HyperthreadingIsEnabled
+
+  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic --TODO CPP for Generic
+#if HAS_EXTENSION_DeriveAnyClass
+           , NFData, Hashable 
+#endif
+#if HAS_EXTENSION_DerivingLift 
+           , Lift
+#endif
+           )
+
+  -- deriving stock    (Enum,Bounded,Ix)
+  -- deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  -- deriving anyclass (Enumerable)
+  -- deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'HyperthreadingIsDisabled'@
+
+instance Default IsHyperthreading where
+
+  def = HyperthreadingIsDisabled
+
+--------------------------------------------------
+-- Functions -------------------------------------
 --------------------------------------------------
 
 -- | returns the number of CPUs the machine has
@@ -162,70 +474,12 @@ getCPUsSummary = do
     let logicalCores  = CPU.logicalCores  cpus & fromIntegral
   
     return CPUsSummary{..}
-  
---------------------------------------------------
-
-data CPUsSummary = CPUsSummary
-
-  { isHyperthreading :: IsHyperthreading
-  , physicalCores    :: Natural
-  , logicalCores     :: Natural
-  } 
-
-  deriving ( Show,Read,Eq,Ord,Generic --TODO CPP for Generic
-#if HAS_EXTENSION_DeriveAnyClass
-           , NFData, Hashable 
-#endif
-#if HAS_EXTENSION_DerivingLift 
-           , Lift
-#endif
-           )
 
 --------------------------------------------------
-
-instance Default CPUsSummary where
-  def = CPUsSummary{..}
-    where
-    isHyperthreading = def
-    physicalCores    = 0
-    logicalCores     = 0
-
+-- Notes -----------------------------------------
 --------------------------------------------------
 
-{-| Whether the system is currently using any Hyperthreading.
-
--}
-
-data IsHyperthreading
-
-  = HyperthreadingIsDisabled
-  | HyperthreadingIsEnabled
-
-  deriving ( Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic --TODO CPP for Generic
-#if HAS_EXTENSION_DeriveAnyClass
-           , NFData, Hashable 
-#endif
-#if HAS_EXTENSION_DerivingLift 
-           , Lift
-#endif
-           )
-
-  -- deriving stock    (Enum,Bounded,Ix)
-  -- deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
-  -- deriving anyclass (Enumerable)
-  -- deriving anyclass (NFData,Hashable)
-
-instance Default IsHyperthreading where
-  def = HyperthreadingIsDisabled
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-{- NOTES
-
-
-
-
+{- 
 
 
 
@@ -316,5 +570,3 @@ powerpc_HOST_ARCH
 sparc_HOST_ARCH
 
 -}
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
