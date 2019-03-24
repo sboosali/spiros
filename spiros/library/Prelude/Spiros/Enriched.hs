@@ -11,7 +11,6 @@
            , DeriveTraversable
            , DeriveGeneric
            , DeriveAnyClass
-           , DeriveLift
  #-}
 
 --------------------------------------------------

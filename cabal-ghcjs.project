@@ -17,7 +17,7 @@ repository ghcjs-overlay
   root-keys:
 
 -- by @nomeata
--- « https://hackage-ghcjs-overlay.nomeata.de »
+-- <<< https://hackage-ghcjs-overlay.nomeata.de >>>
 --
 -- this overlay holds these packages:
 --

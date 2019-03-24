@@ -28,8 +28,13 @@ See 'throwS', 'throwN', 'throwL'.
 -}
 module Prelude.Spiros.Exception where
 
+--------------------------------------------------
+--------------------------------------------------
+
 #include <sboo-base-feature-macros.h>
 
+--------------------------------------------------
+-- Imports: Internal -----------------------------
 --------------------------------------------------
 
 import Prelude.Spiros.Types
@@ -40,7 +45,7 @@ import Prelude.Spiros.GUI
 import Prelude.Spiros.Reexports
 
 --------------------------------------------------
--- Imports ---------------------------------------
+-- Imports: External -----------------------------
 --------------------------------------------------
 
 import qualified "base" Control.Exception as E
@@ -124,6 +129,7 @@ getCallStack' = getCallStack
 -}
 
 --------------------------------------------------
+-- Functions -------------------------------------
 --------------------------------------------------
 
 {-| A default 'E.Exception', useful when manipulating 'MonadThrow' instances.
@@ -983,7 +989,9 @@ instance (HasCallStack) => IsString LocatedException where
 #endif
 
 --------------------------------------------------
+-- Notes -----------------------------------------
 --------------------------------------------------
+{-
 
 -- -- | 
 -- throwE :: (MonadThrow m, HasCallStack) => String -> m a
@@ -1017,4 +1025,4 @@ locatedException = E.SomeException $ errorCallWithCallStackException "" ?callSta
 
 -}
 
---------------------------------------------------
+-}

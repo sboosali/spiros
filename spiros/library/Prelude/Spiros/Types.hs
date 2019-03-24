@@ -47,22 +47,44 @@ import qualified "bytestring" Data.ByteString.Lazy as BL
 import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
 
 --------------------------------------------------
+-- Imports: 1st Party ----------------------------
+--------------------------------------------------
 
 import "base" Data.Proxy      (Proxy(..))
 import "base" Data.String     (IsString)
 
---import "base"  ()
+--------------------------------------------------
+
+import "base" Data.Functor.Identity (Identity(..))
+
+#if HAS_BASE_Functors   
 import "base" Data.Functor.Const    (Const(..))
 import "base" Data.Functor.Compose  (Compose(..))
-import "base" Data.Functor.Identity (Identity(..))
 import "base" Data.Functor.Product  (Product(..))
 import "base" Data.Functor.Sum      (Sum(..))
+#else
+import "base"         Control.Applicative   (Const(..))
+--import "transformers" Data.Functor.Constant (Constant(..))
+import "transformers" Data.Functor.Compose  (Compose(..))
+import "transformers" Data.Functor.Product  (Product(..))
+import "transformers" Data.Functor.Sum      (Sum(..))
+#endif
 
 --------------------------------------------------
 -- Imports: 3rd Party ----------------------------
 --------------------------------------------------
 
 --import "vinyl" Data.Vinyl.Functor
+
+--------------------------------------------------
+-- Compatibility ---------------------------------
+--------------------------------------------------
+
+-- #if !HAS_BASE_Functors   
+-- type Const = Constant
+-- pattern Const :: a -> Const a b
+-- pattern Const x = Constant x
+-- #endif
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -179,8 +201,10 @@ pattern I x = Identity x
 
 --------------------------------------------------
 
-pattern C :: forall a (b :: k). a -> Const a b
+pattern C :: forall a b. a -> Const a b
 pattern C x = Const x
+
+-- pattern C :: forall a (b :: k). a -> Const a b
 
 --------------------------------------------------
 

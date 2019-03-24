@@ -52,6 +52,12 @@ Cabal2nix ?=cabal2nix
 
 #------------------------------------------------#
 
+MakeETags ?=hasktags --etags  --tags-absolute --follow-symlinks
+MakeCTags ?=hasktags --ctags  --tags-absolute --follow-symlinks
+#MakeGTags ?=hasktags --gtags  --tags-absolute --follow-symlinks
+
+#------------------------------------------------#
+
 Open		?=xdg-open
 Pandoc		?=pandoc
 Markdown	?=multimarkdown
@@ -93,7 +99,12 @@ InstallDirectory ?=$(ReleaseDirectory)/dist-newstyle/ #TODO
 
 #------------------------------------------------#
 
+################################################## Miscellaneous
 
+ETagsFile      ?=TAGS
+CTagsFile      ?=tags
+
+TagsDirectory ?=$(PackageDirectory)
 
 #------------------------------------------------#
 
@@ -357,7 +368,7 @@ build-static:
 
 #	$(CabalBuild)  --disable-shared  --enable-static  $(CabalTargets)
 
-	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-sprios"   #   "lib:spiros"
+	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-sprios"   #   $(CabalTarget)
 
 	@echo -e "\n========================================\n"
 
@@ -463,14 +474,57 @@ configure-ghc-8.6:
 
 #------------------------------------------------#
 
-tags:
-	cabal new-repl $(DefaultTarget) < <(echo -e $(TagsScript))
+##################################################
+# Development ####################################
+##################################################
 
-        # ^ NOTE:
-        # * the « <(...) » is a Process Substitution, while
-        # * the « ... < ... » is a Redirection.
+# developing this package...
+
+#------------------------------------------------#
+
+tags: etags ctags
 
 .PHONY: tags
+
+#------------------------------------------------#
+
+etags:
+
+	@echo '=================================================='
+	@echo
+
+	$(MakeETags)  "$(TagsDirectory)"  --output "$(ETagsFile)"
+
+	@echo '=================================================='
+	@echo
+
+	@cat $(ETagsFile)
+
+	@echo
+	@echo '=================================================='
+
+.PHONY: etags
+
+#------------------------------------------------#
+
+ctags:
+
+	@echo '=================================================='
+	@echo
+
+	$(MakeCTags)  "$(TagsDirectory)"  --output "$(CTagsFile)"
+
+	@echo '=================================================='
+	@echo
+
+	@cat $(CTagsFile)
+
+	@echo
+	@echo '=================================================='
+
+.PHONY: ctags
+
+#------------------------------------------------#
 
 ##################################################
 # Installation ###################################
@@ -635,6 +689,64 @@ docs:
 .PHONY: docs
 
 #------------------------------------------------#
+# Haskell Compilers -----------------------------#
+#------------------------------------------------#
+
+js:
+
+#	$(Cabal) new-update  ghcjs-overlay --project-file "./cabal-ghcjs.project"
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghcjs.project"
+
+.PHONY: js
+
+#------------------------------------------------#
+
+7.10:
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-7-10.project"
+
+.PHONY: 7.10
+
+#------------------------------------------------#
+
+8.0:
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-00.project"
+
+.PHONY: 8.0
+
+#------------------------------------------------#
+
+8.2:
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-02.project"
+
+.PHONY: 8.2
+
+#------------------------------------------------#
+
+8.4:
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-04.project"
+
+.PHONY: 8.4
+
+#------------------------------------------------#
+
+8.6:
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-06.project"
+
+.PHONY: 8.6
+
+#------------------------------------------------#
+
+8.8:
+
+	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-08.project"
+
+.PHONY: 8.8
 
 ##################################################
 # Release ########################################

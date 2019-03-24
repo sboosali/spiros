@@ -76,7 +76,7 @@ import "base" Data.Function              ((&))
 import "base" Control.Arrow              ((>>>),(<<<))
 import "base" Control.Exception          (SomeException,evaluate)
 import "base" Control.Concurrent         (threadDelay,forkIO,ThreadId)
-import "base" Control.Monad              (forever, void)
+import "base" Control.Monad              (forever, void, when)
 import "base" Data.Proxy
 import "base" Data.String                (IsString)
 import "base" Numeric.Natural
@@ -497,6 +497,24 @@ typeName proxy = typeRep proxy & show & fromString
 
 --------------------------------------------------
 
+whenM :: (Monad m) => m Bool -> m () -> m ()
+whenM check action = do
+
+  b <- check
+
+  when b action
+
+{-# INLINEABLE whenM #-}
+
+--------------------------------------------------
+
+unlessM :: (Monad m) => m Bool -> m () -> m ()
+unlessM check = whenM (not <$> check)
+
+{-# INLINEABLE unlessM #-}
+
+--------------------------------------------------
+
 -- | @= 'flip' 'runReaderT'@
 runReaderT' :: r -> (ReaderT r) m a -> m a
 runReaderT' = flip runReaderT
@@ -673,4 +691,5 @@ forceIO_ = void . evaluate . force
 {-# INLINEABLE forceIO_ #-}
 
 --------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------

@@ -554,6 +554,111 @@ toCabalFor = type:
 
 
 
+whenM :: (Monad m) => m Bool -> m () -> m ()
+whenM check action = do
+
+  b <- check
+
+  if   b
+  then action
+  else nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

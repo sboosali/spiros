@@ -35,6 +35,7 @@ re-exports:
 TODO custom appending strategies for sum types.
 
 -}
+
 module Prelude.Spiros.Generics
  ( module Prelude.Spiros.Generics
  --, module X

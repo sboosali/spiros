@@ -7,7 +7,7 @@
 
 --------------------------------------------------
 
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass, DeriveLift #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 --------------------------------------------------
@@ -24,9 +24,12 @@ module Prelude.Spiros.System
   -- , module System.Info
   ) where
 
+--------------------------------------------------
+
 #include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 import         Prelude.Spiros.Compatibility()

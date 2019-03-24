@@ -13,11 +13,12 @@
 
 module Prelude.Spiros.GUI where
 
-----------------------------------------
+--------------------------------------------------
+--------------------------------------------------
 
 #include <sboo-base-feature-macros.h>
 
-----------------------------------------
+--------------------------------------------------
 
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.Utilities
@@ -34,7 +35,7 @@ import Prelude hiding
    -- deprecated
  )
 
-----------------------------------------
+--------------------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax
   ( Name(..)
@@ -45,7 +46,7 @@ import "template-haskell" Language.Haskell.TH.Syntax
   , PkgName(..)
   )
 
-----------------------------------------
+--------------------------------------------------
 
 import "base" GHC.Generics (Generic)
 import "base" Data.Data    (Data)
@@ -66,6 +67,7 @@ TODO new field: @Version@.
 -}
 
 data GUI = GUI
+
  { _guiPackage    :: !PkgName
  , _guiModule     :: !ModName
  , _guiIdentifier :: !OccName
@@ -87,43 +89,37 @@ data GUI = GUI
 showsPrec_NameSpace :: Int -> NameSpace -> ShowS
 showsPrec_NameSpace _ = showString . go
   where
-  go VarName = "VarName"
-  go DataName = "DataName"
-  go TcClsName = "TcClsName"
+
+  go = \case
+   VarName   -> "VarName"
+   DataName  -> "DataName"
+   TcClsName -> "TcClsName"
 
 --------------------------------------------------
 
 instance Show GUI where
-  showsPrec
-    precedence
-    (GUI p m i n)
-    = showParen
-        (precedence >= 11)
-        ((.)
-           (showString "GUI {")
-           ((.)
-              (showString "_guiPackage = ")
-              ((.)
-                 (showsPrec 0 p)
-                 ((.)
-                    (showString ", ")
-                    ((.)
-                       (showString "_guiModule = ")
-                       ((.)
-                          (showsPrec 0 m)
-                          ((.)
-                             (showString ", ")
-                             ((.)
-                                (showString "_guiIdentifier = ")
-                                ((.)
-                                   (showsPrec 0 i)
-                                   ((.)
-                                      (showString ", ")
-                                      ((.)
-                                         (showString "_guiNamespace = ")
-                                         ((.)
-                                            (showsPrec_NameSpace 0 n)
-                                            (showString "}")))))))))))))
+
+  showsPrec precedence (GUI p m i n) =
+
+    showParen (precedence >= 11) (foldr (.) id ss)
+
+    where
+
+    ss =
+      [ (showString "GUI {")
+      , (showString "_guiPackage = ")
+      , (showsPrec 0 p)
+      , (showString ", ")
+      , (showString "_guiModule = ")
+      , (showsPrec 0 m)
+      , (showString ", ")
+      , (showString "_guiIdentifier = ")
+      , (showsPrec 0 i)
+      , (showString ", ")
+      , (showString "_guiNamespace = ")
+      , (showsPrec_NameSpace 0 n)
+      , (showString "}")
+      ]
 
 #endif
 --------------------------------------------------
@@ -138,26 +134,33 @@ instance NFData GUI where
     rnfString :: String -> ()
     rnfString = rnf
 
+--------------------------------------------------
+
 instance Hashable GUI where
+
   -- hashWithSalt s GUI{..} = s `hashWithSalt` ...
-  hashWithSalt s GUI{..}
-    = s
+
+  hashWithSalt s GUI{..} =
+
+    s
     `hashStringWithSalt` (coerce _guiPackage)
     `hashStringWithSalt` (coerce _guiModule)
     `hashStringWithSalt` (coerce _guiIdentifier)
     `hashWithSalt`       (fromEnumNameSpace  _guiNamespace) -- lol
-    -- `hashWithSalt`       (fromEnum _guiNamespace) 
+    -- `hashWithSalt`       (fromEnum _guiNamespace)
+
     where
+
     hashStringWithSalt :: Int -> String -> Int
     hashStringWithSalt = hashWithSalt
 
     fromEnumNameSpace :: NameSpace -> Int
     fromEnumNameSpace = \case
-      VarName -> 0
-      DataName -> 1
+      VarName   -> 0
+      DataName  -> 1
       TcClsName -> 2
 
-----------------------------------------
+--------------------------------------------------
 
 -- {- | An identifer of a haskell /value/,
 -- fully-qualified with its module and package,
@@ -176,7 +179,9 @@ instance Hashable GUI where
 -- -- instance NFData   (GUI' t) where
 -- -- instance Hashable (GUI' t) where
 
-----------------------------------------
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
 
 {-| Return a globally unique identifier from a Template Haskell 'Name', even if it's local (i.e. not global). 
 
@@ -206,6 +211,7 @@ Global name bound outside of the TH AST: An original name (occurrences only, not
 unsafeGUI :: Name -> GUI
 unsafeGUI name = go name
   where
+
   go :: Name -> GUI
   go = fromGlobalName > maybe (fakeGUI name) id
   
@@ -233,6 +239,8 @@ unsafeGUI name = go name
   defaultNameSpace :: NameSpace
   defaultNameSpace = VarName
 
+--------------------------------------------------
+
 {-| if the given identifier is [1] global and [2] a value, then return it as a GUI. 
 
 e.g.
@@ -245,12 +253,17 @@ Just (PkgName "spiros-0.0.1-inplace",ModName "Prelude.Spiros.Exception",OccName 
 Implementation Note: 'Name' use is compatible with @template-haskell >=2.11@.
 
 -}
+
 fromGlobalName :: Name -> Maybe GUI
 fromGlobalName = \case
+
   Name nIdentifier (NameG nNameSpace nPackage nModule)
     -> Just $ GUI nPackage nModule nIdentifier nNameSpace
+
   _
     -> Nothing
+
+--------------------------------------------------
 
 {-| like 'fromGlobalName', but restricted to /identifiers/
 (i.e. not types\/classes, not constructors\/patterns). 
@@ -258,12 +271,18 @@ fromGlobalName = \case
 e.g.
 
 -}
+
 fromValueName :: Name -> Maybe GUI
 fromValueName = fromGlobalName >=> go
+
   where
+
   go gui = gui & \case
+
     GUI _ _ _ VarName -> Just gui
     _                 -> Nothing
+
+--------------------------------------------------
 
 {- | The globally unique identifier for a type: @(pkg,
 <https://www.haskell.org/onlinereport/lexemes.html modid>,
@@ -275,29 +294,36 @@ fromValueName = fromGlobalName >=> go
 "ghc-prim:GHC.Types.(type [])"
 
 -}
+
 fromTypeProxy
   :: forall a proxy.
      ( Typeable a
      )
   => proxy a
   -> GUI
+
 fromTypeProxy
- = typeRep
- > typeRepTyCon
- > go
- where
- go t = GUI
-   (PkgName $ tyConPackage t)
-   (ModName $ tyConModule  t)
-   (OccName $ tyConName    t)
-   TcClsName
+  = typeRep
+  > typeRepTyCon
+  > go
+
+  where
+
+  go t = GUI{..}
+
+    where
+
+    _guiPackage    = PkgName (tyConPackage t)
+    _guiModule     = ModName (tyConModule  t)
+    _guiIdentifier = OccName (tyConName    t)
+    _guiNamespace  = TcClsName
 
 -- {-| 
 -- -}
 -- failure :: Name -> Possibly a
 -- failure = throwM . userError . showName
 
-----------------------------------------
+--------------------------------------------------
 
 {-|
 
@@ -309,23 +335,29 @@ fromTypeProxy
 "package-name:Module.SubModule.(type TypeName)"
 
 -}
+
 displayGUI :: GUI -> String
 displayGUI (GUI (PkgName p) (ModName m) (OccName o) n) =
+
   p ++ ":" ++ m ++ "." ++ i
 
   where
   
   i = displayNamespacePrefix n & \case
+
     Nothing ->             o           -- un-paranthesized
     Just s  -> "(" ++ s ++ o ++ ")"    -- paranthesized, for ExplicitNamespace syntax
 
   displayNamespacePrefix :: NameSpace -> Maybe String
   displayNamespacePrefix = \case
+
       VarName   -> Nothing -- ""
       DataName  -> Nothing -- ""
       TcClsName -> Just "type "
 
-----------------------------------------
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
 
 {-NOTES
 

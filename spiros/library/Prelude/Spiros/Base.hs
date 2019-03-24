@@ -4,10 +4,13 @@
 --------------------------------------------------
 --------------------------------------------------
   
-{-| Re-Export the @Prelude@ and other @"base"@ modules.
+{-| Re-Export 'Base.GHC710'.
 
-Module      :  Prelude.Spiros.Base
-Stability   :  experimental
+'Base.GHC710' exports most of @base-4.8.2.0@,
+which corresponds to @ghc-7.10.3@.
+(or it should, it's a work-in-progress.)
+
+Currently, this package (i.e. @spiros@) supports GHC 7.10.3 (and onwards).
 
 -}
 
@@ -16,13 +19,24 @@ Stability   :  experimental
 
 module Prelude.Spiros.Base
 
-  ( module Prelude
+  ( module Base.GHC710
   ) where
 
 --------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
-import "base" Prelude
+--------------------------------------------------
+-- Exports ---------------------------------------
+--------------------------------------------------
+
+import Base.GHC710
 
 --------------------------------------------------
+-- Notes -----------------------------------------
 --------------------------------------------------
+{-
+
+
+
+-}

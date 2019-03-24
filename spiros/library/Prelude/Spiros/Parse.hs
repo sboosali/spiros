@@ -18,7 +18,6 @@
            , DeriveTraversable
            , DeriveGeneric
            , DeriveAnyClass
-           , DeriveLift
            #-}
 
 --------------------------------------------------
@@ -47,6 +46,7 @@ module Prelude.Spiros.Parse
   ) where
 
 --------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 import Prelude.Spiros.Types
@@ -72,7 +72,7 @@ import qualified "containers" Data.Map as Map
 ------------------------------------------------
 
 import           "base" Control.Exception (Exception(..))
-import qualified "base" Text.Show as Show
+--import qualified "base" Text.Show as Show
 
 --------------------------------------------------
 
@@ -234,7 +234,7 @@ data ParseError = ParseError
   }
 
   deriving ({-Show,-}Eq,Ord
-           ,Lift,Generic
+           {-,Lift-},Generic
            ,NFData,Hashable
            )
 
@@ -292,7 +292,7 @@ data ParseErrorConfig = ParseErrorConfig
   }
 
   deriving (Show,Eq,Ord
-           ,Lift,Generic
+           {-,Lift-},Generic
            ,NFData,Hashable
            )
 
@@ -519,7 +519,7 @@ Can't parse <<< "unparseable" >>>.
 -}
 
 displayParseErrorWith :: ParseErrorConfig -> ParseError -> String
-displayParseErrorWith ParseErrorConfig{ useUnicodeCharacters, useANSIColorCodes } ParseError{ stringBeingParsed, thingToParseInto } = concats
+displayParseErrorWith ParseErrorConfig{ useUnicodeCharacters {-, useANSIColorCodes-} } ParseError{ stringBeingParsed, thingToParseInto } = concats
 
     [ [ "[ParseError] ", "Can't parse " ]
 

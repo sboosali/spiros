@@ -213,6 +213,7 @@ import "mtl" Control.Monad.Except                    as X
 --------------------------------------------------
 
 import "containers" Data.Set                         as X (Set)
+
 import "containers" Data.Map                         as X (Map)
 import "containers" Data.Sequence                    as X (Seq)
 import "containers" Data.IntSet                      as X (IntSet)

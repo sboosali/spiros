@@ -25,7 +25,7 @@ category:            Prelude
 
 --------------------------------------------------
 
-description:         My custom prelude (I'm @\@sboosali@ on GitHub and @user/sboo@ on Hackage.) 
+description:         My custom prelude (I'm @\@sboosali@ on GitHub and @user\/sboo@ on Hackage.) 
                      .
                      Diverges slightly from base's: adding, removing, and shadowing.
                      .
@@ -193,6 +193,8 @@ library
                  --Spiros
 
                   Prelude.Spiros
+
+                  --Base.GHC710
 
                   Prelude.Spiros.Reexports
                   Prelude.Spiros.Utilities
@@ -377,7 +379,7 @@ executable example-sprios
  ------------------------------
 
  build-depends: spiros
-              , base >=4.10 && <5
+              , base
               , text
               , optparse-applicative
 
