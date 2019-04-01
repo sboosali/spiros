@@ -765,11 +765,19 @@ js:
 
 static-nix:
 
-	 NIX_PATH="'nixpkgs=https://github.com/NixOS/nixpkgs/archive/88ae8f7d.tar.gz" nix-build --no-link "./static/default.nix" -A "spiros.example-spiros"
+	NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/2c07921cff84dfb0b9e0f6c2d10ee2bfee6a85ac.tar.gz" nix-build --no-out-link "./static/default.nix" -A "example-spiros"
 
 # « https://github.com/nh2/static-haskell-nix#readme »
 
 .PHONY: static-nix
+
+#------------------------------------------------#
+
+static/cabal2nix/spiros.nix:
+
+	mkdir -p "./static/cabal2nix/"
+
+	(cd "./static/cabal2nix/"  &&  $(Cabal2nix) "-fstatic" "--no-check" "--compiler=ghc-8.4" "file://../../spiros" > "./spiros.nix")
 
 #------------------------------------------------#
 # Release ---------------------------------------#
@@ -787,7 +795,5 @@ sdist:
 static: static-nix
 
 .PHONY: static
-
-#------------------------------------------------#
 
 ##################################################
