@@ -19,6 +19,10 @@
 let
 #------------------------------------------------#
 
+haskellUtilities = haskell.lib;
+
+#------------------------------------------------#
+
   pyopenssl-fix-test-buffer-size-overlay = final: previous: {
     python36 = previous.python36.override {
       packageOverrides = self: super: {
@@ -99,10 +103,23 @@ let
 #------------------------------------------------#
 in
 ##################################################
+let
+#------------------------------------------------#
+
+spiros = rec {
+
+  spiros         = null;
+  example-spiros = haskellUtilities.justStaticExecutables spiros;
+
+};
+
+#------------------------------------------------#
+in
+##################################################
 {
+
   inherit pkgs;
-  inherit stack2nix-script;
-  inherit static_stack;
-  inherit build-script;
+  inherit spiros;
+
 }
 ##################################################

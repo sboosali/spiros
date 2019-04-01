@@ -26,7 +26,7 @@ ProjectFile ?=./cabal.project
 
 LibraryTarget    ?=lib:spiros
 
-ExecutableTarget ?=exe:example-sprios
+ExecutableTarget ?=exe:example-spiros
 
 #------------------------------------------------#
 
@@ -168,7 +168,7 @@ nix-static: cabal2nix-static
 
 	@echo -e "\n========================================\n"
 
-	ldd "./result-static/bin/example-sprios"
+	ldd "./result-static/bin/example-spiros"
 
 	@echo -e "\n========================================\n"
 
@@ -184,7 +184,7 @@ nix-dynamic: cabal2nix
 
 	@echo -e "\n========================================\n"
 
-	ldd "./result-dynamic/bin/example-sprios"
+	ldd "./result-dynamic/bin/example-spiros"
 
 	@echo -e "\n========================================\n"
 
@@ -256,7 +256,7 @@ nix-static-integer-simple: cabal2nix
 
 	$(NixBuild)  -A "$(NixTarget)"  "$(NixDirectory)"  --out-link ./result-static-integer-simple  --arg static true  --arg integer-simple true
 
-	ldd "./result-static-integer-simple/bin/example-sprios"
+	ldd "./result-static-integer-simple/bin/example-spiros"
 
 .PHONY: nix-static-integer-simple
 
@@ -334,15 +334,15 @@ nix-static-example:
 
 example:
 
-	$(CabalBuild) $(CabalOptions) "exe:example-sprios"
+	$(CabalBuild) $(CabalOptions) "exe:example-spiros"
 
-	$(Cabal) new-exec $(CabalOptions) -- example-sprios --version
+	$(Cabal) new-exec $(CabalOptions) -- example-spiros --version
 
-	$(Cabal) new-install $(CabalOptions) --overwrite-policy=always "exe:example-sprios"
+	$(Cabal) new-install $(CabalOptions) --overwrite-policy=always "exe:example-spiros"
 
-	ldd `which example-sprios`
+	ldd `which example-spiros`
 
-#	cabal new-exec --project-file ./cabal.project -- ldd `which example-sprios`
+#	cabal new-exec --project-file ./cabal.project -- ldd `which example-spiros`
 
 .PHONY: example
 
@@ -350,9 +350,9 @@ example:
 
 static-example:
 
-	$(Cabal) new-run $(CabalOptions) -fstatic "exe:example-sprios" -- "--help"
+	$(Cabal) new-run $(CabalOptions) -fstatic "exe:example-spiros" -- "--help"
 
-	ldd `which example-sprios`
+	ldd `which example-spiros`
 
 .PHONY: static-example
 
@@ -368,7 +368,7 @@ build-static:
 
 #	$(CabalBuild)  --disable-shared  --enable-static  $(CabalTargets)
 
-	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-sprios"   #   $(CabalTarget)
+	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-spiros"   #   $(CabalTarget)
 
 	@echo -e "\n========================================\n"
 
@@ -376,7 +376,7 @@ build-static:
 
 	@echo -e "\n========================================\n"
 
-	ldd "./dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.1/x/example-sprios/build/example-sprios/example-sprios"
+	ldd "./dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.1/x/example-spiros/build/example-spiros/example-spiros"
 
 	@echo -e "\n========================================\n"
 
@@ -583,6 +583,17 @@ build-ghcjs:
 
 #------------------------------------------------#
 
+static-cabal: cabal-static.project
+
+	$(Cabal) new-build -fstatic $(CabalStatic) --project-file="./cabal-static.project" exe:example-spiros
+
+# --enable-executable-static
+# -fstatic
+# --project-file="./cabal-static.project"
+# --extra-lib-dirs="/usr/lib/x86_64-linux-gnu"
+# --extra-lib-dirs="/nix/store/blfgah5rv7h3qzl2gv6p6d8i2sxh0vgl-musl-1.1.21/lib /nix/store/pdyjwbhb77k17n6gl78a87a70gywr8dk-gmp-6.1.2/lib /nix/store/vz8iz7ws35aww6i8521z4964xp5akalh-libffi-3.2.1/lib"
+
+.PHONY: static-cabal
 
 #------------------------------------------------#
 
@@ -748,10 +759,20 @@ js:
 
 .PHONY: 8.8
 
-##################################################
-# Release ########################################
-##################################################
+#------------------------------------------------#
+# Nix -------------------------------------------#
+#------------------------------------------------#
 
+static-nix:
+
+	 NIX_PATH="'nixpkgs=https://github.com/NixOS/nixpkgs/archive/88ae8f7d.tar.gz" nix-build --no-link "./static/default.nix" -A "spiros.example-spiros"
+
+# « https://github.com/nh2/static-haskell-nix#readme »
+
+.PHONY: static-nix
+
+#------------------------------------------------#
+# Release ---------------------------------------#
 #------------------------------------------------#
 
 sdist:
@@ -763,15 +784,7 @@ sdist:
 
 #------------------------------------------------#
 
-static: cabal-static.project
-
-	$(Cabal) new-build -fstatic $(CabalStatic) --project-file="./cabal-static.project" exe:example-sprios
-
-# --enable-executable-static
-# -fstatic
-# --project-file="./cabal-static.project"
-# --extra-lib-dirs="/usr/lib/x86_64-linux-gnu"
-# --extra-lib-dirs="/nix/store/blfgah5rv7h3qzl2gv6p6d8i2sxh0vgl-musl-1.1.21/lib /nix/store/pdyjwbhb77k17n6gl78a87a70gywr8dk-gmp-6.1.2/lib /nix/store/vz8iz7ws35aww6i8521z4964xp5akalh-libffi-3.2.1/lib"
+static: static-nix
 
 .PHONY: static
 

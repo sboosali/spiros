@@ -599,6 +599,108 @@ whenM check action = do
 
 
 
+https://github.com/commercialhaskell/stack/releases/download/v1.9.3/stack-1.9.3-linux-x86_64-static.tar.gz
+
+$(nix-build --no-out-link -A stack2nix-script) ./stack
+$(nix-build --no-out-link -A build-script)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------#
+# Nix -------------------------------------------#
+#------------------------------------------------#
+
+static-nix:
+
+
+	 NIX_PATH=nixpkgs=https://github.com/NixOS/nixpkgs/archive/88ae8f7d.tar.gz nix-build --no-link "survey/default.nix" -A "haskellPackages.example-spiros"
+
+	$(Cabal) new-build -fstatic "exe:example-sprios"
+
+# « https://github.com/nh2/static-haskell-nix#readme »
+
+.PHONY: static-nix
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################################################
+{
+  inherit pkgs;
+  inherit stack2nix-script;
+  inherit static_stack;
+  inherit build-script;
+}
+##################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -484,7 +484,59 @@ getCPUsSummary = do
 
 {- 
 
+--------------------------------------------------
 
+TODO port « nixpkgs.platforms.* »
+
+e.g.:
+
+  nix-repl> :p pkgs.platforms
+  
+  {
+    aarch64       = [ { cpu = { bits = 64; family = "arm"; }; } ];
+  
+    all           = [ { } ];
+  
+    arm           = [ { cpu = { bits = 32; family = "arm"; }; } ];
+  
+    cygwin        = [ { abi = { _type = "abi"; name = "cygnus"; }; kernel = { _type = "kernel"; execFormat = { _type = "exec-format"; name = "pe"; }; families = { }; name = "windows"; }; } ];
+  
+    darwin        = [ { kernel = { families = { darwin = { _type = "exec-format"; name = "darwin"; }; }; }; } ];
+  
+    freebsd       = [ { kernel = { _type = "kernel"; execFormat = { _type = "exec-format"; name = "elf"; }; families = { bsd = { _type = "exec-format"; name = "bsd"; }; }; name = "freebsd"; }; } ];
+  
+    gnu           = [ { abi = { _type = "abi"; name = "gnu"; }; kernel = { _type = "kernel"; execFormat = { _type = "exec-format"; name = "elf"; }; families = { }; name = "linux"; }; } { abi = { _type = "abi"; float = "soft"; name = "gnueabi"; }; kernel = { _type = "kernel"; execFormat = «repeated»; families = «repeated»; name = "linux"; }; } { abi = { _type = "abi"; float = "hard"; name = "gnueabihf"; }; kernel = { _type = "kernel"; execFormat = «repeated»; families = «repeated»; name = "linux"; }; } ];
+  
+    i686          = [ { cpu = { _type = "cpu-type"; bits = 32; family = "x86"; name = "i686"; significantByte = { _type = "significant-byte"; name = "littleEndian"; }; }; } ];
+  
+    illumos       = [ { kernel = { _type = "kernel"; execFormat = «repeated»; families = { }; name = "solaris"; }; } ];
+  
+    linux         = [ { kernel = { _type = "kernel"; execFormat = «repeated»; families = { }; name = "linux"; }; } ];
+  
+    mesaPlatforms = [ "i686-linux" "x86_64-linux" "x86_64-darwin" "armv5tel-linux" "armv6l-linux" "armv7l-linux" "aarch64-linux" "powerpc64le-linux" ];
+  
+    mips          = [ { cpu = { family = "mips"; }; } ];
+  
+    netbsd        = [ { kernel = { _type = "kernel"; execFormat = «repeated»; families = { bsd = «repeated»; }; name = "netbsd"; }; } ];
+  
+    none          = [ ];
+  
+    openbsd       = [ { kernel = { _type = "kernel"; execFormat = «repeated»; families = { bsd = «repeated»; }; name = "openbsd"; }; } ];
+  
+    riscv         = [ { cpu = { family = "riscv"; }; } ];
+  
+    unix          = [ { kernel = { families = { bsd = { _type = "exec-format"; name = "bsd"; }; }; }; } { kernel = «repeated»; } { kernel = «repeated»; } { kernel = «repeated»; } { abi = «repeated»; kernel = «repeated»; } ];
+  
+    windows       = [ { kernel = { _type = "kernel"; execFormat = «repeated»; families = «repeated»; name = "windows"; }; } ];
+  
+    x86           = [ { cpu = { family = "x86"; }; } ];
+  
+    x86_64        = [ { cpu = { bits = 64; family = "x86"; }; } ];
+
+  }
+
+
+--------------------------------------------------
 
 physicalProcessors :: [CPU] -> Int
 
