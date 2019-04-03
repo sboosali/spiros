@@ -58,17 +58,17 @@ import "deepseq" Control.DeepSeq (NFData,force)
 
 --------------------------------------------------
 
-import qualified "text" Data.Text      as TS
-import qualified "text" Data.Text.Lazy as TL
+-- import qualified "text" Data.Text      as TS
+-- import qualified "text" Data.Text.Lazy as TL
 
 --------------------------------------------------
 
-import qualified "bytestring" Data.ByteString      as BS 
-import qualified "bytestring" Data.ByteString.Lazy as BL 
+-- import qualified "bytestring" Data.ByteString      as BS 
+-- import qualified "bytestring" Data.ByteString.Lazy as BL 
 
 --------------------------------------------------
 
-import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
+-- import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
 
 --------------------------------------------------
 
@@ -88,6 +88,21 @@ import "base" Data.Foldable              (Foldable(..))
 import           "base" Control.Category (Category)
 import qualified "base" Control.Category as Category
 import           "base" Data.Typeable
+
+--------------------------------------------------
+
+import qualified "base" Control.Exception   as E
+import qualified "base" System.Environment  as IO
+
+-- import qualified "base" Data.Monoid         as Monoid
+import qualified "base" Data.Semigroup      as Semigroup
+
+-- import qualified "base" System.Info         as Base
+-- import qualified "base" GHC.Conc            as GHC
+
+-- import           "base" Data.Function ((&))
+import           "base" Data.Foldable
+-- import           "base" Text.Read
 
 --------------------------------------------------
 
@@ -689,6 +704,140 @@ forceIO_ :: NFData a => a -> IO ()
 forceIO_ = void . evaluate . force
 
 {-# INLINEABLE forceIO_ #-}
+
+--------------------------------------------------
+--------------------------------------------------
+
+--TODO: MonadIO
+
+{-| Return the value of the first environment variable that's been set, or a default value if all are unset.
+
+Examples:
+
+@
+> firstSetEnvironmentVariable \"\/usr\/run\" [ \"XDG_RUNTIME_HOME\", \"TMP\" ]
+@
+
+Properties:
+
+@
+firstSetEnvironmentVariable x [] ≡ return x
+@
+
+-}
+
+firstSetEnvironmentVariable :: String -> [String] -> IO String
+firstSetEnvironmentVariable =
+
+  firstEnvironmentVariableSatisfying (const True)
+
+{-# INLINEABLE firstSetEnvironmentVariable #-}
+
+--------------------------------------------------
+
+-- {-| Return the first **numerical** (@Int@) value among the given environment variables, or a default number.
+
+-- Examples:
+
+-- @
+-- > firstReadableEnvironmentVariable 1 [ "EUID", "UID" ]
+-- @
+
+-- Properties:
+
+-- @
+-- firstReadableEnvironmentVariable n [] ≈ return n
+-- @
+
+-- -}
+
+-- firstIntEnvironmentVariable :: Int -> [String] -> IO Int
+-- firstIntEnvironmentVariable = firstReadableEnvironmentVariable
+
+-- {-# INLINEABLE firstIntEnvironmentVariable #-}
+
+--------------------------------------------------
+
+-- {-| Return the first **numerical** value among the given environment variables, or a default number.
+
+-- Properties:
+
+-- @
+-- firstReadableEnvironmentVariable x [] ≈ return x
+-- @
+
+-- -}
+
+-- firstReadableEnvironmentVariable :: (Read a) => a -> [String] -> IO a
+-- firstReadableEnvironmentVariable x variables = to <$>
+
+--   firstEnvironmentVariableSatisfying is (show x) variables
+
+--   where
+
+--   to = readMaybe > maybe x id
+--   is = readMaybe > maybe False (const True)
+
+-- {-# INLINEABLE firstReadableEnvironmentVariable #-}
+
+--------------------------------------------------
+
+{-| Return the first **nonempty** value among the given environment variables, or a default value if all are either unset or set-to-empty.
+
+Examples:
+
+@
+> firstNonemptyEnvironmentVariable "/usr/run" [ "XDG_RUNTIME_HOME", "TMP" ]
+@
+
+Properties:
+
+@
+firstNonemptyEnvironmentVariable x [] ≈ return x
+@
+
+Notes:
+
+* on Windows, @firstNonemptyEnvironmentVariable@ should be equivalent to 'firstSetEnvironmentVariable'.
+
+-}
+
+firstNonemptyEnvironmentVariable :: String -> [String] -> IO String
+firstNonemptyEnvironmentVariable =
+
+  firstEnvironmentVariableSatisfying (/= "")
+
+{-# INLINEABLE firstNonemptyEnvironmentVariable #-}
+
+--------------------------------------------------
+
+firstEnvironmentVariableSatisfying :: (String -> Bool) -> String -> [String] -> IO String
+firstEnvironmentVariableSatisfying predicate = \x0 variables -> do
+
+  x' <- foldrM go Nothing variables
+
+  let x = x' & maybe x0 Semigroup.getFirst
+
+  E.evaluate (force x)
+
+  where
+
+  go :: String -> Maybe (Semigroup.First String) -> IO (Maybe (Semigroup.First String))
+  go n y = do
+
+    x <- IO.lookupEnv n
+
+    let x'  = x >>= p
+    let x'' = Semigroup.First <$> x'
+
+    let z = x'' <> y
+
+    return z
+
+  p :: String -> Maybe String
+  p x = if predicate x then Just x else Nothing
+
+{-# INLINEABLE firstEnvironmentVariableSatisfying #-}
 
 --------------------------------------------------
 -- EOF -------------------------------------------

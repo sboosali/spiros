@@ -13,9 +13,20 @@
 --------------------------------------------------
 --------------------------------------------------
 
-{-|
+{-| Information about the current system:
 
-(this module is similar to @Foundation.System@). 
+* operating system — 'currentOperatingSystem'.
+* architecture — 'currentArchitecture'.
+* endianness — 'currentEndianness'.
+* processor — 'currentProcessorBits', 'currentNumberOfCPUs'.
+
+**TODO: respect cross-compilation, i.e. the target/runtime system.**
+
+And information about the current compiler:
+
+* haskell compiler — 'currentCompiler'.
+
+(This module is similar to the @Foundation.System@ module in the @foundation@ package.)
 
 -}
 
@@ -32,10 +43,10 @@ module Prelude.Spiros.System
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import         Prelude.Spiros.Compatibility()
+import Prelude.Spiros.Compatibility()
 
-import         Prelude.Spiros.Reexports
-import         Prelude.Spiros.Utilities
+import Prelude.Spiros.Reexports
+import Prelude.Spiros.Utilities
 
 --------------------------------------------------
 --------------------------------------------------

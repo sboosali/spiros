@@ -204,6 +204,9 @@ library
                   Prelude.Spiros.Print
                   Prelude.Spiros.Parse
 
+                  Prelude.Spiros.System
+                  Prelude.Spiros.Application
+
  other-modules:
 
                   Prelude.Spiros.Compatibility
@@ -211,7 +214,7 @@ library
                   Prelude.Spiros.Exception
                   Prelude.Spiros.GUI
                   Prelude.Spiros.Generics
-                  Prelude.Spiros.System
+
                   Prelude.Spiros.Validator
 
  ------------------------------
@@ -243,72 +246,104 @@ library
 
  ------------------------------
 
- build-depends:
-               base                 >= 4.7   && <5.0
-               
-             , generic-deriving >= 1.11
-    -- for Generics.Deriving.Semigroup
+ build-depends: base                 >= 4.7   && <5.0
 
-             , template-haskell     >= 2.10
+                ----------------------------------
+                -- Standard Library --------------
+                ----------------------------------
+                
+              , mtl
+              , transformers
+              , text
+              , bytestring
+              , containers
+              , vector
+              , template-haskell     >= 2.10
 
-  --TODO , clock 
+                ----------------------------------
+                -- Compatibility -----------------
+                ----------------------------------
 
-             , string-conv
+              , semigroups >= 0.16.2
+                -- 0.16.2 introduces Data.Semigroup.Generic
 
-  -- , protolude            >= 0.2.1
-  -- -- ^ string-conv
-  -- -- protolude doesn't cross-compile onto android, because of `clock`
+    -- for generically-deriving 
+    -- TODO when was nonempty list and semigroup introduced into base? 
 
-  -- , basic-prelude
-  -- --  extra symbols
-  -- , base-prelude
-  -- --  all of base, modulo conflicting symbols
-  -- , mtl-prelude
-  -- --  Reexports of most definitions from \"mtl\" and \"transformers\".
+                ----------------------------------
+                -- Extended Library --------------
+                ----------------------------------
 
-             , safe
-             --, safe-exceptions 
-    -- re-exports exceptions
+              , exceptions >= 0.10
+                -- ^ « class MonadThrow »
+              , data-default-class
+                -- ^ « class Default »
 
-             , mtl
-             , transformers
+              , unordered-containers
+                -- ^ « data HashMap »
+              , hashable >= 1.2.5
+                -- ^ « class Hashable »
 
-             , text
-             , bytestring
+              , directory   >= 1.3
+              , filepath    >= 1.4
+              , unix-compat >= 0.5
 
-             , containers
-             , vector
+              , process
+           -- , typed-process ^>= 0.2
 
-             , time
-             , process
-             , directory
-             , cpuinfo >= 0.1.0.1
+              , time    >= 1.8
+              , cpuinfo >= 0.1.0.1
+           -- , clock
+                --NOTE clock fails on Android.
+
+                ----------------------------------
+                -- Preludes ----------------------
+                ----------------------------------
+
+              , safe
+
+           -- , safe-exceptions 
+                -- re-exports exceptions
+
+              , stm
+              , split
+
+           -- , protolude            >= 0.2.1
+                -- NOTE « protolude » doesn't cross-compile onto Android, because of « clock ».
+
+           -- , basic-prelude
+                --  extra symbols
+
+           -- , base-prelude
+                -- all of base, modulo conflicting symbols
+
+           -- , mtl-prelude
+                -- Reexports of most definitions from \"mtl\" and \"transformers\".
+
+                ----------------------------------
+                -- Miscellaneous -----------------
+                ----------------------------------
+
+              , case-insensitive
+              , string-conv
+
+              , prettyprinter
+              , show-prettyprint
+
+              , vinyl
+              --TODO rm
+
+              , generic-deriving >= 1.11
+                -- for Generics.Deriving.Semigroup
+
+                ----------------------------------
+                -- / Build-Depends ---------------
+                ----------------------------------
 
   -- , shake
   -- , optparse-applicative >= 0.10  && <0.13
   -- , optparse-generic     >= 1.1.0 && <1.2
 
-             , exceptions
-             , hashable   >= 1.2.5.0
-
-             , semigroups >= 0.16.2
-    -- 0.16.2 introduces Data.Semigroup.Generic
-
-    -- for generically-deriving 
-    -- TODO when was nonempty list and semigroup introduced into base? 
-
-             , stm
-             , vinyl
-             , split
-             , data-default-class
-             , unordered-containers
-
-             , case-insensitive
-
-             , prettyprinter
-             , show-prettyprint
-
-                   
   -- ??
 
   -- , async
@@ -360,7 +395,7 @@ library
 -- Executables -----------------------------------
 --------------------------------------------------
 
-executable example-sprios
+executable example-spiros
 
  ------------------------------
 

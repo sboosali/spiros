@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE DoAndIfThenElse   #-}
@@ -38,9 +37,22 @@ import           "text" Data.Text (Text)
 data Options = Options
 
   { shouldPrintVersion :: Bool
+  , shouldPrintLicense :: Bool
   }
 
   deriving (Show)
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+version :: String
+version = "0.3.1"
+
+--------------------------------------------------
+
+license :: String
+license = "Apache-2.0"
 
 --------------------------------------------------
 -- Main ------------------------------------------
@@ -58,18 +70,64 @@ main = do
 mainWith :: Options -> IO ()
 mainWith Options{..} = do
 
-  if   shouldPrintVersion
-  then printVersion
-  else nothing
+  let action = headDef nothing actions
 
+  action
+
+  where
+
+  actions :: [IO ()]
+  actions = concat
+
+    [ (if shouldPrintVersion then [printVersion] else [])
+    , (if shouldPrintLicense then [printLicense] else [])
+    ]
+
+--------------------------------------------------
+-- Functions -------------------------------------
 --------------------------------------------------
 
 printVersion :: IO ()
 printVersion = do
 
-  putStrLn "0.3.1"
+  putStrLn version
 
 --------------------------------------------------
+
+printLicense :: IO ()
+printLicense = do
+
+  putStrLn license
+
+--------------------------------------------------
+-- CLI -------------------------------------------
+--------------------------------------------------
+
+{-|
+
+Options, Arguments, and Flags include:
+
+* @--version@
+
+-}
+
+options :: P.Parser Options
+options = do
+
+  shouldPrintVersion <- P.switch (mconcat
+
+        [ P.long    "version"
+        , P.help    "Print the version of this program. The format is « x.y.z ». (No other text is printed. If both « --version » and « --license » are specified, all options besides « --version » are ignored.)"
+        ])
+
+  shouldPrintLicense <- P.switch (mconcat
+
+        [ P.long    "license"
+        , P.help    "Print the SPDX License Identifier of this program. The format is « [-.a-z0-9A-z]+ ». (No other text is printed.)"
+        ])
+
+  return Options{..}
+
 --------------------------------------------------
 
 getOptions :: IO Options
@@ -101,31 +159,10 @@ preferences :: P.ParserPrefs
 preferences = P.prefs (mconcat
 
   [ P.disambiguate
-  , P.showHelpOnError
   , P.showHelpOnEmpty
+--, P.showHelpOnError
   ])
 
 --------------------------------------------------
--- CLI -------------------------------------------
---------------------------------------------------
-
-{-|
-
-Options, Arguments, and Flags include:
-
-* @--version@
-
--}
-
-options :: P.Parser Options
-options = do
-
-  shouldPrintVersion <- (P.switch (mconcat
-
-        [ P.long    "version"
-        , P.help    "Print the version of this program. The format is « x.y.z ». (No other text is printed.)"
-        ]))
-
-  return Options{..}
-
+-- EOF -------------------------------------------
 --------------------------------------------------
