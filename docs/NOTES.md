@@ -187,7 +187,7 @@ $ (cd /usr/lib/x86_64-linux-gnu && find -L ./ -type f -name '*.a')
 Linker Errors like:
 
 ```
-$ cabal new-build --enable-executable-static exe:example-sprios
+$ cabal new-build --enable-executable-static exe:example-spiros
 
 /nix/store/*-binutils-2.31.1/bin/ld: cannot find -lm
 /nix/store/*-binutils-2.31.1/bin/ld: cannot find -lrt
@@ -212,7 +212,7 @@ collect2: error: ld returned 1 exit status
 add directories to Linker Path like `-L/usr/lib/x86_64-linux-gnu`:
 
 ```
-$ cabal new-build --enable-executable-static --ghc-options="-L/usr/lib/x86_64-linux-gnu" exe:example-sprios
+$ cabal new-build --enable-executable-static --ghc-options="-L/usr/lib/x86_64-linux-gnu" exe:example-spiros
 
 Failed to build distributive-0.6. The failure occurred during the configure
 step.
@@ -226,7 +226,7 @@ Build log (
     unrecognized 'configure' option `--disable-executable-static'
 
 cabal: Failed to build distributive-0.6 (which is required by
-exe:example-sprios from spiros-0.3.2). See the build log above for details.
+exe:example-spiros from spiros-0.3.2). See the build log above for details.
 ```
 
 
@@ -245,9 +245,9 @@ $ cabal new-clean
 add `extra-lib-dirs`:
 
 ```
-$ cabal new-build --enable-executable-static --extra-lib-dir=/usr/lib/x86_64-linux-gnu exe:example-sprios
+$ cabal new-build --enable-executable-static --extra-lib-dir=/usr/lib/x86_64-linux-gnu exe:example-spiros
 
-Linking /home/sboo/haskell/spiros/dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.2/x/example-sprios/build/example-sprios/example-sprios ...
+Linking /home/sboo/haskell/spiros/dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.2/x/example-spiros/build/example-spiros/example-spiros ...
 
 /nix/store/*-binutils-2.31.1/bin/ld: /nix/store/*-ghc-8.6.3/lib/ghc-8.6.3/rts/libHSrts_thr.a(Linker.thr_o): in function `internal_dlopen':
 
@@ -588,7 +588,7 @@ dynamically linked:
 ```sh
 $ make example 
 
-cabal new-install --project-file ./cabal.project --overwrite-policy=always "exe:example-sprios"
+cabal new-install --project-file ./cabal.project --overwrite-policy=always "exe:example-spiros"
 
 Wrote tarball sdist to
 /home/sboo/haskell/spiros/dist-newstyle/sdist/spiros-0.3.1.tar.gz
@@ -596,21 +596,21 @@ Resolving dependencies...
 Build profile: -w ghc-8.6.3 -O1
 In order, the following will be built (use -v for more details):
  - spiros-0.3.1 (lib) (requires build)
- - spiros-0.3.1 (exe:example-sprios) (requires build)
+ - spiros-0.3.1 (exe:example-spiros) (requires build)
 
 Starting     spiros-0.3.1 (lib)
 Building     spiros-0.3.1 (lib)
 Haddock      spiros-0.3.1 (lib)
 Installing   spiros-0.3.1 (lib)
 Completed    spiros-0.3.1 (lib)
-Starting     spiros-0.3.1 (exe:example-sprios)
-Building     spiros-0.3.1 (exe:example-sprios)
-Haddock      spiros-0.3.1 (exe:example-sprios)
-Installing   spiros-0.3.1 (exe:example-sprios)
-Completed    spiros-0.3.1 (exe:example-sprios)
-Symlinking 'example-sprios'
+Starting     spiros-0.3.1 (exe:example-spiros)
+Building     spiros-0.3.1 (exe:example-spiros)
+Haddock      spiros-0.3.1 (exe:example-spiros)
+Installing   spiros-0.3.1 (exe:example-spiros)
+Completed    spiros-0.3.1 (exe:example-spiros)
+Symlinking 'example-spiros'
 
-ldd `which example-sprios`
+ldd `which example-spiros`
 
 	/nix/store/*-glibc-2.27/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2                 (0x00007f13cf025000)
 	libc.so.6                                        => /nix/store/*-glibc-2.27/lib/libc.so.6       (0x00007f13ce2cd000)
@@ -627,7 +627,7 @@ statically linked:
 ```sh
 $ make nix-static
 
-$ ldd result-static/bin/example-sprios
+$ ldd result-static/bin/example-spiros
 
 	/nix/store/*-glibc-2.27/lib/ld-linux-x86-64.so.2 => /lib64/ld-linux-x86-64.so.2                 (0x00007f13cf025000)
 	libc.so.6                                        => /nix/store/*-glibc-2.27/lib/libc.so.6       (0x00007f13ce2cd000)
@@ -678,12 +678,12 @@ building via `cabal --enable-executable-static`:
 ```nix
 $ make static
 
-cabal new-build --enable-executable-static exe:example-sprios
+cabal new-build --enable-executable-static exe:example-spiros
 
 Build profile: -w ghc-8.6.3 -O1
-Preprocessing executable 'example-sprios' for spiros-0.3.2..
-Building executable 'example-sprios' for spiros-0.3.2..
-Linking /home/sboo/haskell/spiros/dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.2/x/example-sprios/build/example-sprios/example-sprios ...
+Preprocessing executable 'example-spiros' for spiros-0.3.2..
+Building executable 'example-spiros' for spiros-0.3.2..
+Linking /home/sboo/haskell/spiros/dist-newstyle/build/x86_64-linux/ghc-8.6.3/spiros-0.3.2/x/example-spiros/build/example-spiros/example-spiros ...
 
 /nix/store/*-binutils-2.31.1/bin/ld: cannot find -lm
 /nix/store/*-binutils-2.31.1/bin/ld: cannot find -lrt

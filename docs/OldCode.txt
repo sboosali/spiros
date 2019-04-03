@@ -119,22 +119,22 @@ arguments@{...}:
 
 
 
-	$(Cabal) new-install $(CabalOptions) --overwrite-policy=always -fstatic "exe:example-sprios"
+	$(Cabal) new-install $(CabalOptions) --overwrite-policy=always -fstatic "exe:example-spiros"
 
-	example-sprios --help
+	example-spiros --help
 
-	ldd `which example-sprios`
-
-
+	ldd `which example-spiros`
 
 
 
 
 
 
-	$(Cabal) new-run $(CabalOptions) -fstatic "example-sprios --help"
 
-	ldd `which example-sprios`
+
+	$(Cabal) new-run $(CabalOptions) -fstatic "example-spiros --help"
+
+	ldd `which example-spiros`
 
 
 
@@ -644,11 +644,27 @@ static-nix:
 
 	 NIX_PATH=nixpkgs=https://github.com/NixOS/nixpkgs/archive/88ae8f7d.tar.gz nix-build --no-link "survey/default.nix" -A "haskellPackages.example-spiros"
 
-	$(Cabal) new-build -fstatic "exe:example-sprios"
+	$(Cabal) new-build -fstatic "exe:example-spiros"
 
 # « https://github.com/nh2/static-haskell-nix#readme »
 
 .PHONY: static-nix
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

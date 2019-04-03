@@ -1,4 +1,4 @@
-# Fully statically-linked `example-sprios`
+# Fully statically-linked `example-spiros`
 
 `default.nix` builds a fully statically-linked executable, which should work on *any* 64-bit Linux distribution.
 
@@ -20,10 +20,10 @@ Compare the dynamically-linked executable:
 ```sh
 $ make dynamic
 
-  cabal new-build "spiros:exe:example-sprios"
+  cabal new-build "spiros:exe:example-spiros"
   ...
 
-$ ldd $(cabal new-exec -- which example-sprios)
+$ ldd $(cabal new-exec -- which example-spiros)
 
   linux-vdso.so.1                                  =>                                             (0x00007ffefad59000)
 
@@ -44,7 +44,7 @@ to the statically-linked executable:
 ```sh
 $ make static
 
-$ ldd $(cabal new-exec -- which example-sprios)
+$ ldd $(cabal new-exec -- which example-spiros)
 	not a dynamic executable
 ```
 
