@@ -16,6 +16,7 @@ module Example.Spiros where
 --------------------------------------------------
 
 import Prelude.Spiros
+import Prelude.Spiros.Application
 
 --------------------------------------------------
 -- Imports (External) ----------------------------
@@ -46,13 +47,21 @@ data Options = Options
 -- Constants -------------------------------------
 --------------------------------------------------
 
-version :: String
-version = "0.3.1"
+application :: ApplicationInformation
+application = ApplicationInformation{..}
+  where
 
---------------------------------------------------
+  name                  = "My Application"
+  version               = "0.3.1"
+  license               = "Apache-2.0"
 
-license :: String
-license = "Apache-2.0"
+  executable            = "my-application"
+  interface             = ApplicationCLI
+  platforms             = allDesktopPlatforms
+
+  posixSubDirectory     = "myapplication/"
+  windowsSubDirectory   = "sboosali/My Application/"
+  macintoshSubDirectory = "io.sboosali.My-Application/"
 
 --------------------------------------------------
 -- Main ------------------------------------------
@@ -90,14 +99,14 @@ mainWith Options{..} = do
 printVersion :: IO ()
 printVersion = do
 
-  putStrLn version
+  putStrLn (application & version)
 
 --------------------------------------------------
 
 printLicense :: IO ()
 printLicense = do
 
-  putStrLn license
+  putStrLn (application & license)
 
 --------------------------------------------------
 -- CLI -------------------------------------------
@@ -162,6 +171,12 @@ preferences = P.prefs (mconcat
   , P.showHelpOnEmpty
 --, P.showHelpOnError
   ])
+
+--------------------------------------------------
+-- Paths -----------------------------------------
+--------------------------------------------------
+
+
 
 --------------------------------------------------
 -- EOF -------------------------------------------

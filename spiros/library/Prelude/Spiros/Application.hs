@@ -116,7 +116,8 @@ myApplicationInformation = 'ApplicationInformation'{..}
 
   'executable'            = "my-application"
   'interface'             = 'ApplicationCLI'
-  'platforms'             = [ 'DesktopPOSIX', 'DesktopMacintosh' ]
+  'platforms'             = 'allDesktopPlatforms'
+                              -- [ 'DesktopPOSIX', 'DesktopWindows', 'DesktopMacintosh' ]
 
   'posixSubDirectory'     = "myapplication/"
   'windowsSubDirectory'   = "sboosali/My Application/"
@@ -194,6 +195,11 @@ currentDesktopPlatform = case currentOperatingSystem of
 
 --TODO runtimeDesktopPlatform:
 --     respect cross-compilation, i.e. TARGET_OS, not HOST_OS.
+
+--------------------------------------------------
+
+allDesktopPlatforms :: [DesktopPlatform]
+allDesktopPlatforms = constructors'
 
 --------------------------------------------------
 -- Functions -------------------------------------

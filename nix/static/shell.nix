@@ -53,7 +53,7 @@ in
 # Notes ##########################################
 ##################################################
 
-# Static Libraries for executable « example-sprios »:
+# Static Libraries for executable « example-spiros »:
 #
 # -lc
 # -ldl

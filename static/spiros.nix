@@ -23,7 +23,7 @@
 , exceptions, generic-deriving, hashable, mtl, optparse-applicative
 , prettyprinter, process, safe, semigroups, show-prettyprint, split
 , stdenv, stm, string-conv, template-haskell, text, time
-, transformers, unordered-containers, vector, vinyl
+, transformers, unix-compat, unordered-containers, vector, vinyl
 
 }:
 
@@ -53,7 +53,7 @@ mkDerivation {
     data-default-class deepseq directory exceptions generic-deriving
     hashable mtl prettyprinter process safe semigroups show-prettyprint
     split stm string-conv template-haskell text time transformers
-    unordered-containers vector vinyl optparse-applicative 
+    unix-compat unordered-containers vector vinyl optparse-applicative 
   ];
 
   doCheck     = false;

@@ -122,6 +122,16 @@ default: build
 
 .PHONY: default
 
+#------------------------------------------------#
+
+clean:
+	rm -rf "dist/" dist-*/ ".stack-work"
+	rm -f *.project.local .ghc.environment.*
+	rm -rf "result/" result-*/
+	find .  -type f  -name 'TAGS'  -exec rm -f \{} \+
+
+.PHONY: clean
+
 ##################################################
 # `nix` wrapper targets
 ##################################################
@@ -402,15 +412,6 @@ repl:
 	cabal new-repl $(CabalTarget)
 
 .PHONY: repl
-
-#------------------------------------------------#
-
-clean:
-	rm -rf "dist/" dist-*/ ".stack-work"
-	rm -f *.project.local .ghc.environment.*
-	find .  -type f  -name 'TAGS'  -exec rm -f \{} \+
-
-.PHONY: clean
 
 #------------------------------------------------#
 
@@ -765,7 +766,23 @@ js:
 
 static-nix:
 
-	NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/2c07921cff84dfb0b9e0f6c2d10ee2bfee6a85ac.tar.gz" nix-build --no-out-link "./static/default.nix" -A "example-spiros"
+	@printf "%s\n\n" ========================================
+
+	NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/2c07921cff84dfb0b9e0f6c2d10ee2bfee6a85ac.tar.gz" nix-build --out-link "./result-static" -A "example-spiros" "./static/default.nix"
+
+	@printf "\n%s\n\n" ========================================
+
+	"./result-static/bin/example-spiros" --version
+
+	@printf "\n%s\n\n" ========================================
+
+	du -h "./result-static/bin/example-spiros"
+
+	@printf "\n%s\n\n" ========================================
+
+	! ldd "./result-static/bin/example-spiros"
+
+	@printf "\n%s\n" ========================================
 
 # « https://github.com/nh2/static-haskell-nix#readme »
 
