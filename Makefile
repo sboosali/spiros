@@ -342,7 +342,7 @@ nix-static-example:
 
 #------------------------------------------------#
 
-example:
+example-spiros:
 
 	$(CabalBuild) $(CabalOptions) "exe:example-spiros"
 
@@ -354,7 +354,7 @@ example:
 
 #	cabal new-exec --project-file ./cabal.project -- ldd `which example-spiros`
 
-.PHONY: example
+.PHONY: example-spiros
 
 #------------------------------------------------#
 
@@ -802,7 +802,7 @@ static/cabal2nix/spiros.nix:
 
 	mkdir -p "./static/cabal2nix/"
 
-	(cd "./static/cabal2nix/"  &&  $(Cabal2nix) "-fstatic" "--no-check" "--compiler=ghc-8.4" "file://../../spiros" > "./spiros.nix")
+	(cd "./static/cabal2nix/"  &&  $(Cabal2nix) "-fstatic" "-fexamples" "--no-check" "--compiler=ghc-8.4" "file://../../spiros" > "./spiros.nix")
 
 #------------------------------------------------#
 # Release ---------------------------------------#

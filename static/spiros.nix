@@ -74,13 +74,13 @@ addStaticLibs = drv:
 #------------------------------------------------#
 
 addStaticFlags = drv0:
-
   let
-  drv1 = haskellUtilities.enableCabalFlag      drv0 "static";
+
+  drv1 = haskellUtilities.enableCabalFlag      (haskellUtilities.enableCabalFlag drv0 "examples") "static";
   drv2 = haskellUtilities.appendConfigureFlag  drv1 "--ghc-option=-optl=-static";
   drv3 = haskellUtilities.appendConfigureFlags drv2 (lib.optionals (! doStrip) [ "--disable-executable-stripping" ]);
-  in
 
+  in
   drv3;
 
 #------------------------------------------------#

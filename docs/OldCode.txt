@@ -739,6 +739,43 @@ drv = haskellPackages.callPackage package {};
 
 
 
+application :: ApplicationInformation
+application = ApplicationInformation{..}
+  where
+
+  name                  = "My Application"
+  license               = "Apache-2.0"
+
+#ifdef CURRENT_PACKAGE_VERSION
+  version               = "#CURRENT_PACKAGE_VERSION"
+#else
+  version               = "0.3"
+#endif
+
+  executable            = "my-application"
+  interface             = ApplicationCLI
+  platforms             = allDesktopPlatforms
+
+  posixSubDirectory     = "myapplication/"
+  windowsSubDirectory   = "sboosali/My Application/"
+  macintoshSubDirectory = "io.sboosali.My-Application/"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
