@@ -72,9 +72,7 @@ haskellPackages = pkgs.haskell.packages.${compiler};
 
 flags = { inherit doStrip isRelease; };
 
-package = import ./spiros.nix flags systemPackages;
-
-drv = haskellPackages.callPackage package {};
+drv = import ./spiros.nix flags systemPackages haskellPackages;
 
 #------------------------------------------------#
 in

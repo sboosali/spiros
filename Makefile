@@ -772,6 +772,10 @@ static-nix:
 
 	@printf "\n%s\n\n" ========================================
 
+	@find -L "./result-static/" -type f
+
+	@printf "\n%s\n\n" ========================================
+
 	"./result-static/bin/example-spiros" --version
 
 	@printf "\n%s\n\n" ========================================

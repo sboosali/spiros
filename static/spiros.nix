@@ -16,29 +16,27 @@
 #------------------------------------------------#
 # « haskellPackages »
 
-args@
-{ mkDerivation
-, base, bytestring, case-insensitive, containers
-, cpuinfo, data-default-class, deepseq, directory, doctest
-, exceptions, filepath, generic-deriving, hashable, mtl
-, optparse-applicative, prettyprinter, process, safe, semigroups
-, show-prettyprint, split, stdenv, stm, string-conv
-, template-haskell, text, time, transformers, unix-compat
-, unordered-containers, vector, vinyl
-}:
-
-#TODO args@{ mkDerivation, base, ... }:
+haskellPackages@
+{ mkDerivation, base, ... }:
 
 ##################################################
-let
+let                 # Imports...
 #------------------------------------------------#
 
-spiros0 = import ./cabal2nix/spiros.nix;
+# the automatically-generated « derivation »:
+
+spiros0 = haskellPackages.callPackage ./cabal2nix/spiros.nix {
+
+  #TODO...
+  #     put any project-packages (i.e. « packages: ... » in the « cabal.project »)
+  #     or any vendored-packages (i.e. « optional-packages: ... » in the « cabal.project ») here.
+
+};
 
 #------------------------------------------------#
 in
 ##################################################
-let
+let                 # Utilities...
 #------------------------------------------------#
 
 addExtraLibDirs = { subdir ? "/lib" }: directories: pkg:
@@ -66,32 +64,42 @@ addExtraLibDir = { subdir ? "/lib" }: directory:
 #------------------------------------------------#
 in
 ##################################################
-let
+let                 # Overrides...
 #------------------------------------------------#
 
-addStaticLibs = pkg:
+addStaticLibs = drv:
 
-  addExtraLibDirs {} [ gmp6 zlib libffi ] pkg;
+  addExtraLibDirs {} [ gmp6 zlib libffi ] drv;
 
 #------------------------------------------------#
 
-addStaticFlags = pkg0:
+addStaticFlags = drv0:
 
   let
-  pkg1 = haskellUtilities.appendConfigureFlags pkg0 (lib.optionals (! doStrip) [ "--disable-executable-stripping" ]);
-  pkg2 = haskellUtilities.appendConfigureFlag  pkg1 "--ghc-option=-optl=-static";
-  pkg3 = haskellUtilities.enableCabalFlag      pkg2 "static";
+  drv1 = haskellUtilities.enableCabalFlag      drv0 "static";
+  drv2 = haskellUtilities.appendConfigureFlag  drv1 "--ghc-option=-optl=-static";
+  drv3 = haskellUtilities.appendConfigureFlags drv2 (lib.optionals (! doStrip) [ "--disable-executable-stripping" ]);
   in
 
-  pkg3;
+  drv3;
 
 #------------------------------------------------#
+
+/* Like « haskellUtilities.justStaticExecutables », but more aggressive.
+ *
+ * Enables all « executable » components, disabling all other components
+ * (i.e. « library », « test-suite », « benchmark », « foreign-library » (?), and Haddocks).
+ *
+ * Enables « -static » artifacts,
+ * disabling all « -shared » artifacts.
+ * 
+ * 
+ */
 
 onlyStaticExecutables = drv0:
 
   let
   override = attrs:
-
   {
     isExecutable = true;
     isLibrary    = false;
@@ -101,12 +109,19 @@ onlyStaticExecutables = drv0:
     doHaddock   = false;
 
     enableSharedExecutables = false;
+    enableSharedLibraries   = false;
     enableLibraryProfiling  = false;
 
-    executableHaskellDepends =
-      (attrs.executableHaskellDepends or []) ++ (attrs.libraryHaskellDepends or []);
+    # executableHaskellDepends =
+    #   (attrs.executableHaskellDepends or []) ++ (attrs.libraryHaskellDepends or []);
 
-    postFixup = "rm -rf $out/lib $out/nix-support $out/share/doc";
+    postFixup = ''
+    rm -rf $out/lib $out/nix-support $out/share/doc || true
+    rmdir $out/share                                || true
+    '';
+
+    # ^ Keep « $out/share/man/1/ » and  « $out/share/{bash,zsh,fish}-completion" » (if they exist).
+
   };
 
   in
@@ -115,19 +130,29 @@ onlyStaticExecutables = drv0:
 
 #------------------------------------------------#
 
-toStaticSpiros = pkg0:
+toStaticSpiros = drv0:
 
   let
-  pkg1 = addStaticLibs  pkg0;
-  pkg2 = addStaticFlags pkg1;
-  pkg3 = onlyStaticExecutables pkg2;
+  drv1 = addStaticLibs                  drv0;
+  drv2 = addStaticFlags                 drv1;
+  drv3 = onlyStaticExecutables          drv2;
+  drv4 = haskellUtilities.overrideCabal drv3 override;
+
+  override = attrs:
+  {
+    pname = "example-spiros";
+    # ^ just the « executable » name,
+    #   not the full « .cabal » (/ « library ») name.
+  };
   in
 
-  pkg3;
+  drv4;
 
 #------------------------------------------------#
 
-spiros1 = toStaticSpiros spiros0 args;
+# the manually-override « derivation »:
+
+spiros1 = toStaticSpiros spiros0;
 
 #------------------------------------------------#
 in

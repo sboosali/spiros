@@ -33,10 +33,10 @@ mkDerivation {
 
   pname   = "example-spiros";
   version = "0.3.2";
-  src     = ../spiros;
+  src     = ../../spiros;
 
   configureFlags = [
-   "-fstatic"
+    "-fstatic"
     "--ghc-option=-optl=-static"
     "--extra-lib-dirs=${gmp6}/lib"
     "--extra-lib-dirs=${zlib}/lib"

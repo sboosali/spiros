@@ -724,6 +724,21 @@ haskellUtilities.justStaticExecutables
 
 
 
+flags = { inherit doStrip isRelease; };
+
+package = import ./spiros.nix flags systemPackages;
+
+drv = haskellPackages.callPackage package {};
+
+
+
+
+
+
+
+
+
+
 
 
 
