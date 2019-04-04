@@ -764,7 +764,7 @@ js:
 # Nix -------------------------------------------#
 #------------------------------------------------#
 
-static-nix:
+static-nix: static/cabal2nix/spiros.nix
 
 	@printf "%s\n\n" ========================================
 
@@ -775,6 +775,10 @@ static-nix:
 	@find -L "./result-static/" -type f
 
 	@printf "\n%s\n\n" ========================================
+
+	"./result-static/bin/example-spiros" --help
+
+	@echo
 
 	"./result-static/bin/example-spiros" --version
 

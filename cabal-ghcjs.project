@@ -9,6 +9,8 @@ with-compiler: ghcjs
 
 --------------------------------------------------
 
+-- $ cabal new-update ghcjs-overlay "--project-file=./cabal-ghcjs.project"
+
 repository ghcjs-overlay
 
   url:           http://hackage-ghcjs-overlay.nomeata.de/
@@ -36,4 +38,6 @@ repository ghcjs-overlay
 --
 -- and published this on Github Pages.
 
+--------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------

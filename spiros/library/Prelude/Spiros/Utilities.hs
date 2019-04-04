@@ -94,9 +94,6 @@ import           "base" Data.Typeable
 import qualified "base" Control.Exception   as E
 import qualified "base" System.Environment  as IO
 
--- import qualified "base" Data.Monoid         as Monoid
-import qualified "base" Data.Semigroup      as Semigroup
-
 -- import qualified "base" System.Info         as Base
 -- import qualified "base" GHC.Conc            as GHC
 
@@ -118,8 +115,20 @@ import           "base" Prelude hiding
 --------------------------------------------------
 
 #if HAS_BASE_NonEmpty
-import "base" Data.List.NonEmpty         (NonEmpty)
+import "base"       Data.List.NonEmpty         (NonEmpty)
 --import qualified Data.List.NonEmpty as NonEmpty
+#else
+import "semigroups" Data.List.NonEmpty         (NonEmpty)
+#endif
+
+--------------------------------------------------
+
+#if HAS_BASE_Semigroup
+import qualified "base"       Data.Semigroup as Semigroup
+import           "base"       Data.Semigroup ((<>))
+#else
+import qualified "semigroups" Data.Semigroup as Semigroup
+import           "semigroups" Data.Semigroup ((<>))
 #endif
 
 --------------------------------------------------

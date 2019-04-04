@@ -8,7 +8,7 @@
 }:
 mkDerivation {
   pname = "spiros";
-  version = "0.3.2";
+  version = "0.3.3";
   src = ../../spiros;
   configureFlags = [ "-fstatic" ];
   isLibrary = true;

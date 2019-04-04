@@ -117,7 +117,7 @@ myApplicationInformation = 'ApplicationInformation'{..}
   'executable'            = "my-application"
   'interface'             = 'ApplicationCLI'
   'platforms'             = 'allDesktopPlatforms'
-                              -- [ 'DesktopPOSIX', 'DesktopWindows', 'DesktopMacintosh' ]
+                              -- [ 'DesktopLinux', 'DesktopWindows', 'DesktopMacintosh' ]
 
   'posixSubDirectory'     = "myapplication/"
   'windowsSubDirectory'   = "sboosali/My Application/"
@@ -141,6 +141,13 @@ data ApplicationInformation = ApplicationInformation
  , macintoshSubDirectory :: String
  }
 
+#if HAS_EXTENSION_DerivingStrategies
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+#else
+  deriving (Show,Read,Eq,Ord,Generic)
+#endif
+
 --------------------------------------------------
 --------------------------------------------------
 
@@ -150,14 +157,18 @@ data ApplicationInformation = ApplicationInformation
 
 data DesktopPlatform
 
-  = DesktopPOSIX
+  = DesktopLinux
   | DesktopWindows
   | DesktopMacintosh
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Enum,Bounded,Ix)
   deriving anyclass (GEnum)
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#else
+  deriving (Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic)
+#endif
 
 --------------------------------------------------
 --------------------------------------------------
@@ -176,10 +187,14 @@ data ApplicationInterface
   = ApplicationCLI
   | ApplicationGUI
 
+#if HAS_EXTENSION_DerivingStrategies
   deriving stock    (Enum,Bounded,Ix)
   deriving anyclass (GEnum)
   deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
   deriving anyclass (NFData,Hashable)
+#else
+  deriving (Enum,Bounded,Ix,Show,Read,Eq,Ord,Generic)
+#endif
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -188,7 +203,7 @@ data ApplicationInterface
 currentDesktopPlatform :: Maybe DesktopPlatform
 currentDesktopPlatform = case currentOperatingSystem of
 
-  Right Linux   -> Just DesktopPOSIX
+  Right Linux   -> Just DesktopLinux
   Right Windows -> Just DesktopWindows
   Right OSX     -> Just DesktopMacintosh
   _             -> Nothing
@@ -443,7 +458,7 @@ getApplicationSpecificRuntimeDirectory application = wrap $ do
   environmentVariable :: String
   environmentVariable = case currentDesktopPlatform of
 
-    Just DesktopPOSIX     -> "XDG_RUNTIME_DIR"
+    Just DesktopLinux     -> "XDG_RUNTIME_DIR"
     Just DesktopWindows   -> "TEMP"
     Just DesktopMacintosh -> "TEMP" --TODO-- "TEMP" or "XDG_RUNTIME_DIR"?
 
@@ -601,7 +616,7 @@ getApplicationSpecificXdgDirectory xdgDirectoryKind application path = do
 currentApplicationSpecificSubDirectory :: ApplicationInformation -> FilePath
 currentApplicationSpecificSubDirectory ApplicationInformation{..} = case currentDesktopPlatform of
 
-  Just DesktopPOSIX     -> posixSubDirectory
+  Just DesktopLinux     -> posixSubDirectory
   Just DesktopWindows   -> windowsSubDirectory
   Just DesktopMacintosh -> macintoshSubDirectory
 

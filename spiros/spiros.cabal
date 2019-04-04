@@ -6,7 +6,7 @@ build-type:          Simple
 --------------------------------------------------
 
 name:                spiros
-version:             0.3.2
+version:             0.3.3
 
 --x-revision:          1
 
@@ -40,12 +40,27 @@ stability: provisional
 
 --------------------------------------------------
 
-tested-with: GHC   == 8.6.3
+tested-with: GHC   == 8.6.4
            , GHC   == 8.4.4
            , GHC   == 8.2.2
            , GHC   == 8.0.2
---         , GHC   == 7.10.3
-           , GHCJS == 8.4.0.1
+           , GHC   == 7.10.3
+
+             -- ^ Compatible with all GHCs from « ghc-7.10 » to « ghc-8.6 ».
+
+           , GHC == 8.4.3
+
+             -- ^ For statically-linked CLI applications.
+             --
+             --   The default « ghc » in:
+             --   « nixpkgs=https://github.com/NixOS/nixpkgs/archive/2c07921cff84dfb0b9e0f6c2d10ee2bfee6a85ac.tar.gz ».
+
+           , GHCJS == 8.6.0.1
+
+             -- ^ For browser applications.
+             --
+             --   The default « ghcjs » in:
+             --   « nixpkgs=https://github.com/NixOS/nixpkgs/archive/18.09.tar.gz ».
 
 --------------------------------------------------
 -- Licensing -------------------------------------
