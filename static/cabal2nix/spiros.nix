@@ -1,9 +1,10 @@
 { mkDerivation, base, bytestring, case-insensitive, containers
 , cpuinfo, data-default-class, deepseq, directory, doctest
-, exceptions, generic-deriving, hashable, mtl, optparse-applicative
-, prettyprinter, process, safe, semigroups, show-prettyprint, split
-, stdenv, stm, string-conv, template-haskell, text, time
-, transformers, unordered-containers, vector, vinyl
+, exceptions, filepath, generic-deriving, hashable, mtl
+, optparse-applicative, prettyprinter, process, safe, semigroups
+, show-prettyprint, split, stdenv, stm, string-conv
+, template-haskell, text, time, transformers, unix-compat
+, unordered-containers, vector, vinyl
 }:
 mkDerivation {
   pname = "spiros";
@@ -14,10 +15,10 @@ mkDerivation {
   isExecutable = true;
   libraryHaskellDepends = [
     base bytestring case-insensitive containers cpuinfo
-    data-default-class deepseq directory exceptions generic-deriving
-    hashable mtl prettyprinter process safe semigroups show-prettyprint
-    split stm string-conv template-haskell text time transformers
-    unordered-containers vector vinyl
+    data-default-class deepseq directory exceptions filepath
+    generic-deriving hashable mtl prettyprinter process safe semigroups
+    show-prettyprint split stm string-conv template-haskell text time
+    transformers unix-compat unordered-containers vector vinyl
   ];
   executableHaskellDepends = [ base optparse-applicative text ];
   testHaskellDepends = [ base doctest ];

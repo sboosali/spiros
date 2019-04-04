@@ -677,6 +677,96 @@ static-nix:
 
 
 
+TODO port to:
+
+haskellUtilities.doStrip
+haskellUtilities.justStaticExecutables
+
+
+
+
+
+
+
+/* link executables statically against haskell libs to reduce
+     closure size
+   */
+
+  justStaticExecutables = drv: overrideCabal drv 
+
+(drv: {
+    enableSharedExecutables = false;
+    enableLibraryProfiling = false;
+    isLibrary = false;
+    doHaddock = false;
+    postFixup = "rm -rf $out/lib $out/nix-support $out/share/doc";
+  });
+
+
+
+
+
+/* appendConfigureFlag adds a single argument that will be passed to the
+     cabal configure command, after the arguments that have been defined
+     in the initial declaration or previous overrides.
+     Example:
+         > haskell.lib.appendConfigureFlag haskellPackages.servant "--profiling-detail=all-functions"
+   */
+
+  appendConfigureFlags = drv: xs: overrideCabal drv (drv: { configureFlags = (drv.configureFlags or []) ++ xs; });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
