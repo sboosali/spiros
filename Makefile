@@ -10,7 +10,18 @@ SHELL=bash
 # Makefile Variables: overrideable (via EnvironmentVariables)
 ##################################################
 
+Develop?=1
+Release?=0
+
+#------------------------------------------------#
+
+CurrentGitCommit:=$(shell git rev-parse --verify HEAD)
+Timestamp:=$(shell date +%Y%m%d%H%M)
+
+#------------------------------------------------#
+
 Version=0.4.0
+LongVersion=$(Version)-$(CurrentGitCommit)-$(Timestamp)
 
 #------------------------------------------------#
 
@@ -388,7 +399,11 @@ example-spiros:
 
 	@printf "\n"
 
-	@example-spiros --information
+	@example-spiros --information -v
+
+	@printf "\n"
+
+	@example-spiros --version -v
 
 	@printf "\n"
 

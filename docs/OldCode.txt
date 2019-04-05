@@ -1084,6 +1084,172 @@ upload: release/spiros-$(Version).tar.gz
 
 
 
+printInformationWith :: Options -> IO ()
+printInformationWith options@Options{..} = do
+
+  when (verbosity >= Concise) $ do
+
+    putH1Ln
+    putStrLn "Application Information...\n"
+    putH2Ln
+
+    print application
+
+    putH2Ln
+
+    putStr "XDG_CONFIG_HOME/... — "
+    printConfigurationDirectory
+    putStr "XDG_DATA_HOME/...   — "
+    printDataDirectory
+    putStr "XDG_CACHE_HOME/...  — "
+    printCacheDirectory
+
+  when (verbosity >= Verbose) $ do
+
+    putH1Ln
+    putStrLn "Invocation Information...\n"
+    putH2Ln
+
+    print options
+
+  when (verbosity >= Verbose) $ do
+
+    putH1Ln
+    putStrLn "Configuration Information...\n"
+    putH2Ln
+
+    config <- resolveConfig
+    print config
+
+  putH1Ln
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ------------------------------
+
+ if flag(develop)
+
+    ld-options: -DSBOO_CURRENT_GIT_COMMIT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+versionStringBranch :: String
+#ifdef CURRENT_PACKAGE_VERSION
+versionStringBranch = CURRENT_PACKAGE_VERSION
+#else
+versionStringBranch = "0.4"
+#endif
+
+--------------------------------------------------
+
+versionStringTags :: String
+#ifdef SBOO_CURRENT_GIT_COMMIT
+versionStringTags = "-" ++ SBOO_CURRENT_GIT_COMMIT
+#else
+versionStringTags = ""
+#endif
+
+--------------------------------------------------
+
+versionString :: String
+versionString = versionStringBranch ++ versionStringTags
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+getVersionString :: IO String
+getVersionString = do
+
+  --TODO
+  -- currentTimestamp <- _ -- shell "date +%Y%m%d%H%M"
+  -- currentGitCommit <- _ -- shell "git rev-parse --verify HEAD"
+
+  evLongVersion <- IO.getEnv "LongVersion"
+
+  let versionStringTags = evLongVersion & maybe "" ()
+
+  let versionString = versionStringBranch ++ versionStringTags
+
+  return versionString
+
+  where
+
+  parseVersionTags s
+    | not (all Char.isSpace s) = ""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
