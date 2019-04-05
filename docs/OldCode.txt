@@ -1243,6 +1243,53 @@ getVersionString = do
 
 
 
+--------------------------------------------------
+
+printConfigWith :: Config -> IO ()
+printConfigWith config@Config{..} = do
+
+  when (verbosity >= Concise) $ do
+    print config
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

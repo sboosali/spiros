@@ -2,6 +2,7 @@
 
 --------------------------------------------------
 
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DuplicateRecordFields #-}
@@ -33,6 +34,8 @@ module Example.Spiros where
 
 import Prelude.Spiros
 import Prelude.Spiros.Application
+
+import qualified "base" Prelude
 
 --------------------------------------------------
 -- Imports (External) ----------------------------
@@ -189,9 +192,10 @@ mainWith options@Options{..} = do
   actions :: [IO ()]
   actions = concat
 
-    [ (if doPrintInformation then [printInformationWith options] else [])
-    , (if doPrintVersion     then [printVersion options]         else [])
-    , (if doPrintLicense     then [printLicense options]         else [])
+    [ (if doPrintInformation     then [printInformation options] else [])
+    , (if doPrintVersion         then [printVersion     options] else [])
+    , (if doPrintLicense         then [printLicense     options] else [])
+    , (if doResolveConfiguration then [printConfig      options] else [])
     ]
 
 --------------------------------------------------
@@ -225,8 +229,8 @@ printLicense options@Options{..} = do
 
 --------------------------------------------------
 
-printInformationWith :: Options -> IO ()
-printInformationWith options@Options{..} = do
+printInformation :: Options -> IO ()
+printInformation options@Options{..} = do
 
   when (verbosity == Concise) $ do
 
@@ -299,8 +303,10 @@ printCacheDirectory = do
 
 --------------------------------------------------
 
-printConfigWith :: Config -> IO ()
-printConfigWith config@Config{..} = do
+printConfig :: Options -> IO ()
+printConfig options@Options{..} = do
+
+  config <- resolveConfig
 
   when (verbosity >= Concise) $ do
     print config
@@ -467,8 +473,14 @@ parseConfig :: String -> Config
 parseConfig sConfig = iConfig
   where
 
-  mConfig = readMaybe sConfig
+  mConfig = readMaybe (trim sConfig)
   iConfig = mConfig & maybe def id
+
+  trim
+    = List.dropWhile Char.isSpace
+    > reverse
+    > List.dropWhile Char.isSpace
+    > reverse
 
 --------------------------------------------------
 
