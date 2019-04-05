@@ -2,6 +2,10 @@
 
 --------------------------------------------------
 
+{-# LANGUAGE NoImplicitPrelude #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE DoAndIfThenElse #-}
@@ -43,7 +47,7 @@ module Prelude.Spiros.Application
 --------------------------------------------------
 
 import Prelude.Spiros.Compatibility()
-import Prelude.Spiros.Classes
+import Prelude.Spiros.Reexports
 
 import Prelude.Spiros.System
 import Prelude.Spiros.Utilities
@@ -63,11 +67,14 @@ import qualified "directory" System.Directory as Directory
 import qualified "unix-compat" System.PosixCompat.Files as UNIX
 
 --------------------------------------------------
+
+import qualified "split" Data.List.Split as Split
+
+--------------------------------------------------
 --------------------------------------------------
 
 --import qualified "text" Data.Text    as T
 import qualified "text" Data.Text.IO as T
-
 import           "text" Data.Text (Text)
 
 --------------------------------------------------
@@ -77,6 +84,12 @@ import           "text" Data.Text (Text)
 import qualified "base" System.Environment  as IO
 --import qualified "base" System.Info         as Base
 --import qualified "base" GHC.Conc            as GHC
+
+import qualified "base" Data.Char as Char
+
+--------------------------------------------------
+
+import qualified "base" Prelude
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -97,9 +110,9 @@ Metadata:
 Platform-specific metadata:
 
 * 'platforms'             — Supported platforms (i.e. that the application is known to run on).
-* 'posixSubDirectory'     — .
-* 'windowsSubDirectory'   — .
-* 'macintoshSubDirectory' — .
+* 'posixDirectory'     — .
+* 'windowsDirectory'   — .
+* 'macintoshDirectory' — .
 
 == Example
 
@@ -113,15 +126,16 @@ myApplicationInformation = 'ApplicationInformation'{..}
   'name'                  = "My Application"
   'version'               = "0.0.0"
   'license'               = "GPL-3.0-or-later"
-
+  'vendor'                = "sboosali.io"
   'executable'            = "my-application"
+
   'interface'             = 'ApplicationCLI'
   'platforms'             = 'allDesktopPlatforms'
                               -- [ 'DesktopLinux', 'DesktopWindows', 'DesktopMacintosh' ]
 
-  'posixSubDirectory'     = "myapplication/"
-  'windowsSubDirectory'   = "sboosali/My Application/"
-  'macintoshSubDirectory' = "io.sboosali.My-Application/"
+  'posixDirectory'     = "myapplication/"
+  'windowsDirectory'   = "sboosali/My Application/"
+  'macintoshDirectory' = "io.sboosali.My-Application/"
 @
 
 -}
@@ -132,13 +146,15 @@ data ApplicationInformation = ApplicationInformation
  , version    :: String
  , license    :: String
 
+ , vendor     :: String
  , executable :: String
+
  , interface  :: ApplicationInterface
  , platforms  :: [DesktopPlatform]
 
- , posixSubDirectory     :: String
- , windowsSubDirectory   :: String
- , macintoshSubDirectory :: String
+ , posixDirectory     :: String
+ , windowsDirectory   :: String
+ , macintoshDirectory :: String
  }
 
 #if HAS_EXTENSION_DerivingStrategies
@@ -147,6 +163,69 @@ data ApplicationInformation = ApplicationInformation
 #else
   deriving (Show,Read,Eq,Ord,Generic)
 #endif
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-| The primary fields of 'ApplicationInformation', from which the rest are derived (via 'defaultApplicationInformation').
+
+Required fields share type with their namesake field (implicitly under @Identity@).
+Optional fields are wrapped under @Maybe@.
+
+-}
+
+data ApplicationInformation0 = ApplicationInformation0
+
+ { name0       :: String
+ , version0    :: String
+ , license0    :: String
+ , vendor0     :: String
+
+ , executable0            :: Maybe String
+ , interface0             :: Maybe ApplicationInterface
+ , platforms0             :: Maybe [DesktopPlatform]
+ , posixDirectory0     :: Maybe String
+ , windowsDirectory0   :: Maybe String
+ , macintoshDirectory0 :: Maybe String
+ }
+
+#if HAS_EXTENSION_DerivingStrategies
+  deriving stock    (Show,Read,Eq,Ord,Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+#else
+  deriving (Show,Read,Eq,Ord,Generic)
+#endif
+
+--------------------------------------------------
+
+{-| Default 'ApplicationInformation'.
+
+May call:
+
+* `asExecutableName`
+* `allDesktopPlatforms`
+* `asPosixDirectory`
+* `windowsDirectory`
+* `macintoshDirectory`
+
+-}
+
+defaultApplicationInformation :: ApplicationInformation0 -> ApplicationInformation
+defaultApplicationInformation ApplicationInformation0{..} = ApplicationInformation{..}
+  where
+  
+  name                  = name0
+  version               = version0
+  license               = license0
+  vendor                = vendor0
+
+  executable            = executable0 & fromMaybe (asExecutableName name)
+  interface             = interface0  & fromMaybe def
+  platforms             = platforms0  & fromMaybe allDesktopPlatforms
+
+  posixDirectory     = posixDirectory0     & fromMaybe (asPosixDirectory     name vendor)
+  windowsDirectory   = windowsDirectory0   & fromMaybe (asWindowsDirectory   name vendor)
+  macintoshDirectory = macintoshDirectory0 & fromMaybe (asMacintoshDirectory name vendor)
 
 --------------------------------------------------
 --------------------------------------------------
@@ -197,6 +276,13 @@ data ApplicationInterface
 #endif
 
 --------------------------------------------------
+
+-- | @= 'ApplicationCLI'@
+
+instance Default ApplicationInterface where
+  def = ApplicationCLI
+
+--------------------------------------------------
 -- Constants -------------------------------------
 --------------------------------------------------
 
@@ -215,6 +301,11 @@ currentDesktopPlatform = case currentOperatingSystem of
 
 allDesktopPlatforms :: [DesktopPlatform]
 allDesktopPlatforms = constructors'
+
+--------------------------------------------------
+
+posixDesktopPlatforms :: [DesktopPlatform]
+posixDesktopPlatforms = [ DesktopLinux, DesktopMacintosh ]
 
 --------------------------------------------------
 -- Functions -------------------------------------
@@ -616,9 +707,9 @@ getApplicationSpecificXdgDirectory xdgDirectoryKind application path = do
 currentApplicationSpecificSubDirectory :: ApplicationInformation -> FilePath
 currentApplicationSpecificSubDirectory ApplicationInformation{..} = case currentDesktopPlatform of
 
-  Just DesktopLinux     -> posixSubDirectory
-  Just DesktopWindows   -> windowsSubDirectory
-  Just DesktopMacintosh -> macintoshSubDirectory
+  Just DesktopLinux     -> posixDirectory
+  Just DesktopWindows   -> windowsDirectory
+  Just DesktopMacintosh -> macintoshDirectory
 
   Nothing -> executable
 
@@ -689,7 +780,140 @@ isValidEnvironmentVariableName :: String -> Bool
 isValidEnvironmentVariableName s =
 
   s == ""
-    
+
+--------------------------------------------------
+
+{- | Construct a 'executable' from a 'name'.
+
+== Examples
+
+>>> asExecutableName "My Application"
+"my-application"
+
+-}
+
+asExecutableName :: String -> String
+asExecutableName name = go name
+  where
+
+  go
+    = fmap Char.toLower
+    > convertSpacesToHyphens
+
+--------------------------------------------------
+ 
+{- | Construct a 'posixDirectory' from a 'name'.
+
+== Examples
+
+>>> import qualified Prelude
+>>> asPosixDirectory "My Application" Prelude.undefined
+"myapplication/"
+
+-}
+
+asPosixDirectory :: String -> String -> String
+asPosixDirectory name _vendor = path
+  where
+
+  path = go name
+
+  go
+    = fmap Char.toLower
+    > filter (not . Char.isSpace)
+    > (++ "/")
+
+--------------------------------------------------
+
+{- | Construct a 'windowsDirectory' from a 'vendor' and a 'name'.
+
+== Examples
+
+>>> asWindowsDirectory "My Application" "www.sboosali.com"
+"sboosali/My Application/"
+
+-}
+
+asWindowsDirectory :: String -> String -> String
+asWindowsDirectory name vendor = path
+  where
+
+  path = concat [ host, "/", name, "/" ]
+
+  host = vendor &
+
+    ( Split.splitOn "."
+    > getSecondToLast
+    > maybe vendor id
+    )
+
+  getSecondToLast :: [a] -> Maybe a
+  getSecondToLast
+
+    = reverse
+    > nth 1
+
+--------------------------------------------------
+
+{- | Construct a 'macintoshDirectory' from a 'vendor' and a 'name'.
+
+== Examples
+
+>>> asMacintoshDirectory "My Application" "www.sboosali.com"
+"com.sboosali.www.My-Application/"
+
+-}
+
+asMacintoshDirectory :: String -> String -> String
+asMacintoshDirectory name vendor = path
+  where
+
+  path = concat [ vendor', ".", name', "/" ]
+
+  name' = name
+    & convertSpacesToHyphens
+
+  vendor' = vendor
+    & reverseByDot
+
+  reverseByDot :: String -> String
+  reverseByDot
+
+    = Split.splitOn "."
+    > reverse
+    > intercalate "."
+
+--------------------------------------------------
+
+{- | Convert multiple whitespace characters to a single hyphen character.
+
+== Examples
+
+>>> convertSpacesToHyphens " phrase with     spaces "
+"phrase-with-spaces"
+
+-}
+
+convertSpacesToHyphens :: String -> String
+convertSpacesToHyphens
+
+  = Split.split splitter
+  > intercalate "-"
+
+  where
+
+  splitter :: Split.Splitter Char
+  splitter = Split.whenElt Char.isSpace
+
+    & ( Split.condense
+      > Split.dropBlanks
+      > Split.dropDelims
+      )
+
+  -- Split.defaultSplitter
+
+  -- replace " " "-"
+
 --------------------------------------------------
 -- Notes -----------------------------------------
 --------------------------------------------------
@@ -763,7 +987,49 @@ touchFile :: FilePath -> IO ()
   touchFile 
 
 --------------------------------------------------
+-- `split`
+
+-- | Split on the given sublist.  Equivalent to @'split'
+--   . 'dropDelims' . 'onSublist'@.  For example:
+--
+-- > splitOn ".." "a..b...c....d.." == ["a","b",".c","","d",""]
+--
+--   In some parsing combinator frameworks this is also known as
+--   @sepBy@.
+--
+--   Note that this is the right inverse of the 'Data.List.intercalate' function
+--   from "Data.List", that is,
+--
+--   > intercalate x . splitOn x === id
+--
+--   @'splitOn' x . 'Data.List.intercalate' x@ is the identity on
+--   certain lists, but it is tricky to state the precise conditions
+--   under which this holds.  (For example, it is not enough to say
+--   that @x@ does not occur in any elements of the input list.
+--   Working out why is left as an exercise for the reader.)
+
+splitOn :: Eq a => [a] -> [a] -> [[a]]
+splitOn   = split . dropDelims . onSublist
+
+-- | Split on elements satisfying the given predicate.  Equivalent to
+--   @'split' . 'dropDelims' . 'whenElt'@.  For example:
+--
+-- > splitWhen (<0) [1,3,-4,5,7,-9,0,2] == [[1,3],[5,7],[0,2]]
+
+splitWhen :: (a -> Bool) -> [a] -> [[a]]
+splitWhen = split . dropDelims . whenElt
+
+--------------------------------------------------
+-- ``
+
+
+
+--------------------------------------------------
+-- ``
+
+--------------------------------------------------
 -}
+
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------

@@ -94,10 +94,8 @@ import           "base" Data.Typeable
 import qualified "base" Control.Exception   as E
 import qualified "base" System.Environment  as IO
 
--- import qualified "base" System.Info         as Base
--- import qualified "base" GHC.Conc            as GHC
+import qualified "base" Data.List as List
 
--- import           "base" Data.Function ((&))
 import           "base" Data.Foldable
 -- import           "base" Text.Read
 
@@ -160,12 +158,16 @@ map = fmap
 
 {-# INLINEABLE map #-}
 
+--------------------------------------------------
+
 -- | (generalization)
 -- @= 'sequenceA'@
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 sequence = sequenceA
 
 {-# INLINEABLE sequence #-}
+
+--------------------------------------------------
 
 -- | (generalization)
 -- @ = 'sequenceA_'@
@@ -197,6 +199,8 @@ same precedence/associativity as '.'
 infixr 9 >
 
 {-# INLINEABLE (>) #-}
+
+--------------------------------------------------
 
 {- | backwards composition
 
@@ -235,6 +239,8 @@ infix 4 `lessThan`
 
 {-# INLINEABLE lessThan #-}
 
+--------------------------------------------------
+
 -- | same precedence/associativity as "Prelude.>"
 greaterThan :: Ord a => a -> a -> Bool
 greaterThan = (Prelude.>)
@@ -269,8 +275,12 @@ todo :: a --TODO call stack
 todo = error "TODO"
 {-# DEPRECATED todo "use { __ERROR__ \"TODO\" }" #-}
 
+--------------------------------------------------
+
 __BUG__ :: SomeException -> a --TODO callstack
 __BUG__ = error . show
+
+--------------------------------------------------
 
 __ERROR__ :: String -> a --TODO callstack
 __ERROR__ = error 
@@ -319,25 +329,35 @@ maybe2bool = maybe False (const True)
 
 {-# INLINEABLE maybe2bool #-}
 
+--------------------------------------------------
+
 maybe2either :: e -> Maybe a -> Either e a 
 maybe2either e = maybe (Left e) Right
 
 {-# INLINEABLE maybe2either #-}
+
+--------------------------------------------------
 
 either2maybe :: Either e a -> Maybe a
 either2maybe = either (const Nothing) Just
 
 {-# INLINEABLE either2maybe #-}
 
+--------------------------------------------------
+
 either2bool :: Either e a -> Bool
 either2bool = either (const False) (const True)
 
 {-# INLINEABLE either2bool #-}
 
+--------------------------------------------------
+
 maybe2list :: Maybe a -> [a]
 maybe2list = maybe [] (:[])
 
 {-# INLINEABLE maybe2list #-}
+
+--------------------------------------------------
 
 list2maybe :: [a] -> Maybe a
 list2maybe = \case
@@ -346,14 +366,14 @@ list2maybe = \case
 
 {-# INLINEABLE list2maybe #-}
 
-------------------------------
-#if HAS_BASE_NonEmpty
+--------------------------------------------------
 
+#if HAS_BASE_NonEmpty
 nonempty2list :: NonEmpty a -> [a]
 nonempty2list = toList
-
 #endif
-------------------------------
+
+--------------------------------------------------
 
 list
   :: r -> (a -> [a] -> r)
@@ -362,6 +382,7 @@ list y f = \case
   []     -> y
   (x:xs) -> f x xs
 
+--------------------------------------------------
 --------------------------------------------------
 -- numbers
 
@@ -375,6 +396,8 @@ unsafeNatural :: Integral i => i -> Natural
 unsafeNatural = fromIntegral
 
 {-# INLINEABLE unsafeNatural #-}
+
+--------------------------------------------------
 
 -- | an alias, since @(%)@ is prime symbolic real estate. 
 ratio :: Integral a => a -> a -> Ratio a
@@ -395,6 +418,8 @@ infixl 7 `ratio` -- same as (%)
 
 {-# INLINEABLE ($>) #-}
 
+--------------------------------------------------
+
 -- | Infix flipped 'fmap'.
 --
 -- @
@@ -413,11 +438,38 @@ infixl 5 <&>
 
 {-# INLINEABLE (<&>) #-}
 
+--------------------------------------------------
+-- list/number utilities...
+
+{- | Safely get the @n@-th item in the given list.
+
+>>> nth 1 ['a'..'c']
+Just 'b'
+>>> nth 1 []
+Nothing
+
+-}
+
+nth :: Natural -> [a] -> Maybe a
+nth n = go
+  where
+
+  go =
+    ( List.zip [0..]
+    > List.lookup n
+    )
+
+{-# INLINEABLE nth #-}
+
+--------------------------------------------------
+
 -- | reverse @cons@
 snoc :: [a] -> a -> [a]
 snoc xs x = xs ++ [x]
 
 {-# INLINEABLE snoc #-}
+
+--------------------------------------------------
 
 {-|
 
@@ -429,6 +481,8 @@ toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 
 {-# INLINEABLE toInt #-}
 
+--------------------------------------------------
+
 -- | safely-partial @(!)@
 index :: (Integral n) => [a] -> n -> Maybe a
 index [] _ = Nothing
@@ -439,20 +493,28 @@ index (x:xs) n
 
 {-# INLINEABLE index #-}
 
+--------------------------------------------------
+
 strip :: String -> String
 strip = rstrip . lstrip
 
 {-# INLINEABLE strip #-}
+
+--------------------------------------------------
 
 lstrip :: String -> String
 lstrip = dropWhile (`elem` (" \t\n\r"::String))
 
 {-# INLINEABLE lstrip #-}
 
+--------------------------------------------------
+
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
 
 {-# INLINEABLE rstrip #-}
+
+--------------------------------------------------
 
 shown :: forall a t.
     ( Show a
@@ -463,6 +525,8 @@ shown :: forall a t.
 shown = fromString . show
 
 {-# INLINEABLE shown #-}
+
+--------------------------------------------------
 
 {-|
 
@@ -475,6 +539,8 @@ constructors :: (BoundedEnum a) => proxy a -> [a]
 constructors _ = [minBound..maxBound]
 
 {-# INLINEABLE constructors #-}
+
+--------------------------------------------------
 
 {-| like 'constructors', but with an implicit type parameter.
 
@@ -493,10 +559,14 @@ constructors' = constructors proxy
 
 {-# INLINEABLE constructors' #-}
 
+--------------------------------------------------
+
 identity :: (Category cat) => (a `cat` a)
 identity = Category.id
 
 {-# INLINEABLE identity #-}
+
+--------------------------------------------------
 
 -- compose :: (Category (==>)) => (b ==> c) -> (a ==> b) -> (a ==> c)
 compose
@@ -507,6 +577,8 @@ compose
 compose = (Category.<<<)
 
 {-# INLINEABLE compose #-}
+
+--------------------------------------------------
 
 typeName
   :: forall proxy a t.
@@ -589,6 +661,8 @@ Which also act as self-documenting (psuedo-keyword-)arguments for 'threadDelay',
 -}
 newtype Time = Time { toMicroseconds :: Int }
 
+--------------------------------------------------
+
 microseconds :: Int -> Time
 milliseconds :: Int -> Time
 seconds      :: Int -> Time
@@ -606,6 +680,8 @@ milliseconds = Time . (\t -> t*1000)
 seconds      = Time . (\t -> t*1000*1000)
 minutes      = Time . (\t -> t*1000*1000*1000)
 hours        = Time . (\t -> t*1000*1000*1000*1000)
+
+--------------------------------------------------
 
 delayFor :: (MonadIO m) => Time -> m ()
 delayFor = toMicroseconds >>> threadDelay >>> liftIO 
@@ -626,6 +702,8 @@ delaySeconds :: (MonadIO m) => Int -> m ()
 delaySeconds i = delayFor (seconds i)
 
 {-# INLINEABLE delaySeconds #-}
+
+--------------------------------------------------
 
 {-
 
@@ -674,10 +752,14 @@ io = liftIO
 
 {-# INLINEABLE io #-}
 
+--------------------------------------------------
+
 forkever_ :: IO () -> IO ()
 forkever_ = void . forkever Nothing
 
 {-# INLINEABLE forkever_ #-}
+
+--------------------------------------------------
 
 forkever ::Maybe Int -> IO () -> IO ThreadId
 forkever t m = forkIO $ forever $ do
@@ -687,6 +769,8 @@ forkever t m = forkIO $ forever $ do
     _delay = maybe nothing delayMilliseconds t
 
 {-# INLINEABLE forkever #-}
+
+--------------------------------------------------
 
 --TODO -- | Call once to start, then call repeatedly to get the elapsed time since the first call.
 -- --   The time is guaranteed to be monotonic. This function is robust to system time changes.
@@ -707,6 +791,8 @@ forceIO :: NFData a => a -> IO a
 forceIO = evaluate . force
 
 {-# INLINEABLE forceIO #-}
+
+--------------------------------------------------
 
 -- | @~ 'forceIO'@
 forceIO_ :: NFData a => a -> IO ()

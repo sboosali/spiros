@@ -250,10 +250,9 @@ instance Exception ParseError where
 
 {-|
 
-@
+>>> :set -XOverloadedStrings
 >>> Prelude.putStrLn (Prelude.show ("unparseable" :: ParseError))
-Can't parse <<< "unparseable" >>>.
-@
+[ParseError] Can't parse <<< "unparseable" >>>.
 
 -}
 
@@ -349,7 +348,7 @@ mkBoundedEnumParser = mkShowParserWith (constructors proxy)
 >>> parseHaskellBool "True"
 True
 >>> parseHaskellBool "true"
-***
+*** Exception: [ParseError] Can't parse <<< ghc-prim:GHC.Types.(type Bool) >>> from <<< "true" >>>.
 
 == Exceptions
 
@@ -439,11 +438,7 @@ mkParserFromPrinterWith title printer values = mkParserFromList title aliases
 >>> parseINIBool "true"
 True
 >>> parseINIBool "2"
-*** Exception: ParseError {stringBeingParsed = "2", thingToParseInto = "INI Bool"}
-
-@
-TODO *** ParseError: Can't parse « INI Bool » from « "2" ».
-@
+*** Exception: [ParseError] Can't parse <<< INI Bool >>> from <<< "2" >>>.
 
 Strings should be distinct. Within a @[String]@, duplicates are ignored.
 Across each @[(a, [String])]@, all but one are ignored.
@@ -508,7 +503,7 @@ displayParseError = displayParseErrorWith def
 
 >>> :set -XOverloadedStrings
 >>> Prelude.putStrLn (Control.Exception.displayException ("unparseable" :: ParseError))
-Can't parse <<< "unparseable" >>>.
+[ParseError] Can't parse <<< "unparseable" >>>.
 
 >>> Prelude.putStrLn (displayParseErrorWith def{ useUnicodeCharacters = True } ParseError{ stringBeingParsed = "2", thingToParseInto = "INI Bool" })
 [ParseError] Can't parse « INI Bool » from « "2" ».

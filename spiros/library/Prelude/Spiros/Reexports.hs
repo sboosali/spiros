@@ -139,13 +139,13 @@ import "hashable" Data.Hashable                      as X (hashUsing)
 -- `text`
 --------------------------------------------------
 
-import "text" Data.Text.Lazy                         as X (Text)         -- lazy -- TODO strict
+import "text" Data.Text                              as X (Text)        -- strict
 
 --------------------------------------------------
 -- `bytestring`
 --------------------------------------------------
 
-import "bytestring" Data.ByteString.Lazy             as X (ByteString)   -- lazy -- TODO strict
+import "bytestring" Data.ByteString                  as X (ByteString)  -- strict
 
 --------------------------------------------------
 -- `transformers`

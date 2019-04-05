@@ -74,7 +74,7 @@ main = do
 
 sources = modules2filepaths "hs" "library" $
 
-  "Prelude.Spiros Prelude.Spiros.Reexports Prelude.Spiros.Utilities Prelude.Spiros.Classes Prelude.Spiros.Types Prelude.Spiros.Print Prelude.Spiros.Parse Prelude.Spiros.Compatibility Prelude.Spiros.Enriched Prelude.Spiros.Exception Prelude.Spiros.GUI Prelude.Spiros.Generics Prelude.Spiros.System Prelude.Spiros.Validator"
+  "Prelude.Spiros Prelude.Spiros.Reexports Prelude.Spiros.Utilities Prelude.Spiros.Classes Prelude.Spiros.Types Prelude.Spiros.Print Prelude.Spiros.Parse Prelude.Spiros.Compatibility Prelude.Spiros.Enriched Prelude.Spiros.Exception Prelude.Spiros.GUI Prelude.Spiros.Generics Prelude.Spiros.System Prelude.Spiros.Application Prelude.Spiros.Validator"
 
 --------------------------------------------------
 

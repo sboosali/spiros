@@ -1,8 +1,11 @@
+{-# LANGUAGE CPP #-}
+
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+
 {-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE DoAndIfThenElse   #-}
 {-# LANGUAGE PackageImports    #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 --------------------------------------------------
 
@@ -10,6 +13,8 @@
 -}
 
 module Example.Spiros where
+
+#include "cabal_macros.h"
 
 --------------------------------------------------
 -- Imports (Internal) ----------------------------
@@ -48,20 +53,25 @@ data Options = Options
 --------------------------------------------------
 
 application :: ApplicationInformation
-application = ApplicationInformation{..}
+application = defaultApplicationInformation ApplicationInformation0{..}
   where
 
-  name                  = "My Application"
-  version               = "0.3.1"
-  license               = "Apache-2.0"
+  name0                  = "My Application"
+  license0               = "Apache-2.0"
 
-  executable            = "my-application"
-  interface             = ApplicationCLI
-  platforms             = allDesktopPlatforms
+#ifdef CURRENT_PACKAGE_VERSION
+  version0               = "#CURRENT_PACKAGE_VERSION"
+#else
+  version0               = "0.3"
+#endif
 
-  posixSubDirectory     = "myapplication/"
-  windowsSubDirectory   = "sboosali/My Application/"
-  macintoshSubDirectory = "io.sboosali.My-Application/"
+  executable0            = Just "my-application"
+  interface0             = Just ApplicationCLI
+  platforms0             = Just allDesktopPlatforms
+
+  -- posixSubDirectory     = "myapplication/"
+  -- windowsSubDirectory   = "sboosali/My Application/"
+  -- macintoshSubDirectory = "io.sboosali.My-Application/"
 
 --------------------------------------------------
 -- Main ------------------------------------------

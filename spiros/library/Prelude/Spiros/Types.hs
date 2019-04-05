@@ -18,9 +18,27 @@ the @newtype@s distinguish them with more meaningful names (of constructors, acc
 
 -}
 
-module Prelude.Spiros.Types where
+module Prelude.Spiros.Types
+
+--------------------------------------------------
+
+  ( module Prelude.Spiros.Types
+  , module Prelude.Spiros.Text
+  ) where
+
+--------------------------------------------------
 
 #include "sboo-base-feature-macros.h"
+
+--------------------------------------------------
+-- Re-Exports ------------------------------------
+--------------------------------------------------
+
+import Prelude.Spiros.Text
+
+  ( StrictText, LazyText
+  , StrictBytes, LazyBytes
+  )
 
 --------------------------------------------------
 -- Imports: 1st Party ----------------------------
@@ -47,8 +65,6 @@ import qualified "bytestring" Data.ByteString.Lazy as BL
 import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
 
 --------------------------------------------------
--- Imports: 1st Party ----------------------------
---------------------------------------------------
 
 import "base" Data.Proxy      (Proxy(..))
 import "base" Data.String     (IsString)
@@ -56,6 +72,8 @@ import "base" Data.String     (IsString)
 --------------------------------------------------
 
 import "base" Data.Functor.Identity (Identity(..))
+
+--------------------------------------------------
 
 #if HAS_BASE_Functors   
 import "base" Data.Functor.Const    (Const(..))
@@ -124,16 +142,6 @@ helloworld = hello "world" :: String
 type CanInterpolate t = (IsString t, Monoid t)
   
 --------------------------------------------------
---------------------------------------------------
-
-type StrictText = TS.Text
-type LazyText   = TL.Text 
-
---------------------------------------------------
-
-type StrictBytes = BS.ByteString
-type LazyBytes   = BL.ByteString
-
 --------------------------------------------------
 
 {-| a haskell identifier, via @TemplateHaskellQuotes@.
@@ -276,3 +284,7 @@ type Rep (Either a b)
 type (==) (Either k1 k2) a b
 
 -}
+
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------

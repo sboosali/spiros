@@ -1,14 +1,19 @@
 cabal-version:       2.2
+
                      -- ^ « v2.2 » provides « common » stanzas.
+                     --   « v2.2 » is the latest version that works with « cabal2nix ».
 
 build-type:          Simple
 
 --------------------------------------------------
 
 name:                spiros
-version:             0.3.3
+version:             0.4.0
 
 --x-revision:          1
+
+--TODO rename spiros to sboo?
+--TODO split off spiros-base.
 
 --------------------------------------------------
 
@@ -19,17 +24,23 @@ maintainer:          samboosalis@gmail.com
 -- Description -----------------------------------
 --------------------------------------------------
 
-synopsis:            Custom Prelude (sboo / sboosali)
+synopsis:            Spiros Boosalis's Custom Prelude
 
 category:            Prelude
 
 --------------------------------------------------
 
-description:         My custom prelude (I'm @\@sboosali@ on GitHub and @user\/sboo@ on Hackage.) 
+description:         My custom prelude.
+                     I'm @\@sboosali@ on GitHub, @user\/sboo@ on Hackage, and @/u/spirosboosalis@ on reddit.)
                      .
                      Diverges slightly from base's: adding, removing, and shadowing.
                      .
-                     
+                     Compatible with (and built\/tested against):
+                     .
+                     * 5 GHCs — from « ghc-7.10.* » (in Debian) to  « ghc-8.6.* » (the latest, circa 2019).
+                     * GHCJS  — the Haskell→JavaScript transpiler (« ghcjs-8.6.* »).
+                     * Musl   — « ghc » statically-linked against « libmusl »
+                       (instead of dynamically-linked against « glibc », the default).
                      .
 
 --------------------------------------------------
@@ -96,6 +107,7 @@ bug-reports: https://github.com/sboosali/spiros#issues
 
 source-repository head
   type:     git
+
   location: https://github.com/sboosali/spiros
   subdir:   spiros
 
@@ -117,7 +129,17 @@ flag static
 
   default:     False
 
-  description: Build a statically-linked dynamic-library (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
+  description: Build a statically-linked dynamic-library and/or statically-linked executables (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
+
+  manual:      True
+
+--------------------------------------------------
+
+flag examples
+
+  default:     False
+
+  description: Build the « example-spiros » executable.
 
   manual:      True
 
@@ -210,15 +232,16 @@ library
                   Prelude.Spiros
 
                   --Base.GHC710
-
-                  Prelude.Spiros.Reexports
                   Prelude.Spiros.Utilities
-                  Prelude.Spiros.Classes
+
                   Prelude.Spiros.Types
+                  Prelude.Spiros.Reexports
+                  Prelude.Spiros.Classes
+
+                  Prelude.Spiros.Text
 
                   Prelude.Spiros.Print
                   Prelude.Spiros.Parse
-
                   Prelude.Spiros.System
                   Prelude.Spiros.Application
 
@@ -414,6 +437,16 @@ executable example-spiros
 
  ------------------------------
 
+ import: Haskell2020Library
+
+ -----------------------------
+
+ if !flag(examples)
+
+    buildable: False
+
+ ------------------------------
+
  default-language: Haskell2010
  
  ------------------------------
@@ -573,3 +606,7 @@ test-suite doc
 --   , spiros
 
 -- --------------------------------------------------
+
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------
