@@ -777,6 +777,173 @@ application = ApplicationInformation{..}
 
 
 
+-- | Required fields are @""@. Optional fields are @Nothing@.
+
+defaultApplicationInformation :: ApplicationInformation0
+defaultApplicationInformation = ApplicationInformation0{..}
+
+ name0       = def
+ version0    = def
+ license0    = def
+ vendor0     = def
+
+ executable0         = def
+ interface0          = def
+ platforms0          = def
+ posixDirectory0     = def
+ windowsDirectory0   = def
+ macintoshDirectory0 = def
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+application :: ApplicationInformation
+application = defaultApplicationInformation application0
+
+--------------------------------------------------
+
+application0 :: ApplicationInformation0
+application0 = def{ name0, license0, version0, executable0, interface0, platforms0 }
+  where
+
+  name0                  = "My Application"
+  license0               = "Apache-2.0"
+
+#ifdef CURRENT_PACKAGE_VERSION
+  version0               = "CURRENT_PACKAGE_VERSION()"
+#else
+  version0               = "0.3"
+#endif
+
+  executable0            = Just "my-application"
+  interface0             = Just ApplicationCLI
+  platforms0             = Just allDesktopPlatforms
+
+  -- posixSubDirectory     = "myapplication/"
+  -- windowsSubDirectory   = "sboosali/My Application/"
+  -- macintoshSubDirectory = "io.sboosali.My-Application/"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------#
+
+example-spiros:
+
+	$(CabalBuild) $(CabalOptions) "-fexamples" "exe:example-spiros"
+
+	$(Cabal) new-exec $(CabalOptions) -- example-spiros --version
+
+	$(Cabal) new-install $(CabalOptions) "-fexamples" "exe:example-spiros" "--overwrite-policy=always"
+
+	ldd `which example-spiros`
+
+#	cabal new-exec --project-file ./cabal.project -- ldd `which example-spiros`
+
+.PHONY: example-spiros
+
+
+
+
+
+
+
+
+
+
+
+example-spiros:
+
+	@printf "\n%s\n" ========================================
+
+	LC_ALL=C.UTF-8 $(Cabal) new-build $(CabalOptions) "-fexamples" "exe:example-spiros" -- --version
+
+	@printf "\n%s\n" ========================================
+
+	$(Cabal) new-install $(CabalOptions) "-fexamples" "exe:example-spiros" "--overwrite-policy=always"
+
+	@printf "\n%s\n" ========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+-- Macros ----------------------------------------
+--------------------------------------------------
+
+#ifdef CURRENT_PACKAGE_VERSION
+#ifndef SBOO_VERSION_STRING_EQUALS_CURRENT_PACKAGE_VERSION
+#define SBOO_VERSION_STRING_EQUALS_CURRENT_PACKAGE_VERSION versionString = CURRENT_PACKAGE_VERSION
+#endif
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

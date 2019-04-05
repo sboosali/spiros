@@ -144,6 +144,16 @@ flag examples
   manual:      True
 
 --------------------------------------------------
+
+flag cpphs
+
+  default:     False
+
+  description: Use « cpphs » as a C-Pre-Procesor (instead of « gcc », « clang », etc).
+
+  manual:      True
+
+--------------------------------------------------
 -- Common Stanzas --------------------------------
 --------------------------------------------------
 
@@ -201,6 +211,16 @@ common Haskell2020Library
     ghc-options: -fdefer-typed-holes
 
                  -- ^ Use « typed-holes » (not « undefined ») during development.
+
+
+ -----------------------------
+ -- Pre-Processor ------------
+ -----------------------------
+
+ if flag(cpphs)
+
+    build-tools: cpphs >= 1.19
+    ghc-options: -pgmP cpphs -optP --cpp
 
  -----------------------------
  -- etc ----------------------

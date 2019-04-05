@@ -198,6 +198,13 @@ data ApplicationInformation0 = ApplicationInformation0
 
 --------------------------------------------------
 
+-- | @= 'defaultApplicationInformation0'@
+
+instance Default ApplicationInformation0 where
+  def = defaultApplicationInformation0
+
+--------------------------------------------------
+
 {-| Default 'ApplicationInformation'.
 
 May call:
@@ -226,6 +233,26 @@ defaultApplicationInformation ApplicationInformation0{..} = ApplicationInformati
   posixDirectory     = posixDirectory0     & fromMaybe (asPosixDirectory     name vendor)
   windowsDirectory   = windowsDirectory0   & fromMaybe (asWindowsDirectory   name vendor)
   macintoshDirectory = macintoshDirectory0 & fromMaybe (asMacintoshDirectory name vendor)
+
+--------------------------------------------------
+
+-- | Required fields are @""@. Optional fields are @Nothing@.
+
+defaultApplicationInformation0 :: ApplicationInformation0
+defaultApplicationInformation0 = ApplicationInformation0{..}
+ where
+
+ name0    = ""
+ version0 = ""
+ license0 = ""
+ vendor0  = ""
+
+ executable0         = Nothing
+ interface0          = Nothing
+ platforms0          = Nothing
+ posixDirectory0     = Nothing
+ windowsDirectory0   = Nothing
+ macintoshDirectory0 = Nothing
 
 --------------------------------------------------
 --------------------------------------------------

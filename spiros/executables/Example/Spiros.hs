@@ -1,11 +1,16 @@
 {-# LANGUAGE CPP #-}
 
+--------------------------------------------------
+
 {-# LANGUAGE OverloadedStrings #-}
+
+--------------------------------------------------
 
 {-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE DoAndIfThenElse   #-}
 {-# LANGUAGE PackageImports    #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 
 --------------------------------------------------
 
@@ -13,6 +18,10 @@
 -}
 
 module Example.Spiros where
+
+--------------------------------------------------
+-- Includes --------------------------------------
+--------------------------------------------------
 
 #include "cabal_macros.h"
 
@@ -42,8 +51,9 @@ import           "text" Data.Text (Text)
 
 data Options = Options
 
-  { shouldPrintVersion :: Bool
-  , shouldPrintLicense :: Bool
+  { shouldPrintVersion     :: Bool
+  , shouldPrintLicense     :: Bool
+  , shouldPrintInformation :: Bool
   }
 
   deriving (Show)
@@ -53,25 +63,31 @@ data Options = Options
 --------------------------------------------------
 
 application :: ApplicationInformation
-application = defaultApplicationInformation ApplicationInformation0{..}
+application = defaultApplicationInformation application0
+
+--------------------------------------------------
+
+application0 :: ApplicationInformation0
+application0 = def{ name0, license0, version0, vendor0, executable0, interface0, platforms0 }
   where
 
   name0                  = "My Application"
   license0               = "Apache-2.0"
-
-#ifdef CURRENT_PACKAGE_VERSION
-  version0               = "#CURRENT_PACKAGE_VERSION"
-#else
-  version0               = "0.3"
-#endif
+  version0               = versionString
+  vendor0                = "www.sboosali.io"
 
   executable0            = Just "my-application"
   interface0             = Just ApplicationCLI
   platforms0             = Just allDesktopPlatforms
 
-  -- posixSubDirectory     = "myapplication/"
-  -- windowsSubDirectory   = "sboosali/My Application/"
-  -- macintoshSubDirectory = "io.sboosali.My-Application/"
+--------------------------------------------------
+
+versionString :: String
+#ifdef CURRENT_PACKAGE_VERSION
+versionString = CURRENT_PACKAGE_VERSION
+#else
+versionString = "0.4"
+#endif
 
 --------------------------------------------------
 -- Main ------------------------------------------
@@ -87,7 +103,7 @@ main = do
 --------------------------------------------------
 
 mainWith :: Options -> IO ()
-mainWith Options{..} = do
+mainWith options@Options{..} = do
 
   let action = headDef nothing actions
 
@@ -98,7 +114,8 @@ mainWith Options{..} = do
   actions :: [IO ()]
   actions = concat
 
-    [ (if shouldPrintVersion then [printVersion] else [])
+    [ (if shouldPrintInformation then [printInformationWith options] else [])
+    , (if shouldPrintVersion then [printVersion] else [])
     , (if shouldPrintLicense then [printLicense] else [])
     ]
 
@@ -119,6 +136,15 @@ printLicense = do
   putStrLn (application & license)
 
 --------------------------------------------------
+
+printInformationWith :: Options -> IO ()
+printInformationWith options = do
+
+  print options
+
+  print application
+
+--------------------------------------------------
 -- CLI -------------------------------------------
 --------------------------------------------------
 
@@ -127,6 +153,8 @@ printLicense = do
 Options, Arguments, and Flags include:
 
 * @--version@
+* @--license@
+* @--information@
 
 -}
 
@@ -135,14 +163,21 @@ options = do
 
   shouldPrintVersion <- P.switch (mconcat
 
-        [ P.long    "version"
-        , P.help    "Print the version of this program. The format is « x.y.z ». (No other text is printed. If both « --version » and « --license » are specified, all options besides « --version » are ignored.)"
+        [ P.long "version"
+        , P.help "Print the version of this program. The format is « x.y.z ». (No other text is printed. If both « --version » and « --license » are specified, all options besides « --version » are ignored.)"
         ])
 
   shouldPrintLicense <- P.switch (mconcat
 
-        [ P.long    "license"
-        , P.help    "Print the SPDX License Identifier of this program. The format is « [-.a-z0-9A-z]+ ». (No other text is printed.)"
+        [ P.long "license"
+        , P.help "Print the SPDX License Identifier of this program. The format is « [-.a-z0-9A-z]+ ». (No other text is printed.)"
+        ])
+
+  shouldPrintInformation <- P.switch (mconcat
+
+        [ P.long  "information"
+        , P.short 'i'
+        , P.help  "Print information about the application. The format is « Read »able (i.e. parseable by the Haskell « Read » typeclass)."
         ])
 
   return Options{..}

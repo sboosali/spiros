@@ -340,19 +340,33 @@ nix-static-example:
 # Executables ####################################
 ##################################################
 
+LC_ALL=C.UTF-8
+
 #------------------------------------------------#
 
 example-spiros:
 
-	$(CabalBuild) $(CabalOptions) "exe:example-spiros"
+	@printf "\n%s\n" ========================================
 
-	$(Cabal) new-exec $(CabalOptions) -- example-spiros --version
+	$(Cabal) new-build $(CabalOptions) "-fexamples" "exe:example-spiros"
 
-	$(Cabal) new-install $(CabalOptions) --overwrite-policy=always "exe:example-spiros"
+	@printf "\n%s\n" ========================================
 
-	ldd `which example-spiros`
+	$(Cabal) new-install $(CabalOptions) "-fexamples" "exe:example-spiros" "--overwrite-policy=always"
 
-#	cabal new-exec --project-file ./cabal.project -- ldd `which example-spiros`
+	@printf "\n%s\n" ========================================
+
+	@example-spiros --help
+
+	@printf "\n"
+
+	@example-spiros --information
+
+	@printf "\n"
+
+	@example-spiros --version
+
+	@printf "\n%s\n" ========================================
 
 .PHONY: example-spiros
 
