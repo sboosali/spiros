@@ -163,6 +163,34 @@ check:
 
 #------------------------------------------------#
 
+#TODO js 7.10 static 8.0 8.2 8.4 8.6
+
+all: js 7.10 static 8.6
+
+	@printf "\n%s\n" "========================================"
+
+	@printf "\nSuccess! GHCs: \n\n"
+
+	@printf "• « %s » (« %s »)\n" "ghc-7.10" 7.10.3
+#	@printf "• « %s » (« %s »)\n" "ghc-8.0" 8.0.2
+#	@printf "• « %s » (« %s »)\n" "ghc-8.2" 8.2.2
+	@printf "• « %s » (« %s »)\n" "ghc-8.4" 8.4.4
+	@printf "• « %s » (« %s »)\n" "ghc-8.6" 8.6.4
+
+	@printf "\nSuccess! non-GHCs: \n\n"
+
+	@printf "• « %s » (« %s », « %s »)\n" "ghcjs" ghcjs-8.6.0.1 ghc-8.6.2 # JavaScript
+
+	@printf "\nSuccess! Musl: \n\n"
+
+	@printf "• « %s » (« %s »)\n" "libmusl" ghc-8.4.3
+
+	@printf "\n%s\n" "========================================"
+
+.PHONY: all
+
+#------------------------------------------------#
+
 clean:
 	rm -rf "dist/" dist-*/ ".stack-work"
 	rm -f *.project.local .ghc.environment.*
@@ -448,14 +476,6 @@ build-static:
 	@echo -e "\n========================================\n"
 
 .PHONY: build-static
-
-#------------------------------------------------#
-
-check:
-
-	$(CabalBuild) $(CabalOptions) -fno-code -O0 $(CabalTargets)
-
-.PHONY: check
 
 ##################################################
 
