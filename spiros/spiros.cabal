@@ -31,7 +31,7 @@ category:            Prelude
 --------------------------------------------------
 
 description:         My custom prelude.
-                     I'm @\@sboosali@ on GitHub, @user\/sboo@ on Hackage, and @/u/spirosboosalis@ on reddit.)
+                     I'm @user\/sboo@ on Hackage, @\@sboosali@ on GitHub, and @\/u\/spirosboosalis@ on reddit.
                      .
                      Diverges slightly from base's: adding, removing, and shadowing.
                      .
@@ -41,13 +41,14 @@ description:         My custom prelude.
                      * GHCJS  — the Haskell→JavaScript transpiler (« ghcjs-8.6.* »).
                      * Musl   — « ghc » statically-linked against « libmusl »
                        (instead of dynamically-linked against « glibc », the default).
+                     * 3 OSs — Linux (« linux »), Windows (« win32 »), and MacOS (« darwin »). (Should work on FreeBSD and Andriod, too).
                      .
 
 --------------------------------------------------
 -- Portability -----------------------------------
 --------------------------------------------------
 
-stability: provisional
+stability: experimental
 
 --------------------------------------------------
 
@@ -386,10 +387,7 @@ library
               , string-conv
 
               , prettyprinter
-              , show-prettyprint
-
-              , vinyl
-              --TODO rm
+--              , show-prettyprint
 
               , generic-deriving >= 1.11
                 -- for Generics.Deriving.Semigroup

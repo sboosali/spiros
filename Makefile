@@ -10,10 +10,7 @@ SHELL=bash
 # Makefile Variables: overrideable (via EnvironmentVariables)
 ##################################################
 
-BaseDirectory ?=$(CURDIR)
-
-NixDirectory       ?=./nix
-Cabal2nixDirectory ?=$(NixDirectory)/packages/cabal2nix
+Version=0.4.0
 
 #------------------------------------------------#
 
@@ -21,6 +18,13 @@ CabalTargets ?=all
 CabalTarget  ?=lib:spiros
 
 ProjectFile ?=./cabal.project
+
+#------------------------------------------------#
+
+BaseDirectory ?=$(CURDIR)
+
+NixDirectory       ?=./nix
+Cabal2nixDirectory ?=$(NixDirectory)/packages/cabal2nix
 
 #------------------------------------------------#
 
@@ -114,13 +118,37 @@ TagsDirectory ?=$(PackageDirectory)
 
 CabalOptions=--project-file $(ProjectFile) --builddir $(BuildDirectory)
 
-##################################################
-# the `default` target
-##################################################
+#------------------------------------------------#
+# Makefile Targets: Standard --------------------#
+#------------------------------------------------#
 
-default: build
+build:
 
-.PHONY: default
+	@echo "=================================================="
+	@echo ""
+
+	$(Cabal) new-build $(CabalOptions) $(CabalTargets)
+
+	@echo ""
+	@echo "=================================================="
+
+
+.PHONY: build
+
+#------------------------------------------------#
+
+check:
+
+	@echo "=================================================="
+	@echo ""
+
+	$(Cabal) new-test $(CabalOptions) $(CabalTargets)
+
+	@echo ""
+	@echo "=================================================="
+
+
+.PHONY: check
 
 #------------------------------------------------#
 
@@ -575,21 +603,6 @@ apt-install:
 
 #------------------------------------------------#
 
-build:
-
-	@echo "=================================================="
-	@echo ""
-
-	$(Cabal) new-build $(CabalOptions) $(CabalTargets)
-
-	@echo ""
-	@echo "=================================================="
-
-
-.PHONY: build
-
-#------------------------------------------------#
-
 build-ghcjs:
 
 	cabal new-build --project-file="./cabal-ghcjs.project" all
@@ -778,7 +791,7 @@ js:
 # Nix -------------------------------------------#
 #------------------------------------------------#
 
-static-nix: static/cabal2nix/spiros.nix
+static--example-spiros: static/cabal2nix/spiros.nix
 
 	@printf "%s\n\n" ========================================
 
@@ -808,7 +821,7 @@ static-nix: static/cabal2nix/spiros.nix
 
 # « https://github.com/nh2/static-haskell-nix#readme »
 
-.PHONY: static-nix
+.PHONY: static--example-spiros
 
 #------------------------------------------------#
 
@@ -819,10 +832,18 @@ static/cabal2nix/spiros.nix:
 	(cd "./static/cabal2nix/"  &&  $(Cabal2nix) "-fstatic" "-fexamples" "--no-check" "--compiler=ghc-8.4" "file://../../spiros" > "./spiros.nix")
 
 #------------------------------------------------#
-# Release ---------------------------------------#
+# Uploading -------------------------------------#
 #------------------------------------------------#
 
-sdist:
+upload-spiros: sdist
+
+	$(Cabal) upload --username=sboo --password-command="pass hackage.haskell.org/user/sboo" ./dist-newstyle/sdist/spiros-$(Version).tar.gz
+
+.PHONY: upload-spiros
+
+#------------------------------------------------#
+
+sdist: build
 
 	$(Cabal) new-build $(CabalTargets)
 	$(Cabal) new-sdist $(CabalTargets)
@@ -830,9 +851,55 @@ sdist:
 .PHONY: sdist
 
 #------------------------------------------------#
+# Release ---------------------------------------#
+#------------------------------------------------#
 
-static: static-nix
+release: release/spiros-$(Version).tar.gz release/bin/example-spiros
+
+	@find ./release
+
+.PHONY: release
+
+#------------------------------------------------#
+
+release/bin/example-spiros: static--example-spiros
+
+	mkdir -p "./release/bin"
+	cp "./result-static/bin/example-spiros" $@
+	chmod u+rxw $@
+	chmod g-rxw $@
+	chmod o-rxw $@
+
+#------------------------------------------------#
+
+release/spiros-$(Version).tar.gz: sdist
+
+	mkdir -p "./release"
+	cp "./dist-newstyle/sdist/spiros-$(Version).tar.gz" $@
+
+#------------------------------------------------#
+
+static: static--example-spiros
 
 .PHONY: static
 
-##################################################
+#------------------------------------------------#
+
+upload: release/spiros-$(Version).tar.gz
+
+	$(Cabal) upload $^ --publish
+
+.PHONY: upload
+
+#------------------------------------------------#
+# Notes -----------------------------------------#
+#------------------------------------------------#
+
+# Makefile Syntax:
+#
+# • « $@ » — the target        — (a.k.a. output file(s); a.k.a. the rule's left-hand-side).
+# • « $^ » — all prerequisites — (a.k.a. inputs files, space-separated; a.k.a. the rule's right-hand-side).
+
+#------------------------------------------------#
+# EOF -------------------------------------------#
+#------------------------------------------------#

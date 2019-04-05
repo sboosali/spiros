@@ -14,3 +14,9 @@ documentation: False
 profiling: False
 
 --------------------------------------------------
+
+package hsc2hs
+  documentation: False
+  -- hsc2hs's Haddocks are broken.
+
+--------------------------------------------------

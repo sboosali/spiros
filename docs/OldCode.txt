@@ -934,6 +934,188 @@ example-spiros:
 
 
 
+#------------------------------------------------#
+# Uploading -------------------------------------#
+#------------------------------------------------#
+
+upload-spiros:
+
+	$(Cabal) upload --username=sboo --password-command='pass "hackage.haskell.org/user/sboo"' ./dist-newstyle/sdist/spiros-*.tar.gz
+
+.PHONY: upload-spiros
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------#
+# Release ---------------------------------------#
+#------------------------------------------------#
+
+static: static-nix
+
+.PHONY: static
+
+#------------------------------------------------#
+
+upload: release/spiros.tar.gz
+
+	$(Cabal) upload --publish "./release/spiros.tar.gz"
+
+.PHONY: upload
+
+#------------------------------------------------#
+
+release/spiros.tar.gz: sdist
+
+	cp "./dist-newstyle/sdist/spiros-$(Version).tar.gz" "./release/spiros.tar.gz"
+
+
+
+
+
+
+
+
+
+#------------------------------------------------#
+# Release ---------------------------------------#
+#------------------------------------------------#
+
+static: static-nix
+
+.PHONY: static
+
+#------------------------------------------------#
+
+upload: release/spiros-$(Version).tar.gz
+
+	$(Cabal) upload "./release/spiros-$(Version).tar.gz" --publish
+
+.PHONY: upload
+
+#------------------------------------------------#
+
+release/spiros-$(Version).tar.gz: sdist
+
+	cp "./dist-newstyle/sdist/spiros-$(Version).tar.gz" "./release/spiros-$(Version).tar.gz"
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------#
+# Release ---------------------------------------#
+#------------------------------------------------#
+
+release: release/spiros-$(Version).tar.gz static--example-spiros
+
+	@find ./release
+
+.PHONY: release
+
+#------------------------------------------------#
+
+release/bin/example-spiros: sdist
+
+	mkdir -p "./release/bin"
+	cp "./result-static/bin/example-spiros" 
+
+#------------------------------------------------#
+
+release/spiros-$(Version).tar.gz: sdist
+
+	mkdir -p "./release"
+	cp "./dist-newstyle/sdist/spiros-$(Version).tar.gz" 
+
+#------------------------------------------------#
+
+static: static-nix
+
+.PHONY: static
+
+#------------------------------------------------#
+
+upload: release/spiros-$(Version).tar.gz
+
+	$(Cabal) upload  --publish
+
+.PHONY: upload
+
+#------------------------------------------------#
+# EOF -------------------------------------------#
+#------------------------------------------------#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2,13 +2,12 @@
 , cpuinfo, data-default-class, deepseq, directory, doctest
 , exceptions, filepath, generic-deriving, hashable, mtl
 , optparse-applicative, prettyprinter, process, safe, semigroups
-, show-prettyprint, split, stdenv, stm, string-conv
-, template-haskell, text, time, transformers, unix-compat
-, unordered-containers, vector, vinyl
+, split, stdenv, stm, string-conv, template-haskell, text, time
+, transformers, unix-compat, unordered-containers, vector
 }:
 mkDerivation {
   pname = "spiros";
-  version = "0.3.3";
+  version = "0.4.0";
   src = ../../spiros;
   configureFlags = [ "-fexamples" "-fstatic" ];
   isLibrary = true;
@@ -17,13 +16,13 @@ mkDerivation {
     base bytestring case-insensitive containers cpuinfo
     data-default-class deepseq directory exceptions filepath
     generic-deriving hashable mtl prettyprinter process safe semigroups
-    show-prettyprint split stm string-conv template-haskell text time
-    transformers unix-compat unordered-containers vector vinyl
+    split stm string-conv template-haskell text time transformers
+    unix-compat unordered-containers vector
   ];
   executableHaskellDepends = [ base optparse-applicative text ];
   testHaskellDepends = [ base doctest ];
   doCheck = false;
   homepage = "https://github.com/sboosali/spiros#readme";
-  description = "Custom Prelude (sboo / sboosali)";
+  description = "Spiros Boosalis's Custom Prelude";
   license = stdenv.lib.licenses.asl20;
 }

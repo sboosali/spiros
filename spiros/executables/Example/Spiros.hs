@@ -74,7 +74,7 @@ application0 = def{ name0, license0, version0, vendor0, executable0, interface0,
   name0                  = "My Application"
   license0               = "Apache-2.0"
   version0               = versionString
-  vendor0                = "www.sboosali.io"
+  vendor0                = "sboosali.io"
 
   executable0            = Just "my-application"
   interface0             = Just ApplicationCLI
