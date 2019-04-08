@@ -34,7 +34,7 @@
 --------------------------------------------------
 --------------------------------------------------
 
-{-|
+{-| Pretty-printing and Parsing, with standard casing\/capitalization.
 
 TODO separate packages?
 
@@ -44,12 +44,12 @@ TODO separate packages?
 * @simple-parse@, which has more dependencies (like on the @exceptions@ package).
 
 
-## Description
+== Description
 
 Provides utilities (and aliases) for defining simple ad-hoc parsers and (pretty-)printers for types (especially sum types).
 
 
-## Motivation
+== Motivation
 
 Useful when:
 
@@ -71,7 +71,7 @@ uses of 'Parse' include:
 
 
 
-## Features
+== Features
 
 Such "formats" include:
 
@@ -92,7 +92,7 @@ but, each format's module also provides (more general) versions, which can be gi
 * even manually tokenized strings.
 
 
-## Examples
+== Examples
 
 to print out a constructor, the default 'toPrinter' function does the following:
 
@@ -103,7 +103,7 @@ to print out a constructor, the default 'toPrinter' function does the following:
 'HyphenCase' being the most readable, imo. it's most common token style for: command line options, URLs, and so on.
 
 
-## Naming
+== Naming
 
 NOTE In this package, the word "print" means "convert to a human-friendly string", not "write to stdout".
 

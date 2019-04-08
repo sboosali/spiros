@@ -65,6 +65,10 @@ These are re-exported by @Prelude.Spiros@.
 
     "Prelude.Spiros.Exception" defines a few new exception types, which may (or may not) tag the message with a @TemplateHaskell@ 'Name' or with a 'CallStack', as auxiliary\/contextual information.
 
+    "Prelude.Spiros.Parse" provides utilities for simple parsing of custom datatypes.
+
+    "Prelude.Spiros.Print" provides utilities for simple pretty-printing of custom datatypes.
+
     "Prelude.Spiros.Validator" re-exports helpers for defining simple validators (e.g. @a -> Maybe b@). 
 
     "Prelude.Spiros.GUI" provides helpers for working with @TemplateHaskell@ 'Name's.

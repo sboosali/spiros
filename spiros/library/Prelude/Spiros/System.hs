@@ -20,7 +20,7 @@
 * endianness — 'currentEndianness'.
 * processor — 'currentProcessorBits', 'currentNumberOfCPUs'.
 
-**TODO: respect cross-compilation, i.e. the target/runtime system.**
+//TODO: respect cross-compilation, i.e. the target/runtime system.//
 
 And information about the current compiler:
 

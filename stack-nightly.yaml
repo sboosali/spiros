@@ -1,0 +1,20 @@
+resolver: nightly-2018-03-12
+
+nix:
+  enable: true
+  pure: true
+  packages:
+  - zlib
+
+packages:
+- ./spiros
+
+extra-deps: []
+
+# build:
+#   library-profiling: true 
+#   executable-profiling: true 
+#   haddock: true 
+#   haddock-arguments:
+#     haddock-args:
+#     - --hyperlink-source 

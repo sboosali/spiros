@@ -16,9 +16,10 @@
 --------------------------------------------------
 --------------------------------------------------
 
-{-| Simple printers.
+{-| Simple string-based printers.
 
-(printing, a.k.a: rendering, displaying, showing).
+NOTE “Printing” here means rendering \/ displaying \/ showing
+(not @stdout@ or @putStrLn@, necessarily).
 
 -}
 

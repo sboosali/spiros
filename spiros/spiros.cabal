@@ -396,18 +396,33 @@ library
                 -- / Build-Depends ---------------
                 ----------------------------------
 
-  -- , shake
-  -- , optparse-applicative >= 0.10  && <0.13
-  -- , optparse-generic     >= 1.1.0 && <1.2
+-- General-purpose packages among the GHC Boot Libraries include:
+-- 
+-- array
+-- base
+-- binary
+-- bytestring
+-- containers
+-- deepseq
+-- directory
+-- filepath
+-- mtl
+-- old-locale
+-- old-time
+-- parsec
+-- pretty
+-- process
+-- random
+-- stm
+-- template-haskell
+-- text
+-- time
+-- transformers
+-- xhtml
+--
 
-  -- ??
+ ------------------------------
 
-  -- , async
-  -- , parallel
-
-  -- , interpolatedstring-perl6
-  -- needs haskell-src-exts, which is sloooooooooow to build (~1h)
-  
  if impl(ghc >= 8.2)
     build-depends:
                   deepseq      >= 1.4.3

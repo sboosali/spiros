@@ -1277,6 +1277,442 @@ printConfigWith config@Config{..} = do
 
 
 
+    -- * @$XDG_CONFIG_HOME@ utilities:
+
+    -- * Application-specific utilities for @$XDG_DATA_HOME@:
+
+  , listApplicationSpecificDataFiles
+
+    -- * Application-specific utilities for @$XDG_CACHE_HOME@:
+
+  , removeApplicationSpecificCache
+
+    -- * Application-specific utilities for @$XDG_RUNTIME_HOME@:
+
+  , touchApplicationSpecificRuntimeFile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LANGUAGE CPP #-}
+
+--------------------------------------------------
+
+{-# LANGUAGE NoImplicitPrelude #-}
+
+--------------------------------------------------
+
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
+{-# LANGUAGE DoAndIfThenElse #-}
+
+--------------------------------------------------
+
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE PatternSynonyms #-}
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-| Utilities for application metadata and application-specific filepaths.
+
+== API
+
+* 'ApplicationInformation'
+* 
+
+== Usage
+
+@
+
+@
+
+== Links
+
+* <https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html>
+* <https://stackoverflow.com/questions/43853548/xdg-basedir-directories-for-windows>
+* <https://wiki.archlinux.org/index.php/XDG_Base_Directory>
+
+-}
+
+module Prelude.Spiros.Application
+
+  (
+    -- * Record of information for your application:
+
+    ApplicationInformation
+  , ApplicationInformation0
+
+  , defaultApplicationInformation
+  , defaultApplicationInformation0
+  , asExecutableName
+
+  , ApplicationInterface
+
+    -- * Enumeration of your application's supported platforms.
+
+  , DesktopPlatform
+
+  , allDesktopPlatforms
+  , currentDesktopPlatform
+  , posixDesktopPlatforms
+
+  , asMacintoshDirectory
+  , asPosixDirectory
+  , asWindowsDirectory
+
+    -- * Application-specific, XDG-conformant filepaths:
+
+    -- | XDG-conformant filepaths, specific to your application ('ApplicationInformation'), and idiomatic for your platform ('DesktopPlatform').
+    --
+    -- * @$XDG_CONFIG_HOME@
+    -- * @$XDG_DATA_HOME@
+    -- * @$XDG_CACHE_HOME@
+    -- * @$XDG_RUNTIME_HOME@
+    --
+
+  , getApplicationSpecificConfigFile
+  , getApplicationSpecificConfigurationDirectory
+  , getApplicationSpecificDataDirectory
+  , getApplicationSpecificDataFile
+  , getApplicationSpecificCacheDirectory
+  , getApplicationSpecificCacheFile
+  , getApplicationSpecificRuntimeDirectory
+  , getApplicationSpecificRuntimeFile
+
+    -- * Read application-specific files.
+
+  , readApplicationSpecificCacheFile
+  , readApplicationSpecificConfigFile
+  , readApplicationSpecificDataFile
+
+    -- * Write application-specific files.
+
+  , writeApplicationSpecificCacheFile
+  , writeApplicationSpecificConfigFile
+  , writeApplicationSpecificDataFile
+
+    -- * @$XDG_CONFIG_HOME@ utilities:
+
+    -- * Application-specific utilities for @$XDG_DATA_HOME@:
+
+  , listApplicationSpecificDataFiles
+
+    -- * Application-specific utilities for @$XDG_CACHE_HOME@:
+
+  , removeApplicationSpecificCache
+
+    -- * Application-specific utilities for @$XDG_RUNTIME_HOME@:
+
+  , touchApplicationSpecificRuntimeFile
+
+  -- * Application-Specific Directories
+
+  -- |
+  --
+  -- The @getMyApplication{Config,Data,Cache}Directory@ operations
+  -- return this application's (platform-specific, user-writeable) directory
+  -- for @{configuration files, data files, caching}@.
+  --
+  -- The @getMyApplication{Config,Data,Cache}Directory@ operations may throw these exceptions (all 'System.IO.IOError's):
+  --
+  -- * @System.IO.HardwareFault@
+  -- A physical I\/O error has occurred.
+  -- @[EIO]@
+  --
+  -- * 'System.IO.isDoesNotExistError'
+  -- There is no path referring to the working directory.
+  -- @[EPERM, ENOENT, ESTALE...]@
+  --
+  -- * 'System.IO.isPermissionError'
+  -- The process has insufficient privileges to perform the operation.
+  -- @[EACCES]@
+  --
+  -- * 'System.IO.isFullError'
+  -- Insufficient resources are available to perform the operation.
+  --
+  -- * @UnsupportedOperation@
+  -- The operating system has no notion of current working directory.
+  --
+  -- 
+
+  ) where
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  , shake
+  , optparse-applicative >= 0.10  && <0.13
+  , optparse-generic     >= 1.1.0 && <1.2
+
+  , async
+  , parallel
+
+  , interpolatedstring-perl6
+  -- needs haskell-src-exts, which is sloooooooooow to build (~1h)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-| The (top-level) program invocation; @main@ parses this.
+
+If no subcommand can be parsed, real ('pCommand')
+or fake ('pPseudoSubCommand'), the parser fails; and
+@main@ throws an exception, exiting with exit code @2@.
+
+-}
+
+pMain :: P.Parser Command
+pMain = do
+
+  globals <- pGlobalOptions
+
+  command <- pCommand
+
+  return (fromResult (globals, command))
+
+--------------------------------------------------
+
+{-| The program's (primary) subcommands.
+
+-}
+
+pCommand :: P.Parser Command
+pCommand = pFakeSubCommand <|> pRealSubCommand
+  where
+
+  pRealSubCommand = P.hsubparser ps
+
+  ps = mconcat
+
+    [ (P.command "create" (CommandCreateProject        <$> piCreateProjectOptions))
+    , (P.command "fetch"  (CommandDownloadProject      <$> piDownloadProjectOptions))
+    , (P.command "config" (CommandResolveConfiguration <$> piResolveConfigurationOptions))
+    ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------
+
+{-| a 'URI' represents:
+
+* 
+* 
+
+See 'readURI'.
+
+-}
+
+data URL a
+
+  = URLPath     String
+  | URLContents !a
+
+  deriving stock    (Show,Eq,Ord,Generic)
+  deriving anyclass (NFData)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import qualified "network-uri" Network.URI as Network.URI
+import           "network-uri" Network.URI (URI)
+
+--------------------------------------------------
+
+import qualified "modern-uri" Text.URI as Modern.URI
+import           "modern-uri" Text.URI (URI)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+convert :: Modern.URI -> Network.URI
+convert modernURI = networkURI
+  where
+
+  networkURI :: Network.URI
+  networkURI = Network.URI
+
+    { Network.uriScheme     = ""
+    , Network.uriAuthority  = Nothing
+    , Network.uriPath       = ""
+    , Network.uriQuery      = ""
+    , Network.uriFragment   = ""
+    }
+
+  networkAuth :: Network.URIAuth
+  networkAuth = Network.URIAuth
+
+    { Network.uriUserInfo = ""
+    , Network.uriRegName  = ""
+    , Network.uriPort     = ""
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

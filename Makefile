@@ -762,6 +762,8 @@ docs:
 
 .PHONY: docs
 
+# file:///home/sboo/haskell/spiros/.stack-work/install/x86_64-linux/lts-13.15/8.6.4/doc/spiros-0.4.0/Prelude-Spiros.html
+
 #------------------------------------------------#
 # Haskell Compilers -----------------------------#
 #------------------------------------------------#

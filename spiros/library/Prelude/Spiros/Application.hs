@@ -18,12 +18,22 @@
 --------------------------------------------------
 --------------------------------------------------
 
-{-| Utilities for application metadata and application-specific filepaths.
+{-| Utilities for organizing application metadata and exporting application-specific filepaths.
 
 == API
 
+Types:
+
 * 'ApplicationInformation'
-* 
+* 'DesktopPlatform'
+* 'ApplicationInterface'
+
+Functions:
+
+* `getApplicationSpecificConfigFile` — a.k.a. the @${XDG\_CONFIG\_HOME}@.
+* `getApplicationSpecificDataDirectory` — a.k.a. the @${XDG\_DATA\_HOME}@.
+* `getApplicationSpecificCacheDirectory` — a.k.a. the @${XDG\_CACHE\_HOME}@.
+* `getApplicationSpecificRuntimeDirectory` — a.k.a. the @${XDG\_RUNTIME\_HOME}@.
 
 == Usage
 
@@ -40,8 +50,107 @@
 -}
 
 module Prelude.Spiros.Application
-  ( module Prelude.Spiros.Application
-  -- , module Application.Info
+
+  (
+    -- * Record of information for your application:
+
+    ApplicationInformation
+  , ApplicationInformation0
+
+  , defaultApplicationInformation
+  , defaultApplicationInformation0
+  , asExecutableName
+
+  , ApplicationInterface
+
+    -- * Enumeration of your application's supported platforms.
+
+  , DesktopPlatform
+
+  , allDesktopPlatforms
+  , currentDesktopPlatform
+  , posixDesktopPlatforms
+
+  , asMacintoshDirectory
+  , asPosixDirectory
+  , asWindowsDirectory
+
+    -- * Application-specific, XDG-conformant filepaths:
+
+    -- | XDG-conformant filepaths, specific to your application ('ApplicationInformation'), and idiomatic for your platform ('DesktopPlatform').
+    --
+    -- * @$XDG_CONFIG_HOME@
+    -- * @$XDG_DATA_HOME@
+    -- * @$XDG_CACHE_HOME@
+    -- * @$XDG_RUNTIME_HOME@
+    --
+
+  , getApplicationSpecificConfigFile
+  , getApplicationSpecificConfigurationDirectory
+
+  , getApplicationSpecificDataDirectory
+  , getApplicationSpecificDataFile
+
+  , getApplicationSpecificCacheDirectory
+  , getApplicationSpecificCacheFile
+
+  , getApplicationSpecificRuntimeDirectory
+  , getApplicationSpecificRuntimeFile
+
+    -- * Read application-specific files.
+
+  , readApplicationSpecificCacheFile
+  , readApplicationSpecificConfigFile
+  , readApplicationSpecificDataFile
+
+    -- * Write application-specific files.
+
+  , writeApplicationSpecificCacheFile
+  , writeApplicationSpecificConfigFile
+  , writeApplicationSpecificDataFile
+
+    -- * @$XDG_CONFIG_HOME@ utilities:
+
+    -- * @$XDG_DATA_HOME@ utilities:
+
+  , listApplicationSpecificDataFiles
+
+    -- * @$XDG_CACHE_HOME@ utilities:
+
+  , clearApplicationSpecificCache
+
+    -- * @$XDG_RUNTIME_HOME@ utilities:
+
+  , touchApplicationSpecificRuntimeFile
+
+  -- |
+  --
+  -- The @getMyApplication{Config,Data,Cache}Directory@ operations
+  -- return this application's (platform-specific, user-writeable) directory
+  -- for @{configuration files, data files, caching}@.
+  --
+  -- The @getMyApplication{Config,Data,Cache}Directory@ operations may throw these exceptions (all 'System.IO.IOError's):
+  --
+  -- * @System.IO.HardwareFault@
+  -- A physical I\/O error has occurred.
+  -- @[EIO]@
+  --
+  -- * 'System.IO.isDoesNotExistError'
+  -- There is no path referring to the working directory.
+  -- @[EPERM, ENOENT, ESTALE...]@
+  --
+  -- * 'System.IO.isPermissionError'
+  -- The process has insufficient privileges to perform the operation.
+  -- @[EACCES]@
+  --
+  -- * 'System.IO.isFullError'
+  -- Insufficient resources are available to perform the operation.
+  --
+  -- * @UnsupportedOperation@
+  -- The operating system has no notion of current working directory.
+  --
+  -- 
+
   ) where
 
 --------------------------------------------------
@@ -115,10 +224,10 @@ Metadata:
 
 Platform-specific metadata:
 
-* 'platforms'             — Supported platforms (i.e. that the application is known to run on).
-* 'posixDirectory'     — .
-* 'windowsDirectory'   — .
-* 'macintoshDirectory' — .
+* 'platforms'          — Supported platforms (i.e. that the application is known to run on).
+* 'posixDirectory'     — POSIX-Idiomatic naming convention (only alphanums and lowercase, see `asPosixDirectory`).
+* 'windowsDirectory'   — Windows-Idiomatic naming convention (with spaces, plus the vendor name, see `asWindowsDirectory`).
+* 'macintoshDirectory' — MacOS-Idiomatic naming convention (with hyphens, plus the qualified vendor URI, see `asMacintoshDirectory`).
 
 == Example
 
@@ -139,9 +248,9 @@ myApplicationInformation = 'ApplicationInformation'{..}
   'platforms'             = 'allDesktopPlatforms'
                               -- [ 'DesktopLinux', 'DesktopWindows', 'DesktopMacintosh' ]
 
-  'posixDirectory'     = "myapplication/"
-  'windowsDirectory'   = "sboosali/My Application/"
-  'macintoshDirectory' = "io.sboosali.My-Application/"
+  'posixDirectory'     = "myapplication\/"
+  'windowsDirectory'   = "sboosali\/My Application\/"
+  'macintoshDirectory' = "io.sboosali.My-Application\/"
 @
 
 -}
@@ -668,8 +777,8 @@ listApplicationSpecificDataFiles application = do
     
 --------------------------------------------------
 
-removeApplicationSpecificCache :: ApplicationInformation -> IO FilePath
-removeApplicationSpecificCache application = do
+clearApplicationSpecificCache :: ApplicationInformation -> IO FilePath
+clearApplicationSpecificCache application = do
 
   absolutePath <- getApplicationSpecificCacheDirectory application
 

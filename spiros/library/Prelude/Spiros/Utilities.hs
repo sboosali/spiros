@@ -33,6 +33,8 @@ module Prelude.Spiros.Utilities where
 #include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import Prelude.Spiros.Types
 import Prelude.Spiros.Compatibility
@@ -41,9 +43,8 @@ import Prelude.Spiros.Compatibility
 -- Imports ---------------------------------------
 --------------------------------------------------
 
---TODO import "clock" System.Clock
+import "exceptions" Control.Monad.Catch (MonadThrow(..))
 
---------------------------------------------------
 --------------------------------------------------
 
 import "mtl" Control.Monad.Reader
@@ -63,8 +64,8 @@ import "deepseq" Control.DeepSeq (NFData,force)
 
 --------------------------------------------------
 
--- import qualified "bytestring" Data.ByteString      as BS 
--- import qualified "bytestring" Data.ByteString.Lazy as BL 
+--import qualified "bytestring" Data.ByteString      as StrictBytes 
+import qualified "bytestring" Data.ByteString.Lazy as LazyBytes
 
 --------------------------------------------------
 
@@ -74,7 +75,7 @@ import "deepseq" Control.DeepSeq (NFData,force)
 
 import "base" Data.Function              ((&))
 import "base" Control.Arrow              ((>>>),(<<<))
-import "base" Control.Exception          (SomeException,evaluate)
+import "base" Control.Exception          (SomeException,IOException,evaluate)
 import "base" Control.Concurrent         (threadDelay,forkIO,ThreadId)
 import "base" Control.Monad              (forever, void, when)
 import "base" Data.Proxy
@@ -266,10 +267,10 @@ fake dictionary literal syntax:
 (-:) = (,)
 infix 1 -:
 
---------------------------------------------------
---------------------------------------------------
-
 {-# INLINEABLE (-:) #-}
+
+--------------------------------------------------
+--------------------------------------------------
 
 todo :: a --TODO call stack
 todo = error "TODO"
@@ -280,10 +281,25 @@ todo = error "TODO"
 __BUG__ :: SomeException -> a --TODO callstack
 __BUG__ = error . show
 
+{-# INLINEABLE __BUG__ #-}
+
 --------------------------------------------------
 
 __ERROR__ :: String -> a --TODO callstack
 __ERROR__ = error 
+
+{-# INLINEABLE __ERROR__ #-}
+
+--------------------------------------------------
+
+errorM :: (MonadThrow m) => String -> m a
+errorM s = throwM e
+  where
+
+  e :: IOException
+  e = Prelude.userError s
+
+{-# INLINEABLE errorM #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -371,6 +387,8 @@ list2maybe = \case
 #if HAS_BASE_NonEmpty
 nonempty2list :: NonEmpty a -> [a]
 nonempty2list = toList
+
+{-# INLINEABLE nonempty2list #-}
 #endif
 
 --------------------------------------------------
@@ -381,6 +399,8 @@ list
 list y f = \case
   []     -> y
   (x:xs) -> f x xs
+
+{-# INLINEABLE list #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -503,7 +523,7 @@ strip = rstrip . lstrip
 --------------------------------------------------
 
 lstrip :: String -> String
-lstrip = dropWhile (`elem` (" \t\n\r"::String))
+lstrip = dropWhile (`elem` (" \t\n\r" :: String))
 
 {-# INLINEABLE lstrip #-}
 
@@ -615,33 +635,49 @@ unlessM check = whenM (not <$> check)
 runReaderT' :: r -> (ReaderT r) m a -> m a
 runReaderT' = flip runReaderT
 
+{-# INLINEABLE runReaderT' #-}
+
 -- | @= 'flip' 'runStateT'@
 runStateT' :: s -> (StateT s) m a -> m (a, s)
 runStateT' = flip runStateT
+
+{-# INLINEABLE runStateT' #-}
 
 -- | @= 'flip' 'evalStateT'@
 evalStateT' :: (Monad m) => s -> (StateT s) m a -> m a
 evalStateT' = flip evalStateT
 
+{-# INLINEABLE evalStateT' #-}
+
 -- | @= 'flip' 'execStateT'@
 execStateT' :: (Monad m) => s -> (StateT s) m a -> m s
 execStateT' = flip execStateT
+
+{-# INLINEABLE execStateT' #-}
 
 -- | @= 'flip' 'runReader'@
 runReader' :: r -> Reader r a -> a
 runReader' = flip runReader
 
+{-# INLINEABLE runReader' #-}
+
 -- | @= 'flip' 'runState'@
 runState' :: s -> State s a -> (a, s)
 runState' = flip runState
+
+{-# INLINEABLE runState' #-}
 
 -- | @= 'flip' 'evalState'@
 evalState' :: s -> State s a -> a
 evalState' = flip evalState
 
+{-# INLINEABLE evalState' #-}
+
 -- | @= 'flip' 'execState'@
 execState' :: s -> State s a -> s
 execState' = flip execState
+
+{-# INLINEABLE execState' #-}
 
 --------------------------------------------------
 -- Time
@@ -830,7 +866,7 @@ firstSetEnvironmentVariable =
 
 --------------------------------------------------
 
--- {-| Return the first **numerical** (@Int@) value among the given environment variables, or a default number.
+-- {-| Return the first __numerical__ (@Int@) value among the given environment variables, or a default number.
 
 -- Examples:
 
@@ -853,7 +889,7 @@ firstSetEnvironmentVariable =
 
 --------------------------------------------------
 
--- {-| Return the first **numerical** value among the given environment variables, or a default number.
+-- {-| Return the first __numerical__ value among the given environment variables, or a default number.
 
 -- Properties:
 
@@ -877,7 +913,7 @@ firstSetEnvironmentVariable =
 
 --------------------------------------------------
 
-{-| Return the first **nonempty** value among the given environment variables, or a default value if all are either unset or set-to-empty.
+{-| Return the first __nonempty__ value among the given environment variables, or a default value if all are either unset or set-to-empty.
 
 Examples:
 
@@ -933,6 +969,14 @@ firstEnvironmentVariableSatisfying predicate = \x0 variables -> do
   p x = if predicate x then Just x else Nothing
 
 {-# INLINEABLE firstEnvironmentVariableSatisfying #-}
+
+--------------------------------------------------
+
+toLazyByteString :: StrictBytes -> LazyBytes
+toLazyByteString
+
+  = LazyBytes.fromChunks
+  . (: [])
 
 --------------------------------------------------
 -- EOF -------------------------------------------
