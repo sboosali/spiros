@@ -1,14 +1,30 @@
-##################################################
-# Makefile Settings
-##################################################
+#------------------------------------------------#
+# Makefile Settings -----------------------------#
+#------------------------------------------------#
 
 SHELL=bash
 
 .EXPORT_ALL_VARIABLES:
 
-##################################################
-# Makefile Variables: overrideable (via EnvironmentVariables)
-##################################################
+#------------------------------------------------#
+# Makefile Variables ----------------------------#
+#------------------------------------------------#
+
+Version=0.4.1
+
+#------------------------------------------------#
+
+CabalTargets ?=all
+CabalTarget  ?=lib:spiros
+CabalProgram ?=exe:example-spiros
+
+#------------------------------------------------#
+
+ProjectFile ?=./cabal.project
+
+#------------------------------------------------#
+# Makefile Variables ----------------------------#
+#------------------------------------------------#
 
 Develop?=1
 Release?=0
@@ -20,16 +36,7 @@ Timestamp:=$(shell date +%Y%m%d%H%M)
 
 #------------------------------------------------#
 
-Version=0.4.0
 LongVersion=$(Version)-$(CurrentGitCommit)-$(Timestamp)
-
-#------------------------------------------------#
-
-CabalTargets ?=all
-CabalTarget  ?=lib:spiros
-CabalProgram ?=exe:example-spiros
-
-ProjectFile ?=./cabal.project
 
 #------------------------------------------------#
 
@@ -214,7 +221,8 @@ all: dist js 7.10 static 8.6
 
 #------------------------------------------------#
 
-clean:
+clean: clean-static clean-release clean-upload
+
 	rm -rf "dist/" dist-*/ ".stack-work"
 	rm -f *.project.local .ghc.environment.*
 	rm -rf "result/" result-*/
@@ -895,56 +903,20 @@ static/cabal2nix/spiros.nix:
 
 clean-static:
 
-	rm "./static/cabal2nix/spiros.nix"
-	rm "./result-static"
+	rm "./static/cabal2nix/spiros.nix" || true
+	rm "./result-static" || true
 
 .PHONY: clean-static
-
-#------------------------------------------------#
-# Uploading -------------------------------------#
-#------------------------------------------------#
-
-upload-spiros: sdist
-
-	$(Cabal) upload --username=sboo --password-command="pass hackage.haskell.org/user/sboo" ./dist-newstyle/sdist/spiros-$(Version).tar.gz
-
-.PHONY: upload-spiros
-
-#------------------------------------------------#
-
-sdist: build
-
-	$(Cabal) new-build $(CabalTargets)
-	$(Cabal) new-sdist $(CabalTargets)
-
-.PHONY: sdist
 
 #------------------------------------------------#
 # Release ---------------------------------------#
 #------------------------------------------------#
 
-release: release/spiros-$(Version).tar.gz release/bin/example-spiros
+release: release-git upload-hackage
 
 	@find ./release
 
 .PHONY: release
-
-#------------------------------------------------#
-
-release/bin/example-spiros: static--example-spiros
-
-	mkdir -p "./release/bin"
-	cp "./result-static/bin/example-spiros" $@
-	chmod u+rxw $@
-	chmod g-rxw $@
-	chmod o-rxw $@
-
-#------------------------------------------------#
-
-release/spiros-$(Version).tar.gz: sdist
-
-	mkdir -p "./release"
-	cp "./dist-newstyle/sdist/spiros-$(Version).tar.gz" $@
 
 #------------------------------------------------#
 
@@ -954,11 +926,68 @@ static: static--example-spiros
 
 #------------------------------------------------#
 
+release-git: release/spiros-$(Version).tar.gz release/bin/example-spiros
+
+	git add ./release
+	git commit -m "(release) « $(Version) »"
+	git tag 
+
+	git push --tags origin master
+
+.PHONY: release-git
+
+#------------------------------------------------#
+
+release/bin/example-spiros: static--example-spiros
+
+	mkdir -p "./release/bin"
+
+	cp "./result-static/bin/example-spiros" $@
+	chmod u+rxw $@
+	chmod g-rxw $@
+	chmod o-rxw $@
+
+#------------------------------------------------#
+
+release/spiros-$(Version).tar.gz: dist
+
+	mkdir -p "./release"
+	cp "./dist-newstyle/sdist/spiros-$(Version).tar.gz" $@
+
+#------------------------------------------------#
+
+clean-release:
+
+	rm -fr "./release" || true
+	rm "./result-release" || true
+
+.PHONY: clean-release
+
+#------------------------------------------------#
+# Uploading -------------------------------------#
+#------------------------------------------------#
+
 upload: release/spiros-$(Version).tar.gz
 
 	$(Cabal) upload $^ --publish
 
 .PHONY: upload
+
+#------------------------------------------------#
+
+upload-hackage: dist
+
+	$(Cabal) upload --username=sboo --password-command="pass hackage.haskell.org/user/sboo" "./dist-newstyle/sdist/spiros-$(Version).tar.gz"
+
+.PHONY: upload-hackage
+
+#------------------------------------------------#
+
+clean-upload:
+
+	rm -fr "./dist-newstyle/sdist" || true
+
+.PHONY: clean-upload
 
 #------------------------------------------------#
 # Notes -----------------------------------------#
