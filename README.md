@@ -149,6 +149,24 @@ Other dependent packages include:
 
 Some of these are /works in progress/. If you're interested in contributing to any of them, note that the utilities in `spiros` (and the dependencies mentioned) are available to use (and encouraged to be used).
 
+## Development
+
+The `Makefile` has these standard targets:
+
+* `make build`   — invokes `cabal new-build -fdevelop`.
+* `make check`   — invokes `cabal new-test --enable-tests`.
+* `make install` — invokes `cabal new-install`.
+* `make dist`    — invokes `cabal new-sdist`.
+
+... and these custom targets:
+
+* `make static`    — builds with `-fstatic`. evals `./static/default.nix` (which links `ghc` against `musl` and [TODO] `integer-simple`).
+* `make develop`   — builds with `-fdevelop`. 
+* `make publish` – invokes `git tag`. invokes `cabal new-upload --publish`, which publishes to Hackage, and `curl`s `/repos/sboosali/spiros/releases`, which publishes to GitHub.
+* `make docs`      — invokes `cabal new-haddock --enable-documentation`.
+* `make checkdocs` — invokes `cabal new-test --enable-tests` on all `doctest`s.
+* `make bench`     — invokes `cabal new-bench --enable-benchmarks`.
+
 ## Implementation
 
 ### Conditional-Compilation

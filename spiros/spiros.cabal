@@ -8,7 +8,7 @@ build-type:          Simple
 --------------------------------------------------
 
 name:                spiros
-version:             0.4.1
+version:             0.4.2
 
 --x-revision:          1
 
@@ -273,8 +273,8 @@ library
 
  exposed-modules: 
                  --Spiros
-
                   Prelude.Spiros
+                  Prelude.NotSpiros
 
                   --Base.GHC710
                   Prelude.Spiros.Utilities
@@ -322,7 +322,7 @@ library
 
  ------------------------------
 
- build-depends: base                 >= 4.7   && <5.0
+ build-depends: base >= 4.7   && <5.0
 
                 ----------------------------------
                 -- Standard Library --------------
@@ -333,7 +333,7 @@ library
               , text
               , bytestring
               , containers
-              , vector
+--            , vector
               , template-haskell     >= 2.10
 
                 ----------------------------------

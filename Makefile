@@ -21,7 +21,7 @@ SHELL=bash
 #------------------------------------------------#
 # Metadata...
 
-Version=0.4.1
+Version=0.4.2
 
 Project  =spiros
 Package ?=spiros
@@ -31,7 +31,7 @@ Program ?=example-spiros
 # Components...
 
 CabalTargets ?=all
-CabalTarget  ?=lib:$(Package)
+CabalLibrary ?=lib:$(Package)
 CabalProgram ?=exe:$(Program)
 
 #------------------------------------------------#
@@ -225,7 +225,7 @@ dist:
 
 #TODO dist js 7.10 static 8.0 8.2 8.4 8.6
 
-all: dist js 7.10 static 8.6
+all: static dist check docs js 7.10 8.6
 
 	@printf "\n%s\n" "========================================"
 
@@ -524,7 +524,7 @@ build-static:
 
 #	$(CabalBuild)  --disable-shared  --enable-static  $(CabalTargets)
 
-	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-spiros"   #   $(CabalTarget)
+	cabal  -v2  new-build  --enable-static  --disable-shared  --disable-executable-dynamic  --project-file "./cabal/static.project"  "exe:example-spiros"
 
 	@echo -e "\n========================================\n"
 
@@ -547,7 +547,7 @@ build-static:
 #------------------------------------------------#
 
 repl:
-	cabal new-repl $(CabalTarget)
+	cabal new-repl $(CabalLibrary)
 
 .PHONY: repl
 
@@ -755,7 +755,17 @@ bench:
 
 #------------------------------------------------#
 
+checkdocs:
 
+	@echo "=================================================="
+	@echo ""
+
+	$(Cabal) new-test $(CabalOptions) --enable-tests "$(Package):test:doc"
+
+	@echo ""
+	@echo "=================================================="
+
+.PHONY: checkdocs
 
 #------------------------------------------------#
 
@@ -856,7 +866,7 @@ js:
 
 #	$(Cabal) new-update  ghcjs-overlay --project-file "./cabal-ghcjs.project"
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghcjs.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghcjs.project"
 
 .PHONY: js
 
@@ -864,7 +874,7 @@ js:
 
 7.10:
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-7-10.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghc-7-10.project"
 
 .PHONY: 7.10
 
@@ -872,7 +882,7 @@ js:
 
 8.0:
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-00.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghc-8-00.project"
 
 .PHONY: 8.0
 
@@ -880,7 +890,7 @@ js:
 
 8.2:
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-02.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghc-8-02.project"
 
 .PHONY: 8.2
 
@@ -888,7 +898,7 @@ js:
 
 8.4:
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-04.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghc-8-04.project"
 
 .PHONY: 8.4
 
@@ -896,7 +906,7 @@ js:
 
 8.6:
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-06.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghc-8-06.project"
 
 .PHONY: 8.6
 
@@ -904,7 +914,7 @@ js:
 
 8.8:
 
-	$(Cabal) new-build   $(CabalTarget)  --project-file "./cabal-ghc-8-08.project"
+	$(Cabal) new-build   $(CabalLibrary)  --project-file "./cabal-ghc-8-08.project"
 
 .PHONY: 8.8
 

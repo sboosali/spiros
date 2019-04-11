@@ -1,6 +1,17 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
 {-# LANGUAGE NoImplicitPrelude #-}
 
+{-# LANGUAGE PackageImports #-}
+
 --------------------------------------------------
+-- Options ---------------------------------------
+--------------------------------------------------
+
+{-# OPTIONS_HADDOCK not-home #-}
+
 --------------------------------------------------
 
 module Prelude.Spiros
@@ -89,6 +100,12 @@ These must be explicitly imported, they aren't re-exported by @Prelude.Spiros@.
 
 {- $notes
 
-Most examples (all those prefixed with a triple `@>>>@`) are @doctest@ed. Those with single `@>@` may have brittle output, and codeblocks might describe relations by "returning" variables, and thus aren't. 
+Most examples (all those prefixed with a triple @(>>>)@) are @doctest@ed. Those with single @(>)@ may have brittle output, and codeblocks might describe relations by "returning" variables, and thus aren't.
+
+Contributors to any /reverse dependency/ of @spiros@ may prefer "Prelude.NotSpiros".
 
 -}
+
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------
