@@ -826,6 +826,29 @@ docs:
 # file:///home/sboo/haskell/spiros/.stack-work/install/x86_64-linux/lts-13.15/8.6.4/doc/spiros-0.4.0/Prelude-Spiros.html
 
 #------------------------------------------------#
+
+dot:
+
+	@printf "\n%s\n" "========================================"
+	@printf "%s\n\n" "Generating Dependency-Graph..."
+
+	@mkdir -p ./spiros/share/images
+
+	stack dot --external --prune "base,base-orphans,ghc-prim,integer-gmp,integer-simple,hsc2hs,haddock,array,binary,bytestring,Cabal,ghc-compact,containers,deepseq,directory,filepath,haskeline,hoopl,hpc,pretty,process,terminfo,time,transformers,xhtml,parallel,stm,random,primitive,vector,dph,template-haskell,transformers-compat,hashable" > ./spiros/share/images/spiros.dot
+
+	dot -Tpng -o  ./spiros/share/images/spiros.png ./spiros/share/images/spiros.dot
+
+	@printf "\n%s\n" "========================================"
+
+	@echo "${EDITOR}  file://$(CURDIR)/spiros/share/images/spiros.dot"
+	@echo "${BROWSER} file://$(CURDIR)/spiros/share/images/spiros.png"
+
+.PHONY: dot
+
+# ^ prune boot packages and wired-in packages.
+#   http://stackoverflow.com/a/10056017/1337806
+
+#------------------------------------------------#
 # Haskell Compilers -----------------------------#
 #------------------------------------------------#
 

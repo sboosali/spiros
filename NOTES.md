@@ -1,47 +1,65 @@
 # Notes
 
-## `reflex-platform`
+## Macros
 
-The `ghcjs` in `reflex-platform` (circa 2018 Oct) is:
+[Haskell CPP Macros](http://www.edsko.net/2014/09/13/haskell-cpp-macros/): 
 
-```
-$ ghcjs --version
-The Glorious Glasgow Haskell Compilation System for JavaScript, version 8.4.0.1 (GHC 8.4.2.20180420)
-```
+### Checking for minimal package versions
 
-with stdlib package-versions:
+    #if MIN_VERSION_process(1,2,0)
+        -- ...
+    #else
+        -- ...
+    #endif
 
+### Checking GHC version
 
-```
-$ ghcjs-pkg list
+either indirectly via `base`:
+
+    #if MIN_VERSION_base(4,7,0)
+
+or directly:
+
+    #if MIN_VERSION_GLASGOW_HASKELL(7,6,0,0)
+
+or, with an older macro:
+
+    #if __GLASGOW_HASKELL__ >= 706
+
+### Checking host platform
+
+    #if defined(mingw32_HOST_OS)
+    #if defined(cygwin32_HOST_OS) 
+    #if defined(darwin_HOST_OS)
+    #if defined(aix_HOST_OS)
+
+### Custom macros
+
+In your Cabal file, [1] add a custom flag:
+
+    Flag develop
+      Description:   Turn on development settings.
+      Default:       False
+   
+that defines a custom CPP flag:
+
+    library
+      ...
+      if flag(develop)
+        cpp-options: -DDEVELOP
+      ...
+
+which you can then condition on in your Haskell files (as normal):
+
+    #if DEVELOP
     ...
-    Cabal-2.2.0.1
-    ...
-    base-4.11.1.0
-    ...
-    containers-0.5.11.0
-    ...
-    template-haskell-2.13.0.0
-    ...
-```
+
+Similarly, your Cabal file can set flags given the: current architecture, package versions, etc. 
+
+For example, if you need a more fine-grained check for the GHC version (__GLASGOW_HASKELL__ gives major and minor version number but not patch level) you can add
+
+    library
+      if impl(ghc == 7.6.1)
+        cpp-options: -DGHC_761
 
 ## 
-
-## 
-
-## 
-
-## 
-
-## 
-
-## 
-
-## 
-
-## 
-
-## 
-
-## 
-

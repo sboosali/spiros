@@ -1,0 +1,31 @@
+strict digraph deps {
+"spiros" [style=dashed];
+{rank=max; "unix"; };
+"attoparsec" -> "scientific";
+"attoparsec" -> "text";
+"case-insensitive" -> "text";
+"cpuinfo" -> "attoparsec";
+"exceptions" -> "mtl";
+"generic-deriving" -> "th-abstraction";
+"prettyprinter" -> "text";
+"scientific" -> "integer-logarithms";
+"scientific" -> "text";
+"spiros" -> "case-insensitive";
+"spiros" -> "cpuinfo";
+"spiros" -> "data-default-class";
+"spiros" -> "exceptions";
+"spiros" -> "generic-deriving";
+"spiros" -> "mtl";
+"spiros" -> "prettyprinter";
+"spiros" -> "safe";
+"spiros" -> "semigroups";
+"spiros" -> "split";
+"spiros" -> "string-conv";
+"spiros" -> "text";
+"spiros" -> "th-lift-instances";
+"spiros" -> "unix-compat";
+"spiros" -> "unordered-containers";
+"string-conv" -> "text";
+"th-lift-instances" -> "text";
+"unix-compat" -> "unix";
+}
