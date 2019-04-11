@@ -284,9 +284,11 @@ library
                   Prelude.Spiros.Classes
 
                   Prelude.Spiros.Text
+                  Prelude.Spiros.Exception
 
                   Prelude.Spiros.Print
                   Prelude.Spiros.Parse
+
                   Prelude.Spiros.System
                   Prelude.Spiros.Application
 
@@ -294,7 +296,7 @@ library
 
                   Prelude.Spiros.Compatibility
                   Prelude.Spiros.Enriched
-                  Prelude.Spiros.Exception
+--TODO--                  Prelude.Spiros.Errors
                   Prelude.Spiros.GUI
                   Prelude.Spiros.Generics
 

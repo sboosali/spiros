@@ -11,7 +11,12 @@
 
 -}
 
-module Prelude.Spiros.GUI where
+module Prelude.Spiros.GUI
+
+  ( module Prelude.Spiros.GUI
+
+  , Name
+  ) where
 
 --------------------------------------------------
 --------------------------------------------------

@@ -169,7 +169,7 @@ validator_
 validator_ name check cast = \x ->
   if   check x
   then return $ cast x
-  else throwN_ name 
+  else throwN name ""
 
 {-# inline validator_ #-}
 

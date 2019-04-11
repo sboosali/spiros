@@ -1735,6 +1735,58 @@ convert modernURI = networkURI
 
 
 
+    default hashWithSalt :: (Generic a, GHashable Zero (Rep a)) => Int -> a -> Int
+    hashWithSalt salt = ghashWithSalt HashArgs0 salt . from
+
+
+
+
+rnfName :: Name -> ()
+rnfName = g
+-- rnfName = rnf
+
+hashNameWithSalt :: Int -> Name -> Int
+hashNameWithSalt = g
+
+
+
+
+
+
+
+
+
+
+
+
+
+throwListM
+  :: ( MonadThrow m
+     , Exception e
+     )
+  => e
+  -> ([a] -> m a)
+ 
+throwListM e
+
+  = Safe.headMay
+  > throwMaybe e
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

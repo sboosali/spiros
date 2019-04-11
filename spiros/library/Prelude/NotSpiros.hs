@@ -34,7 +34,7 @@ c.f.:
 
 module Prelude.NotSpiros
 
-  ( module Prelude.NotSpiros
+  ( module Prelude.Spiros
   , module Prelude
   ) where
 
