@@ -188,6 +188,14 @@ instance Hashable GUI where
 -- Functions -------------------------------------
 --------------------------------------------------
 
+displayName :: Name -> String
+displayName name = go (fromGlobalName name)
+  where
+
+  go = maybe (show name) displayGUI
+
+--------------------------------------------------
+
 {-| Return a globally unique identifier from a Template Haskell 'Name', even if it's local (i.e. not global). 
 
 == Implementation: @TemplateHaskellQuotes@ return only "local names" ('NameL') and "global names" ('NameG', which 'fromGlobalName' validates). 
@@ -385,3 +393,6 @@ Variables
 
 
 -}
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------
