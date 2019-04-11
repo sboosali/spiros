@@ -9,14 +9,20 @@ SHELL=bash
 #------------------------------------------------#
 # Makefile Variables ----------------------------#
 #------------------------------------------------#
+# Metadata...
 
 Version=0.4.1
 
+Project  =spiros
+Package ?=spiros
+Program ?=example-spiros
+
 #------------------------------------------------#
+# Components...
 
 CabalTargets ?=all
-CabalTarget  ?=lib:spiros
-CabalProgram ?=exe:example-spiros
+CabalTarget  ?=lib:$(Package)
+CabalProgram ?=exe:$(Program)
 
 #------------------------------------------------#
 
@@ -122,6 +128,8 @@ InstallDirectory ?=$(ReleaseDirectory)/dist-newstyle/ #TODO
 
 #------------------------------------------------#
 
+
+
 ################################################## Miscellaneous
 
 ETagsFile      ?=TAGS
@@ -136,6 +144,18 @@ TagsDirectory ?=$(PackageDirectory)
 ##################################################
 
 CabalOptions=--project-file $(ProjectFile) --builddir $(BuildDirectory)
+
+#------------------------------------------------#
+
+HackageUser     =sboo
+HackagePassword =pass hackage.haskell.org/user/$(HackageUser)
+
+#------------------------------------------------#
+
+GitHubOwner      =sboosali
+GitHubRepository =$(Project)
+GitHubPublishPostPath = /repos/$(GitHubOwner)/$(GitHubRepository)/releases
+GitHubPublishPostData ='{ "tag_name": "v$(Version)", "target_commitish": "master", "name": "v$(Version)", "body": "v$(Version)", "draft": true, "prerelease": true }'
 
 #------------------------------------------------#
 # Makefile Targets: Standard --------------------#
@@ -909,12 +929,28 @@ clean-static:
 .PHONY: clean-static
 
 #------------------------------------------------#
-# Release ---------------------------------------#
+# Makefile Targets: Releasing -------------------#
 #------------------------------------------------#
 
-release: release-git upload-hackage
+release: check dist
 
-	@find ./release
+	@printf "\n%s\n" "========================================"
+	@printf "%s\n\n" "Publishing (Hackage)..."
+
+	$(Cabal) upload --publish --username=$(HackageUser) --password-command=$(HackagePassword) "$(BuildDirectory)/sdist/$(Package)-$(Version).tar.gz"
+
+	@printf "\n%s\n" "========================================"
+	@printf "%s\n\n" "Tagging (Git)..."
+
+	git tag -a "v$(Version)" -m "v$(Version)"
+	git push --tags origin master
+
+	@printf "\n%s\n" "========================================"
+	@printf "%s\n\n" "Publishing (GitHub)..."
+
+	curl -X POST -H "Content-Type: application/json" --data=$(GitHubPublishPostData) $(GitHubReleasePostPath)
+
+	@printf "\n%s\n" "========================================"
 
 .PHONY: release
 
