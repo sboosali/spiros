@@ -91,16 +91,17 @@ import qualified "bytestring" Data.ByteString.Lazy as LazyBytes
 
 --------------------------------------------------
 
-import "base" Data.Function              ((&))
 import "base" Control.Arrow              ((>>>),(<<<))
-import "base" Control.Exception          (SomeException,IOException,evaluate)
 import "base" Control.Concurrent         (threadDelay,forkIO,ThreadId)
+import "base" Control.Exception          (SomeException,IOException,evaluate)
 import "base" Control.Monad              (forever, void, when)
-import "base" Data.Proxy
-import "base" Data.String                (IsString)
-import "base" Numeric.Natural
-import "base" Data.Ratio                 (Ratio,(%))
+import "base" Data.Char                  (isAlpha)
 import "base" Data.Foldable              (Foldable(..))
+import "base" Data.Function              ((&))
+import "base" Data.Proxy                 (Proxy(..))
+import "base" Data.Ratio                 (Ratio,(%))
+import "base" Data.String                (IsString)
+import "base" Numeric.Natural            (Natural)
 
 --------------------------------------------------
 
@@ -498,7 +499,6 @@ infixl 5 <&>
 --------------------------------------------------
 -- list utilities...
 
-
 {- | Remove duplicates (from the given list).
 
 == Examples
@@ -641,6 +641,7 @@ shown = fromString . show
 {-# INLINEABLE shown #-}
 
 --------------------------------------------------
+-- enum utilities...
 
 {-|
 
@@ -675,6 +676,20 @@ constructors' = constructors proxy
 
 --------------------------------------------------
 
+typeName
+  :: forall proxy a t.
+    ( Typeable a
+    , IsString t
+    )
+  => proxy a
+  -> t
+typeName proxy = typeRep proxy & show & fromString 
+
+{-# INLINEABLE typeName #-}
+
+--------------------------------------------------
+-- functions utilities...
+
 identity :: (Category cat) => (a `cat` a)
 identity = Category.id
 
@@ -693,19 +708,7 @@ compose = (Category.<<<)
 {-# INLINEABLE compose #-}
 
 --------------------------------------------------
-
-typeName
-  :: forall proxy a t.
-    ( Typeable a
-    , IsString t
-    )
-  => proxy a
-  -> t
-typeName proxy = typeRep proxy & show & fromString 
-
-{-# INLINEABLE typeName #-}
-
---------------------------------------------------
+-- monad utilities...
 
 whenM :: (Monad m) => m Bool -> m () -> m ()
 whenM check action = do
@@ -772,6 +775,64 @@ execState' :: s -> State s a -> s
 execState' = flip execState
 
 {-# INLINEABLE execState' #-}
+
+--------------------------------------------------
+-- filepath utilities...
+
+{-| 'isAbsoluteOnAnyPlatform' and 'isRelativeOnAnyPlatform' are like
+'System.FilePath.isAbsolute' and 'System.FilePath.isRelative' but have
+platform independent heuristics.
+
+The System.FilePath exists in two versions, Windows and Posix. The two
+versions don't agree on what is a relative path and we don't know if we're
+given Windows or Posix paths.
+This results in false positives when running on Posix and inspecting
+Windows paths, like the hackage server does.
+
+> System.FilePath.Posix.isAbsolute \"C:\\hello\" == False
+> System.FilePath.Windows.isAbsolute \"/hello\" == False
+
+This means that we would treat paths that start with \"/\" to be absolute.
+On Posix they are indeed absolute, while on Windows they are not.
+
+The portable versions should be used when we might deal with paths that
+are from another OS than the host OS. For example, the Hackage Server
+deals with both Windows and Posix paths while performing the
+PackageDescription checks. In contrast, when we run 'cabal configure' we
+do expect the paths to be correct for our OS and we should not have to use
+the platform independent heuristics.
+
+== Examples
+
+>>> isAbsoluteOnAnyPlatform "C:\\\\Users"
+True
+>>> isAbsoluteOnAnyPlatform "/home"
+True
+
+-}
+
+isAbsoluteOnAnyPlatform :: FilePath -> Bool
+isAbsoluteOnAnyPlatform = \case
+
+  -- « POSIX » root:
+
+  ('/' : _)              -> True
+
+  -- e.g. « C:\\directory »:
+
+  (drive : ':':'\\' : _) -> isAlpha drive
+
+  -- « UNC »:
+
+  ('\\' : '\\' : _)      -> True
+
+  _                      -> False
+
+--------------------------------------------------
+
+-- | @isRelativeOnAnyPlatform = not . 'isAbsoluteOnAnyPlatform'@
+isRelativeOnAnyPlatform :: FilePath -> Bool
+isRelativeOnAnyPlatform = not . isAbsoluteOnAnyPlatform
 
 --------------------------------------------------
 -- Time...

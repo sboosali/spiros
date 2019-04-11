@@ -18,7 +18,7 @@ version:             0.4.2
 --------------------------------------------------
 
 author:              Spiros Boosalis
-maintainer:          samboosalis@gmail.com
+maintainer:          Spiros Boosalis <samboosalis@gmail.com>
 
 --------------------------------------------------
 -- Description -----------------------------------
@@ -80,7 +80,7 @@ tested-with: GHC   == 8.6.4
 
 license:             Apache-2.0
 license-file:        LICENSE
-copyright:           2019 Sam Boosalis
+copyright:           2019 Spiros Boosalis
 
 --------------------------------------------------
 -- Files -----------------------------------------
@@ -570,7 +570,7 @@ test-suite doc
 
  -----------------------------
 
- hs-source-dirs: tests/doc
+ hs-source-dirs: ./tests/doc
 
  main-is:        DocTests.hs
 

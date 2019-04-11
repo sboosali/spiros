@@ -919,6 +919,17 @@ js:
 .PHONY: 8.8
 
 #------------------------------------------------#
+# Git -------------------------------------------#
+#------------------------------------------------#
+
+git-tag:
+
+	git tag -a "$(Version)" -m "$(Version)"
+	git push --tags origin master
+
+.PHONY: git-tag
+
+#------------------------------------------------#
 # Static (Nix) ----------------------------------#
 #------------------------------------------------#
 
@@ -975,23 +986,17 @@ clean-static:
 # Makefile Targets: Releasing -------------------#
 #------------------------------------------------#
 
-release: check dist
+release: release/spiros-$(Version).tar.gz .git/refs/tags/$(Version)
 
 	@printf "\n%s\n" "========================================"
 	@printf "%s\n\n" "Publishing (Hackage)..."
 
-	$(Cabal) upload --publish --username=$(HackageUser) --password-command=$(HackagePassword) "$(BuildDirectory)/sdist/$(Package)-$(Version).tar.gz"
-
-	@printf "\n%s\n" "========================================"
-	@printf "%s\n\n" "Tagging (Git)..."
-
-	git tag -a "v$(Version)" -m "v$(Version)"
-	git push --tags origin master
+	$(Cabal) upload --publish --username='$(HackageUser)' --password-command='$(HackagePassword)' ./release/spiros-$(Version).tar.gz
 
 	@printf "\n%s\n" "========================================"
 	@printf "%s\n\n" "Publishing (GitHub)..."
 
-	curl -X POST -H "Content-Type: application/json" --data=$(GitHubPublishPostData) $(GitHubReleasePostPath)
+	curl -X POST -H "Content-Type: application/json" --data $(GitHubPublishPostData) $(GitHubReleasePostPath)
 
 	@printf "\n%s\n" "========================================"
 
@@ -1005,15 +1010,26 @@ static: static--example-spiros
 
 #------------------------------------------------#
 
-release-git: release/spiros-$(Version).tar.gz release/bin/example-spiros
+release-git: release/spiros-$(Version).tar.gz release/bin/example-spiros .git/refs/tags/$(Version)
 
 	git add ./release
 	git commit -m "(release) « $(Version) »"
-	git tag 
 
+	git tag -a "$(Version)" -m "$(Version)"
 	git push --tags origin master
 
 .PHONY: release-git
+
+#------------------------------------------------#
+
+.git/refs/tags/$(Version):
+
+	@printf "\n%s\n" "========================================"
+	@printf "%s\n\n" "Tagging (Git)..."
+
+	git tag -a "$(Version)" -m "$(Version)"
+
+	@printf "\n%s\n" "========================================"
 
 #------------------------------------------------#
 
@@ -1025,6 +1041,10 @@ release/bin/example-spiros: static--example-spiros
 	chmod u+rxw $@
 	chmod g-rxw $@
 	chmod o-rxw $@
+
+#------------------------------------------------#
+
+./dist-newstyle/sdist/spiros-$(Version).tar.gz: dist
 
 #------------------------------------------------#
 
@@ -1056,7 +1076,7 @@ upload: release/spiros-$(Version).tar.gz
 
 upload-hackage: dist
 
-	$(Cabal) upload --username=sboo --password-command="pass hackage.haskell.org/user/sboo" "./dist-newstyle/sdist/spiros-$(Version).tar.gz"
+	$(Cabal) upload --username='$(HackageUser)' --password-command='$(HackagePassword)' ./dist-newstyle/sdist/spiros-$(Version).tar.gz
 
 .PHONY: upload-hackage
 

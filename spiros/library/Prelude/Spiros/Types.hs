@@ -28,7 +28,7 @@ module Prelude.Spiros.Types
 
 --------------------------------------------------
 
-#include "sboo-base-feature-macros.h"
+#include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
 -- Re-Exports ------------------------------------
