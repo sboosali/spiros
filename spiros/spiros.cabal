@@ -8,7 +8,7 @@ build-type:          Simple
 --------------------------------------------------
 
 name:                spiros
-version:             0.4.2
+version:             0.4.3
 
 --x-revision:          1
 
@@ -283,11 +283,14 @@ library
                   Prelude.Spiros.Reexports
                   Prelude.Spiros.Classes
 
-                  Prelude.Spiros.Text
+                  Prelude.Spiros.GUI
                   Prelude.Spiros.Exception
+
+                  Prelude.Spiros.Text
 
                   Prelude.Spiros.Print
                   Prelude.Spiros.Parse
+                  Prelude.Spiros.Validator
 
                   Prelude.Spiros.System
                   Prelude.Spiros.Application
@@ -297,10 +300,7 @@ library
                   Prelude.Spiros.Compatibility
                   Prelude.Spiros.Enriched
 --TODO--                  Prelude.Spiros.Errors
-                  Prelude.Spiros.GUI
                   Prelude.Spiros.Generics
-
-                  Prelude.Spiros.Validator
 
  ------------------------------
 
