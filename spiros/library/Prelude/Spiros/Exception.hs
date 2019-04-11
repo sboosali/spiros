@@ -17,15 +17,28 @@
 
 --------------------------------------------------
 
-{- |
+{- | Utilities for 'MonadThrow' (from the @exceptions@ package).
 
-See 'SimpleException', 'QuotedException', 'LocatedException'. 
+Throwers (Generalizers):
 
-See 'throwEither' (and 'throwMaybe', 'throwList'). 
+* 'throwEitherM'
+* 'throwMaybeM'
+* 'throwListM'
 
-See 'throwS', 'throwN', 'throwL'. 
+Throwers (custom @Exception@s):
+
+* 'throwS'
+* 'throwN'
+* 'throwL'
+
+Custom @Exception@s types:
+
+* 'SimpleException'
+* 'QuotedException'
+* 'LocatedException' 
 
 -}
+
 module Prelude.Spiros.Exception where
 
 --------------------------------------------------
@@ -160,11 +173,11 @@ to an abstract 'MonadThrow' @m@.
 
 -}
 
-maybeMonadThrow
+throwMaybeM
   :: (MonadThrow m)
   => Maybe a -> m a
 
-maybeMonadThrow = maybeMonadThrowWith e
+throwMaybeM = throwMaybeWithM e
   where
   e = someMonadThrowException (Nothing :: Maybe ())
 
@@ -176,17 +189,17 @@ Generalize 'Maybe' (a concrete, pure 'MonadThrow' instance),
 to an abstract 'MonadThrow' @m@.
 
 @
-'maybeMonadThrowWith' ≡ 'maybe' ('throwM' e) 'return'
+'throwMaybeWithM' ≡ 'maybe' ('throwM' e) 'return'
 @
 
 -}
 
-maybeMonadThrowWith
+throwMaybeWithM
   :: (MonadThrow m)
   => E.SomeException
   -> Maybe a -> m a
  
-maybeMonadThrowWith e = maybe (throwM e) return
+throwMaybeWithM e = maybe (throwM e) return
 
 --------------------------------------------------
 
@@ -196,7 +209,7 @@ Generalize '[]' (a concrete, pure 'MonadThrow' instance),
 to an abstract 'MonadThrow' @m@.
 
 @
-'listMonadThrow' ≡ \\case
+'throwListM' ≡ \\case
   []    -> 'throwM' _
   (x:_) -> 'return' x
 @
@@ -205,11 +218,11 @@ Only return the first success (i.e. the head of the "list of successes").
 
 -}
 
-listMonadThrow
+throwListM
   :: (MonadThrow m)
   => [a] -> m a
 
-listMonadThrow = listMonadThrowWith e
+throwListM = throwListWithM e
   where
   e = someMonadThrowException ([] :: [()])
 
@@ -222,14 +235,14 @@ to an abstract 'MonadThrow' @m@.
 
 -}
 
-listMonadThrowWith
+throwListWithM
   :: (MonadThrow m)
   => E.SomeException
   -> [a] -> m a
  
-listMonadThrowWith e
+throwListWithM e
   = Safe.headMay
-  > maybeMonadThrowWith e
+  > throwMaybeWithM e
 
 --------------------------------------------------
 
@@ -244,11 +257,11 @@ to an abstract 'MonadThrow' @m@.
 
 -}
 
-eitherMonadThrow
+throwEitherM
   :: (MonadThrow m)
   => Either E.SomeException a -> m a
 
-eitherMonadThrow = either throwM return
+throwEitherM = either throwM return
 
 --------------------------------------------------
 --------------------------------------------------
@@ -1026,3 +1039,6 @@ locatedException = E.SomeException $ errorCallWithCallStackException "" ?callSta
 -}
 
 -}
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------

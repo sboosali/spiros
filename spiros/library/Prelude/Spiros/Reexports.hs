@@ -275,9 +275,10 @@ import "base" Data.Char                              as X
 
 import "base" Numeric.Natural                        as X (Natural)
 import "base" Data.Ratio                             as X (Ratio)
-  
+
 import "base" Data.Maybe                             as X 
-import "base" Data.Either                            as X 
+import "base" Data.Either                            as X
+import "base" Data.Tuple                             as X ( fst, snd, swap )
 import "base" Data.Function                          as X ((&),on,fix)
 
 import "base" Text.Read                              as X

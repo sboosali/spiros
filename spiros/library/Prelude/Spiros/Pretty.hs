@@ -596,7 +596,7 @@ parser = parserWith defaultParseConfig
 -}
 
 parserWith :: ParseConfig String a -> Parse a
-parserWith ParseConfig{..} = go > maybeMonadThrow
+parserWith ParseConfig{..} = go > throwMaybeM
 
   where
   go s = readHaskell (munge s)
