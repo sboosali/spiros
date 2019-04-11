@@ -374,13 +374,13 @@ nix-local:
 
 #------------------------------------------------#
 
-cabal2nix: cabal2nix-spiros
+cabal2nix: static-cabal2nix
 
 .PHONY: cabal2nix
 
 #------------------------------------------------#
 
-cabal2nix-static:
+static-cabal2nix:
 
 	@echo "========================================"
 
@@ -400,7 +400,7 @@ cabal2nix-static:
 
 #------------------------------------------------#
 
-cabal2nix-spiros:
+spiros-cabal2nix:
 
 	@echo "========================================"
 
@@ -848,7 +848,7 @@ js:
 .PHONY: 8.8
 
 #------------------------------------------------#
-# Nix -------------------------------------------#
+# Static (Nix) ----------------------------------#
 #------------------------------------------------#
 
 static--example-spiros: static/cabal2nix/spiros.nix
@@ -890,6 +890,15 @@ static/cabal2nix/spiros.nix:
 	mkdir -p "./static/cabal2nix/"
 
 	(cd "./static/cabal2nix/"  &&  $(Cabal2nix) "-fstatic" "-fexamples" "--no-check" "--compiler=ghc-8.4" "file://../../spiros" > "./spiros.nix")
+
+#------------------------------------------------#
+
+clean-static:
+
+	rm "./static/cabal2nix/spiros.nix"
+	rm "./result-static"
+
+.PHONY: clean-static
 
 #------------------------------------------------#
 # Uploading -------------------------------------#

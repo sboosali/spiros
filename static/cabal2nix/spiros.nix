@@ -2,8 +2,9 @@
 , cpuinfo, data-default-class, deepseq, directory, doctest
 , exceptions, filepath, generic-deriving, hashable, mtl
 , optparse-applicative, prettyprinter, process, safe, semigroups
-, split, stdenv, stm, string-conv, template-haskell, text, time
-, transformers, unix-compat, unordered-containers, vector
+, split, stdenv, stm, string-conv, template-haskell, text
+, th-lift-instances, time, transformers, unix-compat
+, unordered-containers, vector
 }:
 mkDerivation {
   pname = "spiros";
@@ -16,8 +17,8 @@ mkDerivation {
     base bytestring case-insensitive containers cpuinfo
     data-default-class deepseq directory exceptions filepath
     generic-deriving hashable mtl prettyprinter process safe semigroups
-    split stm string-conv template-haskell text time transformers
-    unix-compat unordered-containers vector
+    split stm string-conv template-haskell text th-lift-instances time
+    transformers unix-compat unordered-containers vector
   ];
   executableHaskellDepends = [ base optparse-applicative text ];
   testHaskellDepends = [ base doctest ];

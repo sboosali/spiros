@@ -49,6 +49,7 @@ module Prelude.Spiros.Reexports
  ( module X                                       -- MNEMONIC: re-eXports
  , module Base
  , module Prelude.Spiros.Compatibility
+
  ) where
 
 --------------------------------------------------
@@ -213,13 +214,13 @@ import "mtl" Control.Monad.Except                    as X
 --------------------------------------------------
 
 import "containers" Data.Set                         as X (Set)
-
 import "containers" Data.Map                         as X (Map)
-import "containers" Data.Sequence                    as X (Seq)
 import "containers" Data.IntSet                      as X (IntSet)
 import "containers" Data.IntMap                      as X (IntMap)
+
 import "containers" Data.Graph                       as X (Graph)
 import "containers" Data.Tree                        as X (Tree)
+import "containers" Data.Sequence                    as X (Seq)
 
 --------------------------------------------------
 -- `template-haskell`

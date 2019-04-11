@@ -1,19 +1,32 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
 {-# LANGUAGE CPP #-}
 
 --------------------------------------------------
 
 {-# LANGUAGE NoImplicitPrelude #-}
 
+--------------------------------------------------
+
 {-# LANGUAGE PackageImports, TypeOperators, LambdaCase, PatternSynonyms #-}
+{-# LANGUAGE BangPatterns #-}
+
 {-# LANGUAGE RankNTypes, PolyKinds, KindSignatures, ConstraintKinds, ScopedTypeVariables #-}
+
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+--------------------------------------------------
+-- Options ---------------------------------------
+--------------------------------------------------
 
 -- {-# OPTIONS_HADDOCK not-home #-}
 
 --------------------------------------------------
 --------------------------------------------------
 
-{-|
+{-| Utilities.
 
 These identifiers are "soft" overrides, they generalize the signatures of their @Prelude@ namesakes:
 
@@ -44,6 +57,11 @@ import Prelude.Spiros.Compatibility
 --------------------------------------------------
 
 import "exceptions" Control.Monad.Catch (MonadThrow(..))
+
+--------------------------------------------------
+
+import qualified "containers" Data.Set as Set
+import           "containers" Data.Set (Set)
 
 --------------------------------------------------
 
@@ -146,11 +164,28 @@ import "base" GHC.Exts                   (IsString(..))
 #endif
 
 --------------------------------------------------
--- Values ----------------------------------------
+-- Types -----------------------------------------
 --------------------------------------------------
 
+{-| A number of microseconds (there are one million microseconds per second). An integral number because it's the smallest resolution for most GHC functions. @Int@ because GHC frequently represents integrals as @Int@s (for efficiency). 
+
+Has smart constructors for common time units; in particular, for thread delays, and for human-scale durations.
+
+* 'microseconds'
+* 'milliseconds'
+* 'seconds'
+* 'minutes'
+* 'hours'
+
+Which also act as self-documenting (psuedo-keyword-)arguments for 'threadDelay', via 'delayFor'. 
+
+-}
+newtype Time = Time { toMicroseconds :: Int }
+
 --------------------------------------------------
--- soft overrides
+-- Functions -------------------------------------
+--------------------------------------------------
+-- "soft" overrides...
 
 -- | (generalization)
 -- @= 'fmap'@
@@ -178,7 +213,7 @@ sequence_ = sequenceA_
 {-# INLINEABLE sequence_ #-}
 
 --------------------------------------------------
--- hard overrides
+-- "hard" overrides...
 
 {- | forwards composition
 
@@ -739,24 +774,7 @@ execState' = flip execState
 {-# INLINEABLE execState' #-}
 
 --------------------------------------------------
--- Time
-
-{-| A number of microseconds (there are one million microseconds per second). An integral number because it's the smallest resolution for most GHC functions. @Int@ because GHC frequently represents integrals as @Int@s (for efficiency). 
-
-Has smart constructors for common time units; in particular, for thread delays, and for human-scale durations.
-
-* 'microseconds'
-* 'milliseconds'
-* 'seconds'
-* 'minutes'
-* 'hours'
-
-Which also act as self-documenting (psuedo-keyword-)arguments for 'threadDelay', via 'delayFor'. 
-
--}
-newtype Time = Time { toMicroseconds :: Int }
-
---------------------------------------------------
+-- Time...
 
 microseconds :: Int -> Time
 milliseconds :: Int -> Time
