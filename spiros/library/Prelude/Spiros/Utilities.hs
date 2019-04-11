@@ -168,6 +168,12 @@ import "base" GHC.Exts                   (IsString(..))
 -- Types -----------------------------------------
 --------------------------------------------------
 
+-- | @Natural@ between `minimumPrecedence` and `maximumPrecedence`, inlcusively (i.e. @[0 .. 11]@).
+
+type HaskellPrecedence = Int
+
+--------------------------------------------------
+
 {-| A number of microseconds (there are one million microseconds per second). An integral number because it's the smallest resolution for most GHC functions. @Int@ because GHC frequently represents integrals as @Int@s (for efficiency). 
 
 Has smart constructors for common time units; in particular, for thread delays, and for human-scale durations.
@@ -608,6 +614,55 @@ toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 
 --------------------------------------------------
 -- string utilities...
+
+{- | The /tightest/ precedence, for manual @Show@ instances.
+
+== Notes
+
+* Function Application has precedence @10@.
+* @('$')@ has precedence @0@ (i.e. `minimumPrecedence`).
+
+== Usage
+
+@
+import \"base\" "Text.Show"
+
+instance Show XYZ where
+
+  'showsPrec' precedence x = 'showParen' (precedence >= 'maximumPrecedence') (s ++)
+    where
+
+    s :: String
+    s = showXYZ x
+
+    showXYZ = ...
+
+    -- NOTE If « precedence » is `minimumPrecedence`, then « s » is /never/ parenthesized.
+    --      If « precedence » is `maximumPrecedence`, then  « s » is /always/ parenthesized,
+    --      /unless/ it's an “atomic expression” (e.g. a numeric literal or string literal).
+@
+
+-}
+
+maximumPrecedence :: HaskellPrecedence
+maximumPrecedence = 11
+
+{-# INLINEABLE maximumPrecedence #-}
+
+--------------------------------------------------
+
+{- | The /loosest/ precedence.
+
+See `maximumPrecedence`.
+
+-}
+
+minimumPrecedence :: HaskellPrecedence
+minimumPrecedence = 0
+
+{-# INLINEABLE minimumPrecedence #-}
+
+--------------------------------------------------
 
 strip :: String -> String
 strip = rstrip . lstrip

@@ -42,7 +42,6 @@ Also see (these aren't dependencies, just influences):
 -}
 
 --------------------------------------------------
---------------------------------------------------
 
 module Prelude.Spiros.Reexports
 
@@ -57,13 +56,14 @@ module Prelude.Spiros.Reexports
 #include <sboo-base-feature-macros.h>
 
 --------------------------------------------------
+-- Imports: Internal -----------------------------
 --------------------------------------------------
 
 import Prelude.Spiros.Types
 import Prelude.Spiros.Compatibility
 
 --------------------------------------------------
--- Imports ---------------------------------------
+-- Imports: External -----------------------------
 --------------------------------------------------
 
 import "generic-deriving" Generics.Deriving.Enum     as X
@@ -234,7 +234,7 @@ import "template-haskell" Language.Haskell.TH.Syntax as X (Lift)
 -- `base`
 --------------------------------------------------
 
---import "base" Control.Exception                    as X (evaluate)
+import "base" Control.Exception                      as X ( Exception(..), SomeException )
 
 import "base" Data.Int                               as X
  ( Int

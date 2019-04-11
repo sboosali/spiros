@@ -1,3 +1,7 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
 {-# LANGUAGE CPP #-}
 
 --------------------------------------------------
@@ -526,7 +530,7 @@ import "base" Control.Arrow                          as X (ArrowLoop)
 import "base" Control.Category                       as X
  (Category) -- can't export `(.)` and `id`, which conflict with their specializations TODO?
 
-import "base" Control.Exception                      as X (Exception(..))
+import "base" Control.Exception                      as X ( Exception(..) )
 
 import "base" Text.ParserCombinators.ReadP           as X
  ( ReadP,ReadS
