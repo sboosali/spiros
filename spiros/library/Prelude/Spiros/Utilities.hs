@@ -292,12 +292,14 @@ __ERROR__ = error
 
 --------------------------------------------------
 
+-- | 'throwM' a 'userError' (a safer 'Prelude.error').
+
 errorM :: (MonadThrow m) => String -> m a
 errorM s = throwM e
   where
 
   e :: IOException
-  e = Prelude.userError s
+  e = userError s
 
 {-# INLINEABLE errorM #-}
 
@@ -459,7 +461,74 @@ infixl 5 <&>
 {-# INLINEABLE (<&>) #-}
 
 --------------------------------------------------
--- list/number utilities...
+-- list utilities...
+
+
+{- | Remove duplicates (from the given list).
+
+== Examples
+
+>>> ordNub "abcab"
+"abc"
+>>> ordNub ""
+""
+
+== Definition
+
+@
+ordNub = 'ordNubBy' 'id'
+@
+
+== Laws
+
+Idempotent (i.e. multiple applications are redundant)
+
+Stable (i.e. preserves the original order) 
+
+== Performance
+
+Semantically, @ordNub@ should be equivalent to 'Data.List.nub'.
+
+Operationally, it's much faster for large lists:
+
+* @nub@ — only needs an @Eq@ constraint, but takes @O(n^2)@ time complexity.
+* @ordNub@ — needs an @Ord@ constraint, but only takes @O(n log n)@ time complexity.
+
+== Links
+
+* <http://github.com/nh2/haskell-ordnub>, by /Niklas Hambüchen/.
+
+-}
+
+ordNub :: Ord a => [a] -> [a]
+ordNub = ordNubBy id
+
+{-# INLINEABLE ordNub #-}
+
+--------------------------------------------------
+
+{- | Selects a key for each element, and takes the @nub@ based on that key.
+
+See 'ordNub'.
+
+-}
+
+ordNubBy :: Ord b => (a -> b) -> [a] -> [a]
+ordNubBy f = \l -> go Set.empty l
+  where
+
+  go !_ [] = []
+  go !s (x:xs)
+
+      | y `Set.member` s = go s xs
+      | otherwise        = let !s' = Set.insert y s
+                            in x : go s' xs
+      where
+        y = f x
+
+{-# INLINEABLE ordNubBy #-}
+
+--------------------------------------------------
 
 {- | Safely get the @n@-th item in the given list.
 
@@ -490,6 +559,7 @@ snoc xs x = xs ++ [x]
 {-# INLINEABLE snoc #-}
 
 --------------------------------------------------
+-- number utilities...
 
 {-|
 
@@ -502,18 +572,7 @@ toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 {-# INLINEABLE toInt #-}
 
 --------------------------------------------------
-
--- | safely-partial @(!)@
-index :: (Integral n) => [a] -> n -> Maybe a
-index [] _ = Nothing
-index (x:xs) n
- | n == 0         = Just x
- | n `lessThan` 0 = Nothing
- | otherwise      = index xs (n-1)
-
-{-# INLINEABLE index #-}
-
---------------------------------------------------
+-- string utilities...
 
 strip :: String -> String
 strip = rstrip . lstrip

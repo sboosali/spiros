@@ -27,6 +27,7 @@ LongVersion=$(Version)-$(CurrentGitCommit)-$(Timestamp)
 
 CabalTargets ?=all
 CabalTarget  ?=lib:spiros
+CabalProgram ?=exe:example-spiros
 
 ProjectFile ?=./cabal.project
 
@@ -134,38 +135,60 @@ CabalOptions=--project-file $(ProjectFile) --builddir $(BuildDirectory)
 #------------------------------------------------#
 
 build:
+	@printf "\n%s\n" "========================================"
 
-	@echo "=================================================="
-	@echo ""
+	@printf "%s\n\n" "Building..."
 
 	$(Cabal) new-build $(CabalOptions) $(CabalTargets)
 
-	@echo ""
-	@echo "=================================================="
-
+	@printf "\n%s\n" "========================================"
 
 .PHONY: build
 
 #------------------------------------------------#
 
 check:
+	@printf "\n%s\n" "========================================"
 
-	@echo "=================================================="
-	@echo ""
+	@printf "%s\n\n" "Testing..."
 
 	$(Cabal) new-test $(CabalOptions) $(CabalTargets)
 
-	@echo ""
-	@echo "=================================================="
-
+	@printf "\n%s\n" "========================================"
 
 .PHONY: check
 
 #------------------------------------------------#
 
-#TODO js 7.10 static 8.0 8.2 8.4 8.6
+install:
+	@printf "\n%s\n" "========================================"
 
-all: js 7.10 static 8.6
+	@printf "%s\n\n" "Installing..."
+
+	$(Cabal) new-install $(CabalOptions) $(CabalProgram)
+
+	@printf "\n%s\n" "========================================"
+
+.PHONY: install
+
+#------------------------------------------------#
+
+dist:
+	@printf "\n%s\n" "========================================"
+
+	@printf "%s\n\n" "Archiving..."
+
+	$(Cabal) new-sdist $(CabalOptions) $(CabalTargets)
+
+	@printf "\n%s\n" "========================================"
+
+.PHONY: dist
+
+#------------------------------------------------#
+
+#TODO dist js 7.10 static 8.0 8.2 8.4 8.6
+
+all: dist js 7.10 static 8.6
 
 	@printf "\n%s\n" "========================================"
 

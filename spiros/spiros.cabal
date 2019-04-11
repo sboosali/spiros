@@ -120,7 +120,17 @@ flag develop
 
   default:     False
 
-  description: Exposed internals and/or dynamic typechecking (for development).
+  description: Dynamic typechecking and/or exposed internals (for development).
+
+  manual:      True
+
+--------------------------------------------------
+
+flag orphans
+
+  default:     True
+
+  description: Orphan Instances (e.g. for « Lift », via « th-lift-instances »).
 
   manual:      True
 
@@ -140,7 +150,7 @@ flag examples
 
   default:     False
 
-  description: Build the « example-spiros » executable.
+  description: « example-spiros » executable.
 
   manual:      True
 
@@ -158,7 +168,7 @@ flag cpphs
 -- Common Stanzas --------------------------------
 --------------------------------------------------
 
-common Haskell2020Library
+common Haskell2020
 
  -----------------------------
 
@@ -201,9 +211,9 @@ common Haskell2020Library
 
  if flag(develop)
  
-    cpp-options: -DDEVELOP
+    cpp-options: -DCABALFLAG_DEVELOP
 
-                 -- ^ Define the « DEVELOP » symbol (for CPP).
+                 -- ^ Define the « ..._DEVELOP » symbol (for CPP).
 
  -----------------------------
 
@@ -227,9 +237,17 @@ common Haskell2020Library
  -- etc ----------------------
  -----------------------------
 
+--------------------------------------------------
 
+common Haskell2020Library
 
  -----------------------------
+
+ if flag(orphans)
+ 
+    cpp-options: -DCABALFLAG_ORPHANS
+
+                 -- ^ Define the « ..._ORPHANS » symbol (for CPP).
 
 --------------------------------------------------
 -- Library ---------------------------------------
@@ -240,6 +258,13 @@ library
  ------------------------------
 
  import: Haskell2020Library
+
+ ------------------------------
+
+ if flag(static)
+
+    ld-options: -static
+                -pthread
 
  ------------------------------
 
@@ -275,13 +300,6 @@ library
                   Prelude.Spiros.Generics
 
                   Prelude.Spiros.Validator
-
- ------------------------------
-
- if flag(static)
-
-    ld-options: -static
-                -pthread
 
  ------------------------------
 
@@ -332,6 +350,9 @@ library
                 ----------------------------------
                 -- Extended Library --------------
                 ----------------------------------
+
+              , th-lift-instances
+                -- ^ « instance Lift Text », etc
 
               , exceptions >= 0.10
                 -- ^ « class MonadThrow »
@@ -480,8 +501,11 @@ executable example-spiros
 
  ------------------------------
 
- default-language: Haskell2010
- 
+ if flag(static)
+
+    ld-options: -static
+                -pthread
+
  ------------------------------
 
  main-is:             Main.hs
@@ -498,13 +522,6 @@ executable example-spiros
               , base
               , text
               , optparse-applicative
-
- ------------------------------
-
- if flag(static)
-
-    ld-options: -static
-                -pthread
 
  -- ghc-options: -pgml gcc "-optl-Wl,--allow-multiple-definition" "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lXYZ" "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
 
@@ -530,6 +547,8 @@ executable example-spiros
 
  ------------------------------
 
+ default-language: Haskell2010
+ 
 --------------------------------------------------
 -- Tests -----------------------------------------
 --------------------------------------------------

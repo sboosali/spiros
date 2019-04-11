@@ -557,6 +557,12 @@ import "base" Control.Arrow                          as X (ArrowLoop(..))
 -- Imports: CPP ----------------------------------
 --------------------------------------------------
 
+#ifdef CABALFLAG_ORPHANS
+import "th-lift-instances" Instances.TH.Lift()
+#endif
+
+--------------------------------------------------
+
 #if HAS_MONAD_FAIL
 import "base" Control.Monad.Fail                     as X (MonadFail(..))
 #endif

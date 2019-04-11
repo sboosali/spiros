@@ -54,18 +54,18 @@ module Prelude.Spiros.Application
   (
     -- * Record of information for your application:
 
-    ApplicationInformation
-  , ApplicationInformation0
+    ApplicationInformation(..)
+  , ApplicationInformation0(..)
 
   , defaultApplicationInformation
   , defaultApplicationInformation0
   , asExecutableName
 
-  , ApplicationInterface
+  , ApplicationInterface(..)
 
     -- * Enumeration of your application's supported platforms.
 
-  , DesktopPlatform
+  , DesktopPlatform(..)
 
   , allDesktopPlatforms
   , currentDesktopPlatform

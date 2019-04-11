@@ -44,7 +44,7 @@ or, with an older macro:
 
 In your Cabal file, [1] add a custom flag:
 
-    Flag development
+    Flag develop
       Description:   Turn on development settings.
       Default:       False
    
@@ -52,13 +52,13 @@ that defines a custom CPP flag:
 
     library
       ...
-      if flag(development)
-        cpp-options: -DDEVELOPMENT
+      if flag(develop)
+        cpp-options: -DDEVELOP
       ...
 
 which you can then condition on in your Haskell files (as normal):
 
-    #if DEVELOPMENT
+    #if DEVELOP
     ...
 
 Similarly, your Cabal file can set flags given the: current architecture, package versions, etc. 
