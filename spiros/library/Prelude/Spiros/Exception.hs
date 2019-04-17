@@ -33,7 +33,12 @@ Throwers (Introspecting):
 
 -}
 
-module Prelude.Spiros.Exception where
+module Prelude.Spiros.Exception
+
+  ( module Prelude.Spiros.Exception
+
+  , module X
+  ) where
 
 --------------------------------------------------
 
@@ -52,20 +57,16 @@ import Prelude.Spiros.GUI
 -- Imports: Internal -----------------------------
 --------------------------------------------------
 
-import "exceptions" Control.Monad.Catch (MonadThrow(..))
+import "exceptions" Control.Monad.Catch as X (MonadThrow(..))
 
 --import "exceptions" Control.Monad.Catch hiding (throwM)
 --import "safe-exceptions" Control.Exception.Safe 
 
 --------------------------------------------------
-
-import qualified "safe" Safe
-
---------------------------------------------------
 -- Imports: External -----------------------------
 --------------------------------------------------
 
-import "base" Control.Exception (Exception(..))
+import "base" Control.Exception         as X (Exception(..))
 
 --------------------------------------------------
 
@@ -85,10 +86,10 @@ import "base" Data.Monoid ((<>))
 
 --------------------------------------------------
 
--- #if HAS_GHC_HasCallStack
--- import           "base" GHC.Stack.Types (HasCallStack)
--- import           "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
--- #endif
+#if HAS_GHC_CallStack
+import "base" GHC.Stack.Types           as X (HasCallStack)
+-- import "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
+#endif
 
 --------------------------------------------------
 -- Functions -------------------------------------

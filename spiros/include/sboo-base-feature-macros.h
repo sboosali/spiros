@@ -99,7 +99,7 @@
 /* module Data.Functor.Classes */
 /* Eq2, Ord2, Show2, Read2 ... */
 
-#define HAS_GHC_HasCallStack                      MIN_VERSION_base(4,9,0) && defined(__GLASGOW_HASKELL__)
+#define HAS_GHC_CallStack                      MIN_VERSION_base(4,9,0) && defined(__GLASGOW_HASKELL__)
 /* module GHC.Stack */
 
 /************************************************/

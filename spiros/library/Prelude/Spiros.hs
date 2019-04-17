@@ -34,18 +34,24 @@ module Prelude.Spiros
 -- Exports ---------------------------------------
 --------------------------------------------------
 
-import Prelude.Spiros.Enriched                       as X
-import Prelude.Spiros.Exception                      as X
-import Prelude.Spiros.Generics                       as X
-import Prelude.Spiros.Reexports                      as X
-import Prelude.Spiros.Types                          as X
-import Prelude.Spiros.Utilities                      as X
+import Prelude.Spiros.Enriched                    as X
+import Prelude.Spiros.Exception                   as X
+import Prelude.Spiros.Generics                    as X
+import Prelude.Spiros.Reexports                   as X
+import Prelude.Spiros.Types                       as X
+import Prelude.Spiros.Utilities                   as X
 
--- import Prelude.Spiros.GUI                            as X
--- import Prelude.Spiros.Parse                          as X
--- import Prelude.Spiros.Print                          as X
--- import Prelude.Spiros.System                         as X
--- import Prelude.Spiros.Validator                      as X
+-- import Prelude.Spiros.GUI                         as X
+-- import Prelude.Spiros.Parse                       as X
+-- import Prelude.Spiros.Print                       as X
+-- import Prelude.Spiros.System                      as X
+-- import Prelude.Spiros.Validator                   as X
+
+--------------------------------------------------
+-- Exports ---------------------------------------
+--------------------------------------------------
+
+import "base" Prelude                             as X (error)
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -69,19 +75,11 @@ Assertions can normally be turned on or off with a compiler flag (for GHC, asser
 
 These are re-exported by @Prelude.Spiros@.
 
-    "Prelude.Spiros.Reexports" re-exports: the core types\/values from several packages; minus /all/ partial functions, /except/ for some functions whose names are prefixed with @"unsafe"@, i.e. "explicitly partial functions", e.g. 'unsafeNatural' (however, no @unsafeHead@ is exported, as its need often implies that the @[]@ being used is the wrong type).
+    "Prelude.Spiros.Reexports" re-exports — the core types\/values from several packages; minus /all/ partial functions, /except/ for (1) some functions whose names are prefixed with @"unsafe"@, i.e. "explicitly partial functions", e.g. 'unsafeNatural' (however, no @unsafeHead@ is exported, as its need often implies that the @[]@ being used is the wrong type) and (2) 'error' (since it carries along a @CallStack@, as of /GHC-8.0/).
 
     "Prelude.Spiros.Utilities" defines a few dozen simple utilities, like an extended prelude. 
 
-    "Prelude.Spiros.System" provides system information: about the current operating system, architecture, and compiler. 
-
     "Prelude.Spiros.Exception" defines a few new exception types, which may (or may not) tag the message with a @TemplateHaskell@ 'Name' or with a 'CallStack', as auxiliary\/contextual information.
-
-    "Prelude.Spiros.Parse" provides utilities for simple parsing of custom datatypes.
-
-    "Prelude.Spiros.Print" provides utilities for simple pretty-printing of custom datatypes.
-
-    "Prelude.Spiros.Validator" re-exports helpers for defining simple validators (e.g. @a -> Maybe b@). 
 
     "Prelude.Spiros.GUI" provides helpers for working with @TemplateHaskell@ 'Name's.
 
@@ -95,6 +93,16 @@ These are re-exported by @Prelude.Spiros@.
 These must be explicitly imported, they aren't re-exported by @Prelude.Spiros@.
 
     "Prelude.Spiros.Classes" re-exports only typeclases\/methods (and a few helpers), from several packages (like @Prelude.Spiros.Reexports@), for deriving or defining instances (e.g. in a @.Types@ module). Unlike @Prelude.Spiros.Reexports@, partial functions that are methods (like @toEnum@ and @fromEnum@) are necessarily exported, since they must be /visible/ when manually writing instances. 
+
+    "Prelude.Spiros.Parse" provides utilities for simple parsing of custom datatypes.
+
+    "Prelude.Spiros.Print" provides utilities for simple pretty-printing of custom datatypes.
+
+    "Prelude.Spiros.Validator" re-exports helpers for defining simple validators (e.g. @a -> Maybe b@). 
+
+    "Prelude.Spiros.System" provides system information: about the current operating system, architecture, and compiler. 
+
+    "Prelude.Spiros.Application" provides a framework for declaring application information.
 
 -}
 

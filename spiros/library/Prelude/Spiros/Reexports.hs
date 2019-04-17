@@ -398,6 +398,12 @@ import "base" Data.Functor.Contravariant              as X
 #endif
 
 --------------------------------------------------
+
+#if HAS_GHC_CallStack
+import "base" GHC.Stack.Types (HasCallStack)
+#endif
+
+--------------------------------------------------
 -- `hashable` package...
 
 import "hashable" Data.Hashable                      as X (Hashable(..))
@@ -458,23 +464,21 @@ import "base" GHC.Generics                           as X
 -- the Prelude
 
 import Data.List as Base hiding
-  -- partials
+  -- partials:
  ( (!!)
  , find
  , minimumBy, maximumBy
  , scanl1, scanr1
  , head, tail, last, init
- -- aliased
+ -- aliased:
  , map 
  )
 
 import Prelude as Base hiding
  ( (<), (>)
- -- aliased
+ -- aliased:
  , map, sequence, sequence_
- -- deprecated
- , fail
- -- partials
+ -- partials:
  , error, undefined
  , minimum, maximum
  , scanl1, scanr1
@@ -484,6 +488,10 @@ import Prelude as Base hiding
  , foldl1
  , read
  , toEnum
+ -- deprecated:
+ , fail
+ -- too short:
+ , pi
  )
 
 --------------------------------------------------

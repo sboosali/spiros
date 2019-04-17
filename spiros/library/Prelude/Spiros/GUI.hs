@@ -43,12 +43,14 @@ import Prelude hiding
 --------------------------------------------------
 
 import "template-haskell" Language.Haskell.TH.Syntax
+
   ( Name(..)
   , NameFlavour(NameG,NameL)
   , NameSpace(..)
   , OccName(..)
   , ModName(..)
   , PkgName(..)
+  , mkName
   )
 
 --------------------------------------------------
@@ -183,6 +185,19 @@ instance Hashable GUI where
 
 -- -- instance NFData   (GUI' t) where
 -- -- instance Hashable (GUI' t) where
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+{- | A “nameless” default 'Name'.
+
+Useful as a placeholder for testing.
+
+-}
+
+anonymous :: Name
+anonymous = mkName ""
 
 --------------------------------------------------
 -- Functions -------------------------------------

@@ -61,7 +61,6 @@ import "exceptions" Control.Monad.Catch (MonadThrow(..))
 --------------------------------------------------
 
 import qualified "containers" Data.Set as Set
-import           "containers" Data.Set (Set)
 
 --------------------------------------------------
 
@@ -90,6 +89,8 @@ import qualified "bytestring" Data.ByteString.Lazy as LazyBytes
 -- import qualified "template-haskell" Language.Haskell.TH.Syntax as TemplateHaskell
 
 --------------------------------------------------
+
+import qualified "base" Data.Char as Char
 
 import "base" Control.Arrow              ((>>>),(<<<))
 import "base" Control.Concurrent         (threadDelay,forkIO,ThreadId)
@@ -571,6 +572,80 @@ ordNubBy f = \l -> go Set.empty l
 
 --------------------------------------------------
 
+{- | Replace a substring.
+
+Notes:
+
+* Replace it everywhere it occurs (not just the first occurence).
+* The first argument should not be the empty list (currently, this returns the input).
+
+== Examples
+
+>>> replaceSubstring "el" "_" "Hello Bella"
+"H_lo B_la"
+>>> replaceSubstring "el" "e" "Hello"
+"Helo"
+>>> replaceSubstring "" "e" "Hello"
+"Hello"
+
+== Laws
+
+@
+> ∀ xs ys  →  not (null xs)  ⇒  replaceSubstring xs xs ys ≡ ys
+@
+
+== Specializations
+
+@
+replaceSubstring :: (Eq a) =>    [a] ->    [a] ->    [a] ->    [a]
+replaceSubstring ::           [Char] -> [Char] -> [Char] -> [Char]
+@
+
+== Naming
+
+/Subsequence/ vs /Substring/:
+
+* a /subsequence/ is a sequence that can be derived from another sequence by deleting some or no elements without changing the order of the remaining elements.
+* a /substring/ is a contiguous sequence of characters within a string.
+
+In Haskell, a @String@ can literally be a sequence of characters.
+
+== Links
+
+* <https://www.stackage.org/haddock/lts/extra/Extra.html#v:replace @Extra@>
+* <https://en.wikipedia.org/wiki/Subsequence>
+* <https://en.wikipedia.org/wiki/Substring>
+
+-}
+
+replaceSubstring :: (Eq a) => [a] -> [a] -> [a] -> [a]
+
+replaceSubstring []   _    xs = xs
+replaceSubstring from into xs
+  | Just xs <- List.stripPrefix from xs = into ++ replaceSubstring from into xs
+
+replaceSubstring from into (x:xs) = x : replaceSubstring from into xs
+replaceSubstring from into []     = []
+
+{-# SPECIALIZE replaceSubstring :: [Char] -> [Char] -> [Char] -> [Char] #-}
+
+{-TODO-
+
+this:
+
+   prop> \xs ys  ->  not (null xs)  ==>  replaceSubstring xs xs ys == ys
+
+causes:
+
+    Variable not in scope:
+      polyQuickCheck
+        :: Language.Haskell.TH.Syntax.Name
+           -> Language.Haskell.TH.Lib.Internal.ExpQ
+
+-}
+
+--------------------------------------------------
+
 {- | Safely get the @n@-th item in the given list.
 
 >>> nth 1 ['a'..'c']
@@ -619,7 +694,7 @@ toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 
 == Notes
 
-* Function Application has precedence @10@.
+* Function Application has precedence @10@ (i.e. `applicationPrecedence`).
 * @('$')@ has precedence @0@ (i.e. `minimumPrecedence`).
 
 == Usage
@@ -651,6 +726,27 @@ maximumPrecedence = 11
 
 --------------------------------------------------
 
+{- | The precedence of Function Application (a /tight/ precedence).
+
+`applicationPrecedence` is the precedence of the /"whitespace operator"/.
+In pseudo-Haskell:
+
+@
+(␣) f x = f x
+infixl 10 ␣
+@
+
+See `maximumPrecedence`.
+
+-}
+
+applicationPrecedence :: HaskellPrecedence
+applicationPrecedence = 10
+
+{-# INLINEABLE applicationPrecedence #-}
+
+--------------------------------------------------
+
 {- | The /loosest/ precedence.
 
 See `maximumPrecedence`.
@@ -664,19 +760,49 @@ minimumPrecedence = 0
 
 --------------------------------------------------
 
-strip :: String -> String
-strip = rstrip . lstrip
+{- | Strip both leading and trailing whitespace.
 
-{-# INLINEABLE strip #-}
+Whitespace is defined by `Char.isSpace`.
+Whitespace characters include:
+
+* @\' \'@
+* @\'\t\'@
+* @\'\n\'@
+* @\'\r\'@
+
+Naming: \"left+right strip\".
+
+-}
+
+lrstrip :: String -> String
+lrstrip = rstrip . lstrip
+
+{-# INLINEABLE lrstrip #-}
 
 --------------------------------------------------
 
-lstrip :: String -> String
-lstrip = dropWhile (`elem` (" \t\n\r" :: String))
+{- | Strip /leading/ whitespace.
 
+See `lrstrip`.
+
+Naming: \"left strip\".
+
+-}
+
+lstrip :: String -> String
+lstrip = dropWhile Char.isSpace
+  
 {-# INLINEABLE lstrip #-}
 
 --------------------------------------------------
+
+{- | Strip /trailing/ whitespace.
+
+See `lrstrip`.
+
+Naming: \"right strip\".
+
+-}
 
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse

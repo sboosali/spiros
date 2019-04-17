@@ -204,7 +204,7 @@ Architecture Macros:
 * `#define HAS_BASE_Semigroup`
 * `#define HAS_BASE_UNARY_LIFTED_CLASSES`
 * `#define HAS_FOLDABLE_TRAVERSABLE_IN_PRELUDE`
-* `#define HAS_GHC_HasCallStack`
+* `#define HAS_GHC_CallStack`
 * `#define HAS_METHOD_Exception_displayException`
 * `#define HAS_MONAD_FAIL`
 * `#define HAS_PRELUDE_Monoid`
