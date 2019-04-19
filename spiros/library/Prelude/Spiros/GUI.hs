@@ -1,13 +1,50 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
 {-# LANGUAGE CPP #-}
 
+--------------------------------------------------
+
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE PolyKinds  #-}
+
+{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PackageImports, LambdaCase, RecordWildCards #-}
-{-# LANGUAGE DeriveAnyClass, AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric #-}
-{-# LANGUAGE RankNTypes, PolyKinds #-}
+--------------------------------------------------
 
-{-|
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE LambdaCase     #-}
+
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns  #-}
+
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE AutoDeriveTypeable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
+
+--------------------------------------------------
+
+{- | Globally-Unique Haskell-language Identifers.
+
+== Types
+
+* `GUI`  — a Haskell identifer, qualified by ① its namespace, ② its module, and ③ its package.
+* `Name` — re-exported (from the @template-haskell@ package).
+
+== Usage
+
+Uses of `GUI` include:
+
+* deeply-embedded domain-specific langauges.
+* debugging.
+* @-XTemplateHaskellQuotes@.
+
+== Functions
+
+* `prettyGUI`
 
 -}
 
@@ -16,13 +53,21 @@ module Prelude.Spiros.GUI
   ( module Prelude.Spiros.GUI
 
   , Name
+  , NameSpace(..)
+  , OccName(..)
+  , ModName(..)
+  , PkgName(..)
+
   ) where
 
 --------------------------------------------------
+-- Includes --------------------------------------
 --------------------------------------------------
 
 #include <sboo-base-feature-macros.h>
 
+--------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 import Prelude.Spiros.Reexports
@@ -33,12 +78,7 @@ import Prelude.Spiros.Classes
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Prelude hiding
- ( (<), (>)
-   -- shadowed
- , fail
-   -- deprecated
- )
+import qualified "text" Data.Text.Lazy.Builder as Lazy
 
 --------------------------------------------------
 
@@ -50,6 +90,7 @@ import "template-haskell" Language.Haskell.TH.Syntax
   , OccName(..)
   , ModName(..)
   , PkgName(..)
+
   , mkName
   )
 
@@ -57,9 +98,26 @@ import "template-haskell" Language.Haskell.TH.Syntax
 
 import "base" GHC.Generics (Generic)
 import "base" Data.Data    (Data)
+
+--------------------------------
+
 import "base" Data.Typeable
- ( tyConModule, tyConName, tyConPackage, typeRepTyCon
- )
+
+  ( tyConModule
+  , tyConName
+  , tyConPackage
+  , typeRepTyCon
+  )
+
+--------------------------------------------------
+
+import Prelude hiding
+
+  ( -- shadowed:
+    (<), (>)
+    -- deprecated:   
+  , fail
+  )
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -69,25 +127,25 @@ import "base" Data.Typeable
 for either a value or type,
 fully-qualified with its module and package. 
 
-TODO new field: @Version@.
-
 -}
 
 data GUI = GUI
 
- { _guiPackage    :: !PkgName
- , _guiModule     :: !ModName
- , _guiIdentifier :: !OccName
- , _guiNamespace  :: !NameSpace
- -- , _guiVersion    :: !(Maybe Version)
-
- } deriving ( Generic, Data
-            , Eq, Ord
+  { _guiPackage    :: !PkgName
+  , _guiModule     :: !ModName
+  , _guiIdentifier :: !OccName
+  , _guiNamespace  :: !NameSpace
+  -- , _guiVersion    :: !(Maybe Version)
+  }
+  deriving ( Generic, Data
+           , Eq, Ord
 #if MIN_VERSION_GLASGOW_HASKELL(8,0,0,0)
-            , Show
-            -- « GHC 8 » introduced « instance Show NameSpace ».
+           , Show
+             -- « GHC 8 » introduced « instance Show NameSpace ».
 #endif
-            )
+           )
+
+-- TODO new field: @Version@.
 
 --------------------------------------------------
 
@@ -352,8 +410,12 @@ fromTypeProxy
 -- failure = throwM . userError . showName
 
 --------------------------------------------------
+-- Functions: Printing ---------------------------
+--------------------------------------------------
 
-{-|
+{- | Pretty-Pretty a `GUI`.
+
+== Examples
 
 >>> displayGUI (GUI (PkgName "package-name") (ModName "Module.SubModule") (OccName "identifierName") VarName)
 "package-name:Module.SubModule.identifierName"
@@ -382,6 +444,54 @@ displayGUI (GUI (PkgName p) (ModName m) (OccName o) n) =
       VarName   -> Nothing -- ""
       DataName  -> Nothing -- ""
       TcClsName -> Just "type "
+
+--------------------------------------------------
+
+{- | Pretty-Print a `GUI`.
+
+Render as /lazily-built/ text, for the @formatting@ package.
+
+== Examples
+
+>>> :set -XTemplateHaskellQuotes
+>>> Just gui1 = fromGlobalName 'buildGUI
+>>> gui2 = gui1 { _guiPackage = PkgName "spiros" }
+>>> buildGUI gui2
+"spiros:Prelude.Spiros.GUI:buildGUI"
+
+-}
+
+buildGUI :: GUI -> Lazy.Builder
+buildGUI GUI{ _guiPackage, _guiModule, _guiIdentifier, _guiNamespace } = tGUI
+
+  where
+
+  tGUI = tP <> tSep <> tM <> tSep <> tN <> tI
+
+  tSep = Lazy.fromString ":"
+
+  tP = Lazy.fromString sP
+  tM = Lazy.fromString sM
+  tI = Lazy.fromString sI
+
+  tN = case _guiNamespace of
+
+    VarName   -> mempty
+    DataName  -> mempty
+    TcClsName -> Lazy.fromString "(type)"        -- c.f. « -XExplicitNamespaces ».
+
+  PkgName sP = _guiPackage
+  ModName sM = _guiModule
+  OccName sI = _guiIdentifier
+
+{- TODO
+
+import qualified "formatting" Formatting.Buildable as Format
+
+-- | @≡ `buildGUI`@
+instance Format.Buildable GUI where build = buildGUI
+
+-}
 
 --------------------------------------------------
 -- Notes -----------------------------------------

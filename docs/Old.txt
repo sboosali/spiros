@@ -2612,6 +2612,49 @@ import "base" Control.Exception                      as EXPORT
 
 
 
+buildGUI :: GUI -> Lazy.Builder
+buildGUI GUI{ _guiPackage, _guiModule, _guiIdentifier, _guiNamespace } = tGUI
+
+  where
+
+  tGUI = tP <> ":" <> tM <> ":" <> tN' <> tI
+
+  tN' = case _guiNamespace of
+
+    VarName   ->
+    DataName  ->
+    TcClsName -> ("(" <> tN <> ")")
+
+  sP = tP
+  sM = tM
+  sI = tI
+  sN = tN
+
+  PkgName sP = _guiPackage    
+  ModName sM = _guiModule
+  OccName sI = _guiIdentifier
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
