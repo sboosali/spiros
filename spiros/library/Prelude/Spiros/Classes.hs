@@ -377,7 +377,7 @@ module Prelude.Spiros.Classes
 
 --------------------------------------------------
 
-  ( module X
+  ( module EXPORT
   , module Prelude.Spiros.Classes
   ) where
 
@@ -389,47 +389,45 @@ module Prelude.Spiros.Classes
 -- `deepseq`
 --------------------------------------------------
 
-import "deepseq" Control.DeepSeq                     as X (NFData(..))
-import "base"    Prelude                             as X (seq)
+import Sprelude.Export.DeepSeq                      as EXPORT
+
+  ( NFData(..)
+  , seq
 
 #if HAS_DEEPSEQ_NFData1
-import "deepseq" Control.DeepSeq                     as X (NFData1(..))
-import "deepseq" Control.DeepSeq                     as X (rnf1)
+  , NFData1(..)
+  , rnf1
 #endif
 
 #if HAS_DEEPSEQ_NFData2
-import "deepseq" Control.DeepSeq                     as X (NFData2(..))
-import "deepseq" Control.DeepSeq                     as X (rnf2)
+  , NFData2(..)
+  , rnf2
 #endif
 
-#if MIN_VERSION_deepseq(1,4,3)
-import "deepseq" Control.DeepSeq                     as X (rwhnf)  
-#else
--- see below
-#endif
+  )
 
 --------------------------------------------------
 -- `hashable`
 --------------------------------------------------
 
-import "hashable" Data.Hashable                      as X (Hashable(..))
-import "hashable" Data.Hashable                      as X (hashUsing)
+import "hashable" Data.Hashable                      as EXPORT (Hashable(..))
+import "hashable" Data.Hashable                      as EXPORT (hashUsing)
 
 #if HAS_HASHABLE_Hashable1
-import "hashable" Data.Hashable.Lifted               as X (Hashable1(..))
-import "hashable" Data.Hashable.Lifted               as X (hashWithSalt1)
+import "hashable" Data.Hashable.Lifted               as EXPORT (Hashable1(..))
+import "hashable" Data.Hashable.Lifted               as EXPORT (hashWithSalt1)
 #endif
 
 #if HAS_HASHABLE_Hashable2
-import "hashable" Data.Hashable.Lifted               as X (Hashable2(..))
-import "hashable" Data.Hashable.Lifted               as X (hashWithSalt2)
+import "hashable" Data.Hashable.Lifted               as EXPORT (Hashable2(..))
+import "hashable" Data.Hashable.Lifted               as EXPORT (hashWithSalt2)
 #endif
 
 --------------------------------------------------
 -- `data-default-class`
 --------------------------------------------------
 
-import "data-default-class" Data.Default.Class       as X (Default(..))
+import "data-default-class" Data.Default.Class       as EXPORT (Default(..))
 
 --------------------------------------------------
 -- `semigroups`
@@ -443,15 +441,15 @@ import "semigroups" Data.Semigroup.Generic           as X
 -- `exceptions`
 --------------------------------------------------
 
-import "exceptions" Control.Monad.Catch              as X (MonadThrow(..))
-import "exceptions" Control.Monad.Catch              as X (MonadCatch(..))
-import "exceptions" Control.Monad.Catch              as X (MonadMask(..))
+import "exceptions" Control.Monad.Catch              as EXPORT (MonadThrow(..))
+import "exceptions" Control.Monad.Catch              as EXPORT (MonadCatch(..))
+import "exceptions" Control.Monad.Catch              as EXPORT (MonadMask(..))
 
 --------------------------------------------------
 -- `generic-deriving`
 --------------------------------------------------
 
-import "generic-deriving" Generics.Deriving.Enum     as X
+import "generic-deriving" Generics.Deriving.Enum     as EXPORT
  ( GEnum(..)
  -- , GIx -- NOTE GIx's methods conflict with Ix.
  )
@@ -460,100 +458,100 @@ import "generic-deriving" Generics.Deriving.Enum     as X
 -- `mtl`
 --------------------------------------------------
 
-import "mtl" Control.Monad.Reader.Class              as X (MonadReader(..))
-import "mtl" Control.Monad.Writer.Class              as X (MonadWriter(..))
-import "mtl" Control.Monad.State.Class               as X (MonadState(..))
-import "mtl" Control.Monad.Error.Class               as X (MonadError(..))
+import "mtl" Control.Monad.Reader.Class              as EXPORT (MonadReader(..))
+import "mtl" Control.Monad.Writer.Class              as EXPORT (MonadWriter(..))
+import "mtl" Control.Monad.State.Class               as EXPORT (MonadState(..))
+import "mtl" Control.Monad.Error.Class               as EXPORT (MonadError(..))
 
 --------------------------------------------------
 -- `transformers`
 --------------------------------------------------
 
-import "transformers" Control.Monad.Trans.Class      as X (MonadTrans(..))
+import "transformers" Control.Monad.Trans.Class      as EXPORT (MonadTrans(..))
 
 --------------------------------------------------
 -- `template-haskell`
 --------------------------------------------------
 
-import "template-haskell" Language.Haskell.TH.Syntax as X (Lift)
+import "template-haskell" Language.Haskell.TH.Syntax as EXPORT (Lift)
 
 --------------------------------------------------
 -- `base:Prelude`
 --------------------------------------------------
 
-import "base" Prelude                                as X (Show(..))
-import "base" Prelude                                as X (Read(..))
+import "base" Prelude                                as EXPORT (Show(..))
+import "base" Prelude                                as EXPORT (Read(..))
 
-import "base" Prelude                                as X (Eq(..))
-import "base" Prelude                                as X
+import "base" Prelude                                as EXPORT (Eq(..))
+import "base" Prelude                                as EXPORT
  (Ord((<=),(>=))) -- hide `>` / `<`
 
-import "base" Prelude                                as X (Num(..))
-import "base" Prelude                                as X (Real(..))
-import "base" Prelude                                as X (Integral(..))
-import "base" Prelude                                as X (Fractional(..))
-import "base" Prelude                                as X (Floating(..))
-import "base" Prelude                                as X (RealFrac(..))
-import "base" Prelude                                as X (RealFloat(..))
+import "base" Prelude                                as EXPORT (Num(..))
+import "base" Prelude                                as EXPORT (Real(..))
+import "base" Prelude                                as EXPORT (Integral(..))
+import "base" Prelude                                as EXPORT (Fractional(..))
+import "base" Prelude                                as EXPORT (Floating(..))
+import "base" Prelude                                as EXPORT (RealFrac(..))
+import "base" Prelude                                as EXPORT (RealFloat(..))
 
 --------------------------------------------------
 -- `base`
 --------------------------------------------------
 
-import "base" Prelude                                as X (Enum(..))
-import "base" Prelude                                as X (Bounded(..))
-import "base" Data.Ix                                as X (Ix(..))
-import "base" Data.Bits                              as X (Bits(..), FiniteBits(..))
+import "base" Prelude                                as EXPORT (Enum(..))
+import "base" Prelude                                as EXPORT (Bounded(..))
+import "base" Data.Ix                                as EXPORT (Ix(..))
+import "base" Data.Bits                              as EXPORT (Bits(..), FiniteBits(..))
 
-import "base" Data.Monoid                            as X (Monoid(..))
+import "base" Data.Monoid                            as EXPORT (Monoid(..))
 
-import "base" Data.Functor                           as X (Functor(..))
-import "base" Data.Foldable                          as X (Foldable(elem,foldl,foldl',foldl1,foldr,foldr1,length,maximum,minimum,null,product,sum)) -- `Foldable(toList)` conflicts with `IsList(toList)`
-import "base" Data.Traversable                       as X (Traversable(..))
+import "base" Data.Functor                           as EXPORT (Functor(..))
+import "base" Data.Foldable                          as EXPORT (Foldable(elem,foldl,foldl',foldl1,foldr,foldr1,length,maximum,minimum,null,product,sum)) -- `Foldable(toList)` conflicts with `IsList(toList)`
+import "base" Data.Traversable                       as EXPORT (Traversable(..))
 
-import "base" Control.Applicative                    as X (Applicative(..))
-import "base" Control.Applicative                    as X (Alternative(..))
+import "base" Control.Applicative                    as EXPORT (Applicative(..))
+import "base" Control.Applicative                    as EXPORT (Alternative(..))
 
-import "base" Control.Monad                          as X
+import "base" Control.Monad                          as EXPORT
  (Monad((>>=),return,(>>))) -- hide `fail`
-import "base" Control.Monad                          as X (MonadPlus(..))
+import "base" Control.Monad                          as EXPORT (MonadPlus(..))
 
-import "base" Control.Monad.Fix                      as X (MonadFix(..))
+import "base" Control.Monad.Fix                      as EXPORT (MonadFix(..))
 
-import "base" Control.Arrow                          as X (Arrow)
-import "base" Control.Arrow                          as X (ArrowZero)
-import "base" Control.Arrow                          as X (ArrowPlus)
-import "base" Control.Arrow                          as X (ArrowChoice)
-import "base" Control.Arrow                          as X (ArrowApply)
-import "base" Control.Arrow                          as X (ArrowLoop)
+import "base" Control.Arrow                          as EXPORT (Arrow)
+import "base" Control.Arrow                          as EXPORT (ArrowZero)
+import "base" Control.Arrow                          as EXPORT (ArrowPlus)
+import "base" Control.Arrow                          as EXPORT (ArrowChoice)
+import "base" Control.Arrow                          as EXPORT (ArrowApply)
+import "base" Control.Arrow                          as EXPORT (ArrowLoop)
 
-import "base" Control.Category                       as X
+import "base" Control.Category                       as EXPORT
  (Category) -- can't export `(.)` and `id`, which conflict with their specializations TODO?
 
-import "base" Control.Exception                      as X ( Exception(..) )
+import "base" Control.Exception                      as EXPORT ( Exception(..) )
 
-import "base" Text.ParserCombinators.ReadP           as X
+import "base" Text.ParserCombinators.ReadP           as EXPORT
  ( ReadP,ReadS
  , readP_to_S,readS_to_P
  )
  -- for writing `Read` instances
 
-import "base" Foreign.Storable                       as X (Storable(..))
+import "base" Foreign.Storable                       as EXPORT (Storable(..))
 
 {-
 
-import "base" Text.Printf                            as X (PrintfArg(..))
+import "base" Text.Printf                            as EXPORT (PrintfArg(..))
 
-import "base" Control.Category                       as X (Category(..))
+import "base" Control.Category                       as EXPORT (Category(..))
 
-import "string-conv" Data.String.Conv                as X (StringConv (..),Leniency (..))
+import "string-conv" Data.String.Conv                as EXPORT (StringConv (..),Leniency (..))
 
-import "base" Control.Arrow                          as X (Arrow(..))
-import "base" Control.Arrow                          as X (ArrowZero(..))
-import "base" Control.Arrow                          as X (ArrowPlus(..))
-import "base" Control.Arrow                          as X (ArrowChoice(..))
-import "base" Control.Arrow                          as X (ArrowApply(..))
-import "base" Control.Arrow                          as X (ArrowLoop(..))
+import "base" Control.Arrow                          as EXPORT (Arrow(..))
+import "base" Control.Arrow                          as EXPORT (ArrowZero(..))
+import "base" Control.Arrow                          as EXPORT (ArrowPlus(..))
+import "base" Control.Arrow                          as EXPORT (ArrowChoice(..))
+import "base" Control.Arrow                          as EXPORT (ArrowApply(..))
+import "base" Control.Arrow                          as EXPORT (ArrowLoop(..))
 
 -}
 
@@ -568,58 +566,58 @@ import "th-lift-instances" Instances.TH.Lift()
 --------------------------------------------------
 
 #if HAS_MONAD_FAIL
-import "base" Control.Monad.Fail                     as X (MonadFail(..))
+import "base" Control.Monad.Fail                     as EXPORT (MonadFail(..))
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_Semigroup
-import "base" Data.Semigroup                         as X (Semigroup(..))
+import "base" Data.Semigroup                         as EXPORT (Semigroup(..))
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_Bifunctor
-import "base" Data.Bifunctor                         as X (Bifunctor(..))
+import "base" Data.Bifunctor                         as EXPORT (Bifunctor(..))
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_Bifoldable_Bitraversable
-import "base" Data.Bifoldable                        as X (Bifoldable(..))
-import "base" Data.Bitraversable                     as X (Bitraversable(..))
+import "base" Data.Bifoldable                        as EXPORT (Bifoldable(..))
+import "base" Data.Bitraversable                     as EXPORT (Bitraversable(..))
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_MonadIO
-import "base" Control.Monad.IO.Class                 as X (MonadIO(..))
+import "base" Control.Monad.IO.Class                 as EXPORT (MonadIO(..))
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_UNARY_LIFTED_CLASSES
 -- unary lifted classes
-import "base" Data.Functor.Classes                          as X (Eq1(..),eq1)
-import "base" Data.Functor.Classes                          as X (Ord1(..),compare1)
-import "base" Data.Functor.Classes                          as X (Show1(..),showsPrec1)
-import "base" Data.Functor.Classes                          as X (Read1(..),readsPrec1)
+import "base" Data.Functor.Classes                          as EXPORT (Eq1(..),eq1)
+import "base" Data.Functor.Classes                          as EXPORT (Ord1(..),compare1)
+import "base" Data.Functor.Classes                          as EXPORT (Show1(..),showsPrec1)
+import "base" Data.Functor.Classes                          as EXPORT (Read1(..),readsPrec1)
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_BINARY_LIFTED_CLASSES
 -- binary lifted classes
-import "base" Data.Functor.Classes                          as X (Eq2(..),eq2)
-import "base" Data.Functor.Classes                          as X (Ord2(..),compare2)
-import "base" Data.Functor.Classes                          as X (Show2(..),showsPrec2)
-import "base" Data.Functor.Classes                          as X (Read2(..),readsPrec2)
+import "base" Data.Functor.Classes                          as EXPORT (Eq2(..),eq2)
+import "base" Data.Functor.Classes                          as EXPORT (Ord2(..),compare2)
+import "base" Data.Functor.Classes                          as EXPORT (Show2(..),showsPrec2)
+import "base" Data.Functor.Classes                          as EXPORT (Read2(..),readsPrec2)
 #endif
 
 --------------------------------------------------
 
 #if HAS_BASE_Contravariant
-import "base" Data.Functor.Contravariant                    as X
+import "base" Data.Functor.Contravariant                    as EXPORT
  ( Contravariant(..)
  )
 #endif
@@ -627,13 +625,13 @@ import "base" Data.Functor.Contravariant                    as X
 --------------------------------------------------
 
 #if IS_COMPILER_ghc
-import "base" GHC.Generics                           as X (Generic, Rep)
-import "base" GHC.Generics                           as X (Generic1, Rep1)
-import "base" Data.Data                              as X (Data)
---import "base" Data.Typeable                          as X (Typeable)
-import "base" GHC.Exts                               as X (IsList(Item,fromList))
+import "base" GHC.Generics                           as EXPORT (Generic, Rep)
+import "base" GHC.Generics                           as EXPORT (Generic1, Rep1)
+import "base" Data.Data                              as EXPORT (Data)
+--import "base" Data.Typeable                          as EXPORT (Typeable)
+import "base" GHC.Exts                               as EXPORT (IsList(Item,fromList))
  -- hide `toList`
-import "base" GHC.Exts                               as X (IsString(..))
+import "base" GHC.Exts                               as EXPORT (IsString(..))
 #endif
 
 --------------------------------------------------

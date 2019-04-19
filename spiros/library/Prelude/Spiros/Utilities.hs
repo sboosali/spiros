@@ -644,6 +644,25 @@ causes:
 
 -}
 
+
+--------------------------------------------------
+--TODO--
+
+-- {- | Replace substrings implied by a predicate.
+
+-- -}
+
+-- replaceSubstringBy :: (a -> Bool) -> [a] -> [a] -> [a] -> [a]
+
+-- replaceSubstringBy []   _    xs = xs
+-- replaceSubstringBy from into xs
+--   | Just xs <- List.stripPrefix from xs = into ++ replaceSubstringBy from into xs
+
+-- replaceSubstringBy from into (x:xs) = x : replaceSubstringBy from into xs
+-- replaceSubstringBy from into []     = []
+
+-- {-# SPECIALIZE replaceSubstringBy :: (a -> Bool) -> [Char] -> [Char] -> [Char] -> [Char] #-}
+
 --------------------------------------------------
 
 {- | Safely get the @n@-th item in the given list.
@@ -1296,6 +1315,9 @@ toLazyByteString
 
   = LazyBytes.fromChunks
   . (: [])
+
+--------------------------------------------------
+-- « deepseq » utilities...
 
 --------------------------------------------------
 -- EOF -------------------------------------------
