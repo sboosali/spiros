@@ -271,7 +271,10 @@ library
 
  ------------------------------
 
- exposed-modules: 
+ exposed-modules: Sprelude
+
+                  Sprelude.Export.DeepSeq
+
                  --Spiros
                   Prelude.Spiros
                   Prelude.NotSpiros
