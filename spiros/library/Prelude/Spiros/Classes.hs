@@ -410,32 +410,37 @@ import Sprelude.Export.DeepSeq                      as EXPORT
 -- `hashable`
 --------------------------------------------------
 
-import "hashable" Data.Hashable                      as EXPORT (Hashable(..))
-import "hashable" Data.Hashable                      as EXPORT (hashUsing)
+import Sprelude.Export.Hashable                     as EXPORT
+
+  ( Hashable(..)
+  , hashUsing
 
 #if HAS_HASHABLE_Hashable1
-import "hashable" Data.Hashable.Lifted               as EXPORT (Hashable1(..))
-import "hashable" Data.Hashable.Lifted               as EXPORT (hashWithSalt1)
+  , Hashable1(..)
+  , hashWithSalt1
 #endif
 
 #if HAS_HASHABLE_Hashable2
-import "hashable" Data.Hashable.Lifted               as EXPORT (Hashable2(..))
-import "hashable" Data.Hashable.Lifted               as EXPORT (hashWithSalt2)
+  , Hashable2(..)
+  , hashWithSalt2
 #endif
+  )
 
 --------------------------------------------------
 -- `data-default-class`
 --------------------------------------------------
 
-import "data-default-class" Data.Default.Class       as EXPORT (Default(..))
+import "data-default-class" Data.Default.Class      as EXPORT (Default(..))
 
 --------------------------------------------------
 -- `semigroups`
 --------------------------------------------------
 
 import "semigroups" Data.Semigroup.Generic           as X
- ( gmappend, gmempty
- )
+
+  ( gmappend
+  , gmempty
+  )
 
 --------------------------------------------------
 -- `exceptions`

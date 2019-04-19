@@ -142,8 +142,11 @@ import Sprelude.Export.DeepSeq                      as EXPORT
 -- `hashable`
 --------------------------------------------------
 
-import "hashable" Data.Hashable                      as EXPORT ( Hashable(..) )
-import "hashable" Data.Hashable                      as EXPORT ( hashUsing )
+import Sprelude.Export.Hashable                     as EXPORT
+
+  ( Hashable(..)
+  , hashUsing
+  )
 
 --------------------------------------------------
 -- `text`
@@ -566,39 +569,50 @@ import "base" Control.Exception                       as EXPORT
 --------------------------------------------------
 -- `hashable` package...
 
-import "hashable" Data.Hashable                      as EXPORT (Hashable(..))
-import "hashable" Data.Hashable                      as EXPORT (hashUsing)
+import Sprelude.Export.Hashable                     as EXPORT
+
+  ( Hashable(..)
+  , hashUsing
 
 #if HAS_HASHABLE_Hashable1
-import "hashable" Data.Hashable.Lifted               as EXPORT (Hashable1(..))
+  , Hashable1(..)
+  , hashWithSalt1
 #endif
 
 #if HAS_HASHABLE_Hashable2
-import "hashable" Data.Hashable.Lifted               as EXPORT (Hashable2(..))
+  , Hashable2(..)
+  , hashWithSalt2
 #endif
+  )
 
 --------------------------------------------------
 -- `ghc` compiler...
 
 #if IS_COMPILER_ghc
-
 import "base" GHC.Exts                               as EXPORT
+
   ( IsList(..)
   , IsString(..)
-  , groupWith, sortWith
+
+  , groupWith
+  , sortWith
   )
+#endif
 
+--------------------------------
+
+#if IS_COMPILER_ghc
 import "base" GHC.Generics                           as EXPORT
- ( Generic
- , Generic1
- )
 
+  ( Generic
+  , Generic1
+  )
 #endif
 
 --------------------------------
 
 #if HAS_GHC_CallStack
-import "base" GHC.Stack.Types (HasCallStack)
+import "base" GHC.Stack.Types ( HasCallStack )
 #endif
 
 --------------------------------------------------

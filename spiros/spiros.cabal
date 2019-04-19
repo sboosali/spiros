@@ -274,6 +274,7 @@ library
  exposed-modules: Sprelude
 
                   Sprelude.Export.DeepSeq
+                  Sprelude.Export.Hashable
 
                  --Spiros
                   Prelude.Spiros

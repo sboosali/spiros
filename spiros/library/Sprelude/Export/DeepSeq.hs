@@ -10,6 +10,9 @@
 
 {- | Re-Export "Control.DeepSeq", with some utilities and aliases.
 
+The @deepseq@ package contains the @"Control.DeepSeq"@ module,
+which provides the `NFData` class.
+
 == Usage
 
 The "Control.Exception" and "Control.DeepSeq" modules provide for controlling the /strictness/ of evaluation.
@@ -19,6 +22,10 @@ Uses include:
 * Forcing traces (see "Debug.Trace.trace").
 * Forcing @error@s inside monadic computations, instead of those errors being thrown from pure code (see "Prelude.error").
 * Removing space leaks — by popping a thunk once via `evaluateWHNF`, rather than repeatedly via laziness.
+
+== Links
+
+* <https://www.stackage.org/haddock/lts/deepseq/Control-DeepSeq.html>
 
 -}
 
