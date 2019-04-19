@@ -48,7 +48,6 @@ module Prelude.Spiros.Exception
 -- Imports: Internal -----------------------------
 --------------------------------------------------
 
-import Prelude.Spiros.Compatibility
 import Prelude.Spiros.Utilities
 import Prelude.Spiros.Reexports
 import Prelude.Spiros.GUI
@@ -70,20 +69,10 @@ import "base" Control.Exception         as X (Exception(..))
 
 --------------------------------------------------
 
---import qualified "base" Prelude
-import "base" Prelude hiding
- ( fail
- , (>), (<)
- )
+import qualified "base" Prelude
 
 --------------------------------------------------
 -- Imports: CPP ----------------------------------
---------------------------------------------------
-
-#if !HAS_PRELUDE_OPERATOR_Append
-import "base" Data.Monoid ((<>))
-#endif
-
 --------------------------------------------------
 
 #if HAS_GHC_CallStack

@@ -1,11 +1,14 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
 {-# LANGUAGE CPP #-}
 
 --------------------------------------------------
 
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE PackageImports    #-}
 
---------------------------------------------------
 --------------------------------------------------
   
 {-|
@@ -67,9 +70,10 @@ import Prelude.Spiros.Compatibility
 --------------------------------------------------
 
 import "generic-deriving" Generics.Deriving.Enum     as EXPORT
- ( GEnum(genum)
- , GIx
- )
+
+  ( GEnum(genum)
+  , GIx
+  )
 
 --------------------------------------------------
 
@@ -78,24 +82,26 @@ import "safe" Safe                                   as EXPORT
 --------------------------------------------------
 
 import "exceptions" Control.Monad.Catch              as EXPORT
- ( MonadThrow(..)
- , MonadCatch(..)
- , MonadMask(..)
 
- , catch, try, finally
- )
+  ( MonadThrow(..)
+  , MonadCatch(..)
+  , MonadMask(..)
+  )
 
 --------------------------------------------------
 
 import "data-default-class" Data.Default.Class       as EXPORT
- ( Default(..)
- )
+
+  ( Default(..)
+  )
 
 --------------------------------------------------
 
 import "semigroups" Data.Semigroup.Generic           as EXPORT
- ( gmappend, gmempty
- )
+
+  ( gmappend
+  , gmempty
+  )
 
 ---------------------------------------
 -- https://www.fpcomplete.com/blog/2016/06/announce-safe-exceptions
@@ -111,13 +117,15 @@ import "semigroups" Data.Semigroup.Generic           as EXPORT
 -- import "protolude" Protolude                      as EXPORT
 
 import "string-conv" Data.String.Conv                as EXPORT
- ( StringConv (..)
- , Leniency (..)
- , toS
- , toSL
- , convS
- , convSL
- )
+
+  ( StringConv (..)
+  , Leniency (..)
+
+  , toS
+  , toSL
+  , convS
+  , convSL
+  )
 
 --------------------------------------------------
 -- imports from the "standard library"...
@@ -134,8 +142,8 @@ import Sprelude.Export.DeepSeq                      as EXPORT
 -- `hashable`
 --------------------------------------------------
 
-import "hashable" Data.Hashable                      as EXPORT (Hashable(..))
-import "hashable" Data.Hashable                      as EXPORT (hashUsing)
+import "hashable" Data.Hashable                      as EXPORT ( Hashable(..) )
+import "hashable" Data.Hashable                      as EXPORT ( hashUsing )
 
 --------------------------------------------------
 -- `text`
@@ -153,7 +161,7 @@ import "bytestring" Data.ByteString                  as EXPORT (ByteString)  -- 
 -- `transformers`
 --------------------------------------------------
 
-import "transformers" Control.Monad.Trans.Class      as EXPORT (MonadTrans(..))
+import "transformers" Control.Monad.Trans.Class      as EXPORT ( MonadTrans(..) )
 
 --------------------------------------------------
 -- `mtl`
@@ -175,6 +183,8 @@ import "mtl" Control.Monad.Reader                    as EXPORT
     withReaderT,
  )
 
+--------------------------------
+
 import "mtl" Control.Monad.State                     as EXPORT
  (
     MonadState(..),
@@ -194,6 +204,8 @@ import "mtl" Control.Monad.State                     as EXPORT
     mapStateT,
     withStateT,
  )
+
+--------------------------------
 
 import "mtl" Control.Monad.Except                    as EXPORT
  (
@@ -471,12 +483,6 @@ import "base" Data.Data                              as EXPORT (Data)
 -- Imports: CPP ----------------------------------
 --------------------------------------------------
 
-#if HAS_BASE_Semigroup
-import "base" Data.Semigroup                         as EXPORT (Semigroup(..))
-#endif
-
---------------------------------------------------
-
 #if HAS_BASE_NonEmpty
 import "base" Data.List.NonEmpty                     as EXPORT
  ( NonEmpty(..)
@@ -610,37 +616,60 @@ import "base" GHC.Stack.Types (HasCallStack)
 -- the Prelude
 
 import Data.List as Base hiding
-  -- partials:
- ( (!!)
- , find
- , minimumBy, maximumBy
- , scanl1, scanr1
- , head, tail, last, init
- -- aliased:
- , map 
- )
+
+  ( -- partials:
+    (!!)
+  , find
+  , minimumBy, maximumBy
+  , scanl1, scanr1
+  , head, tail, last, init
+
+  -- aliased:
+  , map 
+  )
 
 --------------------------------
 
 import Prelude as Base hiding
- ( (<), (>)
- -- aliased:
- , map, sequence, sequence_
- -- partials:
- , error, undefined
- , minimum, maximum
- , scanl1, scanr1
- , head, tail, last, init
- , foldr1
- , foldl1
- , foldl1
- , read
- , toEnum
- -- deprecated:
- , fail
- -- too short:
- , pi
- )
+
+  ( -- shadowed:
+
+    (<)
+  , (>)
+
+  -- compatibility:
+
+#if HAS_PRELUDE_OPERATOR_Append
+  , (<>)
+#endif
+
+  -- aliased:
+
+  , map
+  , sequence
+  , sequence_
+
+  -- partials:
+
+  , undefined
+  , minimum, maximum
+  , scanl1, scanr1
+  , head, tail, last, init
+  , foldr1
+  , foldl1
+  , foldl1
+  , read
+  , toEnum
+
+  -- deprecated:
+
+  , fail
+
+  -- too short:
+
+  , pi
+
+  )
 
 --------------------------------------------------
 -- EOF -------------------------------------------

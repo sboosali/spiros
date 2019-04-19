@@ -23,15 +23,20 @@ are guarded by conditional-compilation (via @CPP@ macros).
 For:
 
 * @MonadFail@
+* @Semigroup@
 
 -}
 
---------------------------------------------------
---------------------------------------------------
-
 module Prelude.Spiros.Compatibility
 
- ( MonadFail
+ ( -- * @Semigroup@ Compatibility
+
+  Semigroup
+ , (<>)
+
+  -- * @MonadFail@ Compatibility
+
+ , MonadFail
  , Product(Pair)
  , MonadIO(liftIO)
  , fail
@@ -71,6 +76,15 @@ import "transformers" Control.Monad.IO.Class
 #endif
 
 --------------------------------------------------
+
+#if HAS_BASE_Semigroup
+import           "base"       Data.Semigroup ( Semigroup(..) )
+#else
+import           "semigroups" Data.Semigroup ( Semigroup )
+import           "semigroups" Data.Semigroup ( (<>) )
+#endif
+
+--------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
@@ -82,4 +96,5 @@ type MonadFail m = Monad m
 #endif
 
 --------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------
