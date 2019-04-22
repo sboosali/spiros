@@ -4,11 +4,11 @@
 , optparse-applicative, prettyprinter, process, safe, semigroups
 , split, stdenv, stm, string-conv, template-haskell, text
 , th-lift-instances, time, transformers, unix-compat
-, unordered-containers, vector
+, unordered-containers
 }:
 mkDerivation {
   pname = "spiros";
-  version = "0.4.0";
+  version = "0.4.4";
   src = ../../spiros;
   configureFlags = [ "-fexamples" "-fstatic" ];
   isLibrary = true;
@@ -18,7 +18,7 @@ mkDerivation {
     data-default-class deepseq directory exceptions filepath
     generic-deriving hashable mtl prettyprinter process safe semigroups
     split stm string-conv template-haskell text th-lift-instances time
-    transformers unix-compat unordered-containers vector
+    transformers unix-compat unordered-containers
   ];
   executableHaskellDepends = [ base optparse-applicative text ];
   testHaskellDepends = [ base doctest ];

@@ -474,9 +474,9 @@ LC_ALL=C.UTF-8
 
 example-spiros:
 
-	@printf "\n%s\n" ========================================
-
-	$(Cabal) new-build $(CabalOptions) "-fexamples" "exe:example-spiros"
+#	@printf "\n%s\n" ========================================
+#
+#	$(Cabal) new-build $(CabalOptions) "-fexamples" "exe:example-spiros"
 
 	@printf "\n%s\n" ========================================
 
