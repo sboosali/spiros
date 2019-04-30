@@ -225,7 +225,7 @@ dist:
 
 #TODO dist js 7.10 static 8.0 8.2 8.4 8.6
 
-all: static dist check docs js 7.10 8.6
+all: static dist check docs js 7.10 8.4 8.6
 
 	@printf "\n%s\n" "========================================"
 
